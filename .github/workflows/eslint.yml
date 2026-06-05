@@ -4,12 +4,16 @@ on: [pull_request]
 
 permissions:
   contents: read
-  pull-requests: read
 
 jobs:
-  prettier-lint:
-    name: Run ESLint
+  eslint:
+    name: ESLint (${{ matrix.workspace }})
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        workspace: [backend, frontend]
 
     steps:
       - name: Checkout code
@@ -20,9 +24,12 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+          cache-dependency-path: ${{ matrix.workspace }}/package-lock.json
 
       - name: Install dependencies
         run: npm ci
+        working-directory: ${{ matrix.workspace }}
 
       - name: Run ESLint
-        run: npx eslint . --ext .js,.jsx,.ts,.tsx
+        run: npx eslint .
+        working-directory: ${{ matrix.workspace }}
