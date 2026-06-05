@@ -1,5 +1,14 @@
 all: build up
 
+dev-up:
+	docker compose -f docker-compose-dev.yaml up
+
+dev-down:
+	docker compose -f docker-compose-dev.yaml down
+
+dev-clean:
+	docker compose -f docker-compose-dev.yaml down -v --rmi local
+
 up:
 	docker compose up -d
 
@@ -26,4 +35,4 @@ check:
 
 re: clean build up
 
-.PHONY: all up build down start stop clean check re
+.PHONY: all dev-up dev-down dev-clean up build down start stop clean fclean check re
