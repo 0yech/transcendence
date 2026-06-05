@@ -1,0 +1,33 @@
+name: transcendence
+services:
+  frontend:
+    container_name: frontend
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    # volumes:
+    # networks:
+    # ports:
+  backend:
+    container_name: backend
+    build: ./backend
+    restart: unless-stopped
+    # environment:
+    # secrets:
+    # networks:
+  # database:
+    # container_name: database
+    # image:
+    # restart: unless-stopped
+    # environment:
+    # secrets:
+    # volumes:
+    # networks:
+
+# secrets:
+
+# volumes:
+
+networks:
+  transcendence:

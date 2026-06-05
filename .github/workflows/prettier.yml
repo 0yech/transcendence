@@ -1,0 +1,35 @@
+name: Prettier
+
+on: [pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  prettier:
+    name: Prettier (${{ matrix.workspace }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        workspace: [backend, frontend]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.workspace }}/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ${{ matrix.workspace }}
+
+      - name: Run Prettier check
+        run: npx prettier --check .
+        working-directory: ${{ matrix.workspace }}
