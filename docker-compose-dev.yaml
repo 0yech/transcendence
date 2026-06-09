@@ -2,13 +2,21 @@ name: transcendence
 services:
   frontend:
     container_name: frontend
-    build: ./frontend
+    build:
+      context: ./frontend
+      target: development
     restart: unless-stopped
     depends_on:
       - backend
-    # volumes:
+    ports:
+      - "5173:5173"
+    volumes:
+      # Mount the source for hot reloads
+      - ./frontend:/app
+      # Anonymous volume that "masks" the mount above for this one path, keeping
+      # the container's Linux-built node_modules instead of the host's
+      - /app/node_modules
     # networks:
-    # ports:
   backend:
     container_name: backend
     build:

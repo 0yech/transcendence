@@ -15,7 +15,7 @@ COPY package*.json ./
 RUN npm ci
 
 # Copy the rest of the source. In dev this is shadowed by the bind mount from
-# docker-compose-dev.yaml (so your live edits win), but copying it here keeps the
+# docker-compose-dev.yaml for live edits, but copying it here keeps the
 # image runnable on its own, e.g. `docker run` without compose.
 COPY . .
 
