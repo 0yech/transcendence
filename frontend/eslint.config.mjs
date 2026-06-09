@@ -24,6 +24,28 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
+      // Enforce casing of names (not their meaning). Most-general selector
+      // first, more-specific ones override it below.
+      '@typescript-eslint/naming-convention': [
+        'error',
+        // Fallback: anything not matched more specifically must be camelCase.
+        { selector: 'default', format: ['camelCase'], leadingUnderscore: 'allow' },
+        // Variables: camelCase, UPPER_CASE for constants, PascalCase for
+        // component values assigned to a variable (e.g. const App = () => ...).
+        { selector: 'variable', format: ['camelCase', 'UPPER_CASE', 'PascalCase'] },
+        // Functions: camelCase for normal fns/hooks, PascalCase for React components.
+        { selector: 'function', format: ['camelCase', 'PascalCase'] },
+        { selector: 'parameter', format: ['camelCase'], leadingUnderscore: 'allow' },
+        { selector: 'enumMember', format: ['PascalCase', 'UPPER_CASE'] },
+        // Classes, interfaces, enums, type aliases, type params.
+        { selector: 'typeLike', format: ['PascalCase'] },
+        // Skip names we don't control (HTTP headers, JSON keys, env vars).
+        {
+          selector: ['objectLiteralProperty', 'typeProperty'],
+          format: null,
+          modifiers: ['requiresQuotes'],
+        },
+      ],
     },
   },
   // Keep ESLint out of formatting; Prettier owns that (separate CI job).
