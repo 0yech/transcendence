@@ -11,19 +11,29 @@ services:
     # ports:
   backend:
     container_name: backend
-    build: ./backend
+    build:
+      context: ./backend
+      target: development
     restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mount the source for hot reloads
+      - ./backend:/app
+      # Anonymous volume that "masks" the mount above for this one path, keeping
+      # the container's Linux-built node_modules instead of the host's
+      - /app/node_modules
     # environment:
     # secrets:
     # networks:
   # database:
-    # container_name: database
-    # image:
-    # restart: unless-stopped
-    # environment:
-    # secrets:
-    # volumes:
-    # networks:
+  # container_name: database
+  # image:
+  # restart: unless-stopped
+  # environment:
+  # secrets:
+  # volumes:
+  # networks:
 
 # secrets:
 
