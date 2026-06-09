@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint';
 import eslintConfigPrettier from 'eslint-config-prettier';
 
 export default tseslint.config(
-  { ignores: ['dist', 'node_modules'] },
+  { ignores: ['dist', 'node_modules', 'eslint.config.mjs'] },
   {
     files: ['**/*.{ts,tsx}'],
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
@@ -29,13 +29,27 @@ export default tseslint.config(
       '@typescript-eslint/naming-convention': [
         'error',
         // Fallback: anything not matched more specifically must be camelCase.
-        { selector: 'default', format: ['camelCase'], leadingUnderscore: 'allow' },
+        {
+          selector: 'default',
+          format: ['camelCase'],
+          leadingUnderscore: 'allow',
+        },
         // Variables: camelCase, UPPER_CASE for constants, PascalCase for
         // component values assigned to a variable (e.g. const App = () => ...).
-        { selector: 'variable', format: ['camelCase', 'UPPER_CASE', 'PascalCase'] },
+        {
+          selector: 'variable',
+          format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
+        },
         // Functions: camelCase for normal fns/hooks, PascalCase for React components.
         { selector: 'function', format: ['camelCase', 'PascalCase'] },
-        { selector: 'parameter', format: ['camelCase'], leadingUnderscore: 'allow' },
+        // Imports: PascalCase for default-imported React components (import App
+        // from './App'), camelCase for everything else.
+        { selector: 'import', format: ['camelCase', 'PascalCase'] },
+        {
+          selector: 'parameter',
+          format: ['camelCase'],
+          leadingUnderscore: 'allow',
+        },
         { selector: 'enumMember', format: ['PascalCase', 'UPPER_CASE'] },
         // Classes, interfaces, enums, type aliases, type params.
         { selector: 'typeLike', format: ['PascalCase'] },
