@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum OAuthProvider {
+  FORTYTWO
+  GOOGLE
+  GITHUB
+}
+
+model User {
+  id             String         @id @default(cuid())
+
+  username       String         @unique
+  email          String         @unique
+  hashedPassword String?
+
+  oauthProvider  OAuthProvider?
+  oauthId        String?
+
+  avatarUrl      String?
+
+  lobbyId        String?        @unique
+  lobby          Lobby?         @relation(fields: [lobbyId], references: [id])
+
+  messages       Message[]
+
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@unique([oauthProvider, oauthId])
+}
+
+model Lobby {
+    id          String          @id @default(cuid())
+
+    code        String
+    active      Boolean         @default(true)
+    private     Boolean         @default(false)
+    password    String?
+
+    users       User[] // Users in lobby
+
+    chat        Chat?
+
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+}
+
+model Chat {
+  id        String    @id @default(cuid())
+
+  lobbyId   String    @unique
+  lobby     Lobby     @relation(fields: [lobbyId], references: [id], onDelete: Cascade)
+
+  messages  Message[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Message {
+    id        String   @id @default(cuid())
+
+    content   String
+
+    authorId  String
+    author    User     @relation(fields: [authorId], references: [id])
+
+    chatId    String
+    chat      Chat     @relation(fields: [chatId], references: [id])
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
