@@ -20,4 +20,7 @@ npx prisma generate --config prisma.config.ts
 echo "Syncing Prisma schema with database..."
 npx prisma db push --config prisma.config.ts
 
+echo "Starting Prisma Studio..."
+npx prisma studio --config prisma.config.ts --port 5555 --browser none & # > /dev/null 2>&1 &
+
 wait "$POSTGRES_PID"
