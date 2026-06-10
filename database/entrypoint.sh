@@ -1,6 +1,7 @@
 #!/bin/sh
 set -e
 
+# Wrap the postgres entrypoint script
 docker-entrypoint.sh postgres &
 
 POSTGRES_PID=$!
