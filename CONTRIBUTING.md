@@ -21,3 +21,8 @@ This way, you don't have to worry about the casing of your variables; the choice
 The configuration has already been provided in the form of a `eslint.config.mjs` file found in `frontend/` and `backend/` directories.
 
 Same as with Prettier, once installed in your editor, everything should work.
+
+## Conventions
+
+- The git history has to follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/#summary) convention.
+- Please follow formatting as per the Prettier configuration, and make sure no ESLint warnings are issued throughout your code.
