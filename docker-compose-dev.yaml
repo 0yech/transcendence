@@ -34,6 +34,21 @@ services:
     # environment:
     # secrets:
     # networks:
+  database:
+    container_name: database
+    build:
+      context: ./database
+      target: development
+    restart: unless-stopped
+    env_file:
+      - .env-example
+    ports:
+      - "5432:5432"
+      - "5555:5555"
+    volumes:
+      - ./database:/app
+      - /app/node_modules
+      - database_data:/var/lib/postgresql/data
   # database:
   # container_name: database
   # image:
@@ -45,7 +60,8 @@ services:
 
 # secrets:
 
-# volumes:
+volumes:
+  database_data:
 
 networks:
   transcendence:
