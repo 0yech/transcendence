@@ -2,11 +2,14 @@
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import eslintConfigPrettier from 'eslint-config-prettier';
+import globals from 'globals';
 
 export default tseslint.config(
-  { ignores: ['dist', 'node_modules'] },
+  { ignores: ['dist', 'node_modules', 'eslint.config.mjs'] },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
+  // Make Node and Jest globals known so source/test files don't trip no-undef.
+  { languageOptions: { globals: { ...globals.node, ...globals.jest } } },
   {
     files: ['**/*.ts'],
     rules: {
@@ -15,13 +18,25 @@ export default tseslint.config(
       '@typescript-eslint/naming-convention': [
         'error',
         // Fallback: anything not matched more specifically must be camelCase.
-        { selector: 'default', format: ['camelCase'], leadingUnderscore: 'allow' },
+        {
+          selector: 'default',
+          format: ['camelCase'],
+          leadingUnderscore: 'allow',
+        },
         // Variables: camelCase normally, UPPER_CASE for constants.
         { selector: 'variable', format: ['camelCase', 'UPPER_CASE'] },
         // Function parameters; leading underscore allowed for "unused on purpose".
-        { selector: 'parameter', format: ['camelCase'], leadingUnderscore: 'allow' },
+        {
+          selector: 'parameter',
+          format: ['camelCase'],
+          leadingUnderscore: 'allow',
+        },
         // Class/object members.
-        { selector: 'memberLike', format: ['camelCase'], leadingUnderscore: 'allow' },
+        {
+          selector: 'memberLike',
+          format: ['camelCase'],
+          leadingUnderscore: 'allow',
+        },
         { selector: 'enumMember', format: ['PascalCase', 'UPPER_CASE'] },
         // Classes, interfaces, enums, type aliases, type params.
         { selector: 'typeLike', format: ['PascalCase'] },

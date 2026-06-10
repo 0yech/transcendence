@@ -1,0 +1,8 @@
+# Keep the build context small and avoid copying host-built artifacts into the
+# image. node_modules especially: the host is macOS/arm, the container is Linux,
+# so host modules can be the wrong platform — let `npm ci` rebuild them inside.
+node_modules
+dist
+.git
+.env
+npm-debug.log*

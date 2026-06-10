@@ -1,5 +1,16 @@
 # Contributing to Transcendence
 
+## Run Project
+
+For development, use `make dev-up`. This will run the development servers for
+both the frontend and backend.
+
+`make dev-down` and `make dev-clean` are used for stopping the app and starting
+fresh, respectively.
+
+We still have to set up the compose file for production,
+this will come later on.
+
 ## Set up tools
 
 ### Prettier
