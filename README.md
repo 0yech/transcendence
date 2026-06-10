@@ -25,7 +25,11 @@ Communicate via the Discord DM Group
 - Back-end: NestJS
 - Database: PostgreSQL with Prisma ORM
 - Tailwind CSS for styling
-- ...
+- TypeScript throughout the code base
+  TypeScript was chosen to make learning JavaScript simpler. It's not going to
+  make life easy at first, but it will save us a lot of time in the long run,
+  and will give us a better understanding of the code we're writing, as well as
+  better tooling overall.
 
 ## Database Schema
 
