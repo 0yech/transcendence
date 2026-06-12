@@ -13,6 +13,10 @@ export default tseslint.config(
   {
     files: ['**/*.ts'],
     rules: {
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { ignoreRestSiblings: true },
+      ],
       // Enforce casing of names (not their meaning). Most-general selector
       // first, more-specific ones override it below.
       '@typescript-eslint/naming-convention': [
