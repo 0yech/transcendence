@@ -1,5 +1,6 @@
 import {
   Body,
+  ConflictException,
   Controller,
   Get,
   HttpCode,
@@ -20,11 +21,26 @@ export class AuthController {
     private readonly usersService: UsersService,
   ) {}
 
+  /**
+   * @brief Creates a user and returns a logged in JWT for that new user.
+   */
+  @HttpCode(HttpStatus.OK)
+  @Post('register')
+  register(@Body() registerDto: Record<string, string>) {
+    const newUser = this.usersService.createOne(
+      registerDto.username,
+      registerDto.password,
+    );
+
+    if (newUser === undefined) {
+      throw new ConflictException();
+    }
+  }
+
   // TODO Replace Record<string, string> with a DTO class to validate the body in a pipe
   @HttpCode(HttpStatus.OK)
   @Post('login')
   signIn(@Body() signInDto: Record<string, string>) {
-    console.log(signInDto);
     return this.authService.signIn(signInDto.username, signInDto.password);
   }
 
