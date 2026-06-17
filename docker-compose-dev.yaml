@@ -23,6 +23,8 @@ services:
       context: ./backend
       target: development
     restart: unless-stopped
+    env_file:
+      - .env-example
     ports:
       - "3000:3000"
     volumes:
@@ -31,7 +33,6 @@ services:
       # Anonymous volume that "masks" the mount above for this one path, keeping
       # the container's Linux-built node_modules instead of the host's
       - /app/node_modules
-    # environment:
     # secrets:
     # networks:
   database:
