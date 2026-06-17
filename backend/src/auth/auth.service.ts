@@ -10,7 +10,8 @@ export class AuthService {
   ) {}
 
   /**
-   * @brief For a username and password, return the associated user object.
+   * @brief Return a JWT for a valid username and password.
+   * The JWT will contain the user's ID and username.
    */
   async signIn(
     username: string,
@@ -22,6 +23,8 @@ export class AuthService {
       throw new UnauthorizedException();
     }
 
+    // sub is conventional in JWT, and means "subject"
+    // in this case, it's the user's id
     const payload = { sub: user.id, username: user.username };
 
     return { accessToken: await this.jwtService.signAsync(payload) };
