@@ -11,10 +11,14 @@ import { AuthService } from './auth.service';
 import { AuthGuard } from './auth.guard';
 import { CurrentUser } from './current-user.decorator';
 import type { JwtPayload } from './jwt-payload.interface';
+import { UsersService } from 'src/users/users.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly usersService: UsersService,
+  ) {}
 
   // TODO Replace Record<string, string> with a DTO class to validate the body in a pipe
   @HttpCode(HttpStatus.OK)
@@ -28,8 +32,9 @@ export class AuthController {
    * @brief Returns the incoming request's JWT's payload, defined in the AuthService.
    */
   @UseGuards(AuthGuard)
-  @Get('profile')
-  getProfile(@CurrentUser() user: JwtPayload) {
-    return user;
+  @Get('me')
+  getCurrentUser(@CurrentUser() user: JwtPayload) {
+    // TODO Remove password from returned User object
+    return this.usersService.findOne(user.username);
   }
 }
