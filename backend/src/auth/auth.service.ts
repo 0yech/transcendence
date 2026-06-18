@@ -18,8 +18,8 @@ export class AuthService {
     pass: string,
   ): Promise<{ accessToken: string }> {
     const user = await this.usersService.findOne(username);
-    // TODO Compare hashes instead of raw passwords
-    if (user?.password !== pass) {
+
+    if (user?.passwordHash !== pass) {
       throw new UnauthorizedException();
     }
 
