@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -15,12 +16,19 @@ export class AuthService {
    */
   async signIn(
     username: string,
-    pass: string,
+    password: string,
   ): Promise<{ accessToken: string }> {
     const user = await this.usersService.findOne(username);
 
-    if (user?.passwordHash !== pass) {
-      throw new UnauthorizedException();
+    if (user === undefined) {
+      throw new UnauthorizedException("User doesn't exist.");
+    }
+
+    if (user.passwordHash !== undefined) {
+      const match = await bcrypt.compare(password, user.passwordHash);
+      if (!match) {
+        throw new UnauthorizedException("Password doesn't match.");
+      }
     }
 
     // sub is conventional in JWT, and means "subject"
