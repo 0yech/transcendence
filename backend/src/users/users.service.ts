@@ -2,13 +2,13 @@ import { ConflictException, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
 // TODO Make this store users in the database instead of hard-coded here
-export type User = { id: number; username: string; password?: string };
+export type User = { id: number; username: string; passwordHash?: string };
 
 @Injectable()
 export class UsersService {
   private users: User[] = [
-    { id: 39, username: 'miku', password: 'leek' },
-    { id: 401, username: 'teto', password: 'pear' },
+    { id: 39, username: 'miku', passwordHash: 'leek' },
+    { id: 401, username: 'teto', passwordHash: 'pear' },
   ];
 
   /**
@@ -39,7 +39,7 @@ export class UsersService {
     const user: User = {
       id: id,
       username: username,
-      password: hash,
+      passwordHash: hash,
     };
     this.users.push(user);
     return user;
