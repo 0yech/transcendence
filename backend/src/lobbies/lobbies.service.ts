@@ -46,6 +46,7 @@ export class LobbiesService {
     const lobby = await this.prisma.lobby.findUnique({
       where: {
         code,
+        active: true,
       },
       include: {
         users: true,
