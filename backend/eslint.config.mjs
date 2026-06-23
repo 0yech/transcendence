@@ -13,6 +13,10 @@ export default tseslint.config(
   {
     files: ['**/*.ts'],
     rules: {
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { ignoreRestSiblings: true },
+      ],
       // Enforce casing of names (not their meaning). Most-general selector
       // first, more-specific ones override it below.
       '@typescript-eslint/naming-convention': [
@@ -25,6 +29,13 @@ export default tseslint.config(
         },
         // Variables: camelCase normally, UPPER_CASE for constants.
         { selector: 'variable', format: ['camelCase', 'UPPER_CASE'] },
+        // Exported consts may be PascalCase (e.g. decorators built with
+        // createParamDecorator, where PascalCase matches NestJS convention).
+        {
+          selector: 'variable',
+          modifiers: ['exported', 'const'],
+          format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
+        },
         // Function parameters; leading underscore allowed for "unused on purpose".
         {
           selector: 'parameter',
