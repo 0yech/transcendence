@@ -1,8 +1,4 @@
-import {
-  ConflictException,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 
 // TODO Make this store users in the database instead of hard-coded here
 // TODO Store passwords hashed and salted
