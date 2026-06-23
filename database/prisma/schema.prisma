@@ -1,6 +1,5 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -25,8 +24,8 @@ model User {
 
   avatarUrl      String?
 
-  lobbyId        String?        @unique
-  lobby          Lobby?         @relation(fields: [lobbyId], references: [id])
+  lobbyId        String?
+  lobby          Lobby? @relation(fields: [lobbyId], references: [id], onDelete: SetNull)
 
   messages       Message[]
 
@@ -39,7 +38,7 @@ model User {
 model Lobby {
     id          String          @id @default(cuid())
 
-    code        String
+    code        String          @unique
     active      Boolean         @default(true)
     private     Boolean         @default(false)
     password    String?
