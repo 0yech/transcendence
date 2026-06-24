@@ -2,7 +2,12 @@ import { ConflictException, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
 // TODO Make this store users in the database instead of hard-coded here
-export type User = { id: number; username: string; passwordHash?: string };
+export type User = {
+  id: number;
+  username: string;
+  email: string;
+  passwordHash?: string;
+};
 
 @Injectable()
 export class UsersService {
@@ -11,8 +16,8 @@ export class UsersService {
   /**
    * @brief Find and return a user based on username
    */
-  async findOne(username: string): Promise<User | undefined> {
-    return this.users.find((user) => user.username === username);
+  async findOne(email: string): Promise<User | undefined> {
+    return this.users.find((user) => user.email === email);
   }
 
   /**
@@ -20,7 +25,11 @@ export class UsersService {
    *
    * @return The newly created User object, as a Promise.
    */
-  async createOne(username: string, password: string): Promise<User> {
+  async createOne(
+    username: string,
+    email: string,
+    password: string,
+  ): Promise<User> {
     if (this.users.find((value) => value.username === username) !== undefined) {
       throw new ConflictException();
     }
@@ -36,9 +45,11 @@ export class UsersService {
     const user: User = {
       id: id,
       username: username,
+      email: email,
       passwordHash: hash,
     };
     this.users.push(user);
+    console.log(this.users);
     return user;
   }
 }

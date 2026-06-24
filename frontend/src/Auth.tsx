@@ -30,6 +30,12 @@ export function Register() {
       <form name="register" method="post" action="http://localhost:3000/auth/register">
         <div>
           <label>
+            Username
+            <input name="username" type="text" autoComplete="username" />
+          </label>
+        </div>
+        <div>
+          <label>
             Email address
             <input name="email" type="email" autoComplete="email" />
           </label>
@@ -40,7 +46,7 @@ export function Register() {
             <input name="password" type="password" autoComplete="password" />
           </label>
         </div>
-        <button>Login</button>
+        <button>Register</button>
       </form>
 
       <div>
