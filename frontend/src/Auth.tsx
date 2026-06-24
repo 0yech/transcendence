@@ -11,7 +11,7 @@ export function Login() {
         <div>
           <label>
             Password
-            <input name="password" type="password" autoComplete="password" />
+            <input name="password" type="password" autoComplete="current-password" />
           </label>
         </div>
         <button>Login</button>
@@ -43,7 +43,7 @@ export function Register() {
         <div>
           <label>
             Password
-            <input name="password" type="password" autoComplete="password" />
+            <input name="password" type="password" autoComplete="new-password" />
           </label>
         </div>
         <button>Register</button>
