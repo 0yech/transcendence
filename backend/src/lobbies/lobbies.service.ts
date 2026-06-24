@@ -79,13 +79,34 @@ export class LobbiesService {
   }
 
   async leaveLobby(userId: string) {
-    return this.prisma.user.update({
-      where: {
-        id: userId,
-      },
-      data: {
-        lobbyId: null,
-      },
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
     });
+
+    if (!user) {
+      throw new NotFoundException(`User with id ${userId} not found`);
+    }
+
+    const lobbyId = user.lobbyId;
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: { lobbyId: null },
+    });
+
+    if (lobbyId) {
+      const usersLeft = await this.prisma.user.count({
+        where: { lobbyId },
+      });
+
+      if (usersLeft === 0) {
+        await this.prisma.lobby.update({
+          where: { id: lobbyId },
+          data: { active: false },
+        });
+      }
+    }
+
+    return updatedUser;
   }
 }
