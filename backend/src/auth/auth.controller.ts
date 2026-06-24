@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   ConflictException,
   Controller,
@@ -27,6 +28,13 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('register')
   register(@Body() registerDto: Record<string, string>) {
+    if (
+      registerDto.username === undefined ||
+      registerDto.password === undefined
+    ) {
+      throw new BadRequestException();
+    }
+
     const newUser = this.usersService.createOne(
       registerDto.username,
       registerDto.password,
@@ -41,6 +49,10 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('login')
   signIn(@Body() signInDto: Record<string, string>) {
+    if (signInDto.username === undefined || signInDto.password === undefined) {
+      throw new BadRequestException();
+    }
+
     return this.authService.signIn(signInDto.username, signInDto.password);
   }
 
