@@ -23,6 +23,10 @@ services:
       context: ./backend
       target: development
     restart: unless-stopped
+    depends_on:
+      - database
+    environment:
+      - DATABASE_URL=postgresql://transcendence:transcendence@database:5432/transcendence?schema=public
     env_file:
       - .env-example
     ports:
@@ -33,6 +37,9 @@ services:
       # Anonymous volume that "masks" the mount above for this one path, keeping
       # the container's Linux-built node_modules instead of the host's
       - /app/node_modules
+      - ./database:/app/database:ro
+    command: sh -c "npx prisma generate --schema=/app/database/prisma/schema.prisma && npm run start:dev"
+    # environment:
     # secrets:
     # networks:
   database:
