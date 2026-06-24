@@ -1,15 +1,12 @@
 import { ConflictException, Injectable } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 
 // TODO Make this store users in the database instead of hard-coded here
-// TODO Store passwords hashed and salted
-export type User = { id: number; username: string; password: string };
+export type User = { id: number; username: string; passwordHash?: string };
 
 @Injectable()
 export class UsersService {
-  private users: User[] = [
-    { id: 39, username: 'miku', password: 'leek' },
-    { id: 401, username: 'teto', password: 'pear' },
-  ];
+  private users: User[] = [];
 
   /**
    * @brief Find and return a user based on username
@@ -21,23 +18,27 @@ export class UsersService {
   /**
    * @brief Create new user in the database.
    *
-   * @return The newly created User object, or undefined if it already exists.
+   * @return The newly created User object, as a Promise.
    */
-  createOne(username: string, password: string): User | undefined {
+  async createOne(username: string, password: string): Promise<User> {
     if (this.users.find((value) => value.username === username) !== undefined) {
       throw new ConflictException();
     }
 
     const lastUser = this.users.at(-1);
     // TODO Have a better logic for creating user ids
-    const id = lastUser === undefined ? 1 : lastUser?.id + 1;
+    const id = lastUser === undefined ? 1 : lastUser.id + 1;
+
+    // Hash password
+    const saltRounds = 10;
+    const hash = await bcrypt.hash(password, saltRounds);
 
     const user: User = {
       id: id,
       username: username,
-      password: password,
+      passwordHash: hash,
     };
     this.users.push(user);
-    return this.users.at(-1);
+    return user;
   }
 }
