@@ -6,10 +6,7 @@ export type User = { id: number; username: string; passwordHash?: string };
 
 @Injectable()
 export class UsersService {
-  private users: User[] = [
-    { id: 39, username: 'miku', passwordHash: 'leek' },
-    { id: 401, username: 'teto', passwordHash: 'pear' },
-  ];
+  private users: User[] = [];
 
   /**
    * @brief Find and return a user based on username
