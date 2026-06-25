@@ -5,6 +5,8 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
+    "postinstall": "prisma generate || echo 'Skipped prisma generate — set up backend/.env then run: npm run prisma:generate'",
+    "prisma:generate": "prisma generate",
     "build": "nest build",
     "start": "nest start",
     "start:dev": "nest start --watch",
