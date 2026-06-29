@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { publicLobbySelect } from './lobbies.select';
 
 // TODO: Avoid duplicate codes
 function generateLobbyCode(): string {
@@ -20,10 +21,7 @@ export class LobbiesService {
           create: {},
         },
       },
-      include: {
-        chat: true,
-        users: true,
-      },
+      select: publicLobbySelect,
     });
   }
 
@@ -32,10 +30,7 @@ export class LobbiesService {
       where: {
         active: true,
       },
-      include: {
-        users: true,
-        chat: true,
-      },
+      select: publicLobbySelect,
       orderBy: {
         createdAt: 'desc',
       },
@@ -48,10 +43,7 @@ export class LobbiesService {
         code,
         active: true,
       },
-      include: {
-        users: true,
-        chat: true,
-      },
+      select: publicLobbySelect,
     });
 
     if (!lobby) {
@@ -65,22 +57,27 @@ export class LobbiesService {
     // findLobbyByCode already returns 404 on fail
     const lobby = await this.findLobbyByCode(lobbyCode);
 
-    return this.prisma.user.update({
+    await this.prisma.user.update({
       where: {
         id: userId,
       },
       data: {
         lobbyId: lobby.id,
       },
-      include: {
-        lobby: true,
-      },
     });
+
+    return this.findLobbyByCode(lobbyCode);
   }
 
   async leaveLobby(userId: string) {
     const user = await this.prisma.user.findUnique({
-      where: { id: userId },
+      where: {
+        id: userId,
+      },
+      select: {
+        id: true,
+        lobbyId: true,
+      },
     });
 
     if (!user) {
@@ -89,24 +86,36 @@ export class LobbiesService {
 
     const lobbyId = user.lobbyId;
 
-    const updatedUser = await this.prisma.user.update({
-      where: { id: userId },
-      data: { lobbyId: null },
+    await this.prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        lobbyId: null,
+      },
     });
 
     if (lobbyId) {
       const usersLeft = await this.prisma.user.count({
-        where: { lobbyId },
+        where: {
+          lobbyId,
+        },
       });
 
       if (usersLeft === 0) {
         await this.prisma.lobby.update({
-          where: { id: lobbyId },
-          data: { active: false },
+          where: {
+            id: lobbyId,
+          },
+          data: {
+            active: false,
+          },
         });
       }
     }
 
-    return updatedUser;
+    return {
+      success: true,
+    };
   }
 }
