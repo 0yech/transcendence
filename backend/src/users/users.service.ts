@@ -1,18 +1,20 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-
-// TODO Make this store users in the database instead of hard-coded here
-export type User = { id: number; username: string; passwordHash?: string };
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class UsersService {
-  private users: User[] = [];
+  constructor(private readonly prisma: PrismaService) {}
 
   /**
    * @brief Find and return a user based on username
    */
-  async findOne(username: string): Promise<User | undefined> {
-    return this.users.find((user) => user.username === username);
+  async findOne(username: string) {
+    return this.prisma.user.findUnique({
+      where: {
+        username: username,
+      },
+    });
   }
 
   /**
@@ -20,25 +22,27 @@ export class UsersService {
    *
    * @return The newly created User object, as a Promise.
    */
-  async createOne(username: string, password: string): Promise<User> {
-    if (this.users.find((value) => value.username === username) !== undefined) {
+  async createOne(username: string, password: string) {
+    try {
+      this.prisma.user.findUniqueOrThrow({
+        where: {
+          username: username,
+        },
+      });
+    } catch {
       throw new ConflictException();
     }
-
-    const lastUser = this.users.at(-1);
-    // TODO Have a better logic for creating user ids
-    const id = lastUser === undefined ? 1 : lastUser.id + 1;
 
     // Hash password
     const saltRounds = 10;
     const hash = await bcrypt.hash(password, saltRounds);
 
-    const user: User = {
-      id: id,
-      username: username,
-      passwordHash: hash,
-    };
-    this.users.push(user);
-    return user;
+    return this.prisma.user.create({
+      data: {
+        username: username,
+        email: '', // TODO Handle email (login/register pages)
+        hashedPassword: hash,
+      },
+    });
   }
 }
