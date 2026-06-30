@@ -26,8 +26,8 @@ export class AuthController {
    */
   @HttpCode(HttpStatus.OK)
   @Post('register')
-  register(@Body() registerDto: Record<string, string>) {
-    const newUser = this.usersService.createOne(
+  async register(@Body() registerDto: Record<string, string>) {
+    const newUser = await this.usersService.createOne(
       registerDto.username,
       registerDto.password,
     );

@@ -23,13 +23,12 @@ export class UsersService {
    * @return The newly created User object, as a Promise.
    */
   async createOne(username: string, password: string) {
-    try {
-      this.prisma.user.findUniqueOrThrow({
-        where: {
-          username: username,
-        },
-      });
-    } catch {
+    const existingUser = await this.prisma.user.findUnique({
+      where: {
+        username: username,
+      },
+    });
+    if (existingUser !== null) {
       throw new ConflictException();
     }
 
@@ -37,12 +36,13 @@ export class UsersService {
     const saltRounds = 10;
     const hash = await bcrypt.hash(password, saltRounds);
 
-    return this.prisma.user.create({
+    const user = await this.prisma.user.create({
       data: {
         username: username,
-        email: '', // TODO Handle email (login/register pages)
+        email: username, // TODO Handle email (login/register pages)
         hashedPassword: hash,
       },
     });
+    return user;
   }
 }
