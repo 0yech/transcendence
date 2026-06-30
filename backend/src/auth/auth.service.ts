@@ -20,12 +20,12 @@ export class AuthService {
   ): Promise<{ accessToken: string }> {
     const user = await this.usersService.findOne(username);
 
-    if (user === undefined) {
+    if (user === null) {
       throw new UnauthorizedException("User doesn't exist.");
     }
 
-    if (user.passwordHash !== undefined) {
-      const match = await bcrypt.compare(password, user.passwordHash);
+    if (user.hashedPassword !== null) {
+      const match = await bcrypt.compare(password, user.hashedPassword);
       if (!match) {
         throw new UnauthorizedException("Password doesn't match.");
       }
