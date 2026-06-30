@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   ConflictException,
   Controller,
@@ -21,14 +22,24 @@ export class AuthController {
     private readonly usersService: UsersService,
   ) {}
 
+  // TODO Replace Record<string, string> with a DTO class to validate the body in a pipe
   /**
    * @brief Creates a user and returns a logged in JWT for that new user.
    */
   @HttpCode(HttpStatus.OK)
   @Post('register')
   async register(@Body() registerDto: Record<string, string>) {
+    if (
+      registerDto.username === undefined ||
+      registerDto.email === undefined ||
+      registerDto.password === undefined
+    ) {
+      throw new BadRequestException();
+    }
+
     const newUser = await this.usersService.createOne(
       registerDto.username,
+      registerDto.email,
       registerDto.password,
     );
 

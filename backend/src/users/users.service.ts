@@ -22,7 +22,7 @@ export class UsersService {
    *
    * @return The newly created User object, as a Promise.
    */
-  async createOne(username: string, password: string) {
+  async createOne(username: string, email: string, password: string) {
     const existingUser = await this.prisma.user.findUnique({
       where: {
         username: username,
@@ -39,7 +39,7 @@ export class UsersService {
     const user = await this.prisma.user.create({
       data: {
         username: username,
-        email: username, // TODO Handle email (login/register pages)
+        email: email,
         hashedPassword: hash,
       },
     });
