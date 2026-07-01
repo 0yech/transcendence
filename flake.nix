@@ -16,6 +16,10 @@
         gnumake
         nodejs
         docker
+        prettier
+        eslint
+        typescript-language-server
+        vscode-langservers-extracted
       ];
 
       shellHook = ''
