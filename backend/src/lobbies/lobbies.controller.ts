@@ -1,13 +1,20 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { LobbiesService } from './lobbies.service';
+import { AuthGuard } from '../auth/auth.guard';
+import { CurrentUser } from '../auth/current-user.decorator';
+import type { JwtPayload } from '../auth/jwt-payload.interface';
 
 @Controller('lobbies')
 export class LobbiesController {
   constructor(private readonly lobbiesService: LobbiesService) {}
 
+  @UseGuards(AuthGuard)
   @Post()
-  createLobby(@Body() body: { private?: boolean; password?: string }) {
-    return this.lobbiesService.createLobby(body);
+  createLobby(
+    @CurrentUser() user: JwtPayload,
+    @Body() body: { private?: boolean; password?: string },
+  ) {
+    return this.lobbiesService.createLobby(user.sub, body);
   }
 
   @Get()
@@ -20,13 +27,19 @@ export class LobbiesController {
     return this.lobbiesService.findLobbyByCode(code);
   }
 
+  @UseGuards(AuthGuard)
   @Post(':code/join')
-  joinLobby(@Param('code') code: string, @Body() body: { userId: string }) {
-    return this.lobbiesService.joinLobby(code, body.userId);
+  joinLobby(
+    @CurrentUser() user: JwtPayload,
+    @Param('code') code: string,
+    @Body() body: { password?: string },
+  ) {
+    return this.lobbiesService.joinLobby(code, user.sub, body?.password);
   }
 
+  @UseGuards(AuthGuard)
   @Post('leave')
-  leaveLobby(@Body() body: { userId: string }) {
-    return this.lobbiesService.leaveLobby(body.userId);
+  leaveLobby(@CurrentUser() user: JwtPayload) {
+    return this.lobbiesService.leaveLobby(user.sub);
   }
 }
