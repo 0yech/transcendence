@@ -9,6 +9,8 @@ dev-down:
 dev-clean:
 	docker compose -f docker-compose-dev.yaml down -v --rmi local
 
+dev-re: dev-clean dev-up
+
 up:
 	docker compose up -d
 
