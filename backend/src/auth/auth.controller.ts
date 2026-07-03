@@ -30,6 +30,7 @@ export class AuthController {
   @Post('register')
   async register(@Body() registerDto: Record<string, string>) {
     if (
+      registerDto === undefined ||
       registerDto.username === undefined ||
       registerDto.email === undefined ||
       registerDto.password === undefined
@@ -52,6 +53,14 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('login')
   signIn(@Body() signInDto: Record<string, string>) {
+    if (
+      signInDto === undefined ||
+      signInDto.username === undefined ||
+      signInDto.password === undefined
+    ) {
+      throw new BadRequestException();
+    }
+
     return this.authService.signIn(signInDto.username, signInDto.password);
   }
 
@@ -61,6 +70,9 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @Get('me')
   getCurrentUser(@CurrentUser() user: JwtPayload) {
+    if (user === undefined || user.username === undefined) {
+      throw new BadRequestException();
+    }
     // TODO Remove password from returned User object
     return this.usersService.findOne(user.username);
   }
