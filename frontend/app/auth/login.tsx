@@ -1,7 +1,9 @@
+import { Form } from 'react-router';
+
 export function LoginForm() {
   return (
     <>
-      <form action="http://127.0.0.1:3000/auth/login" method="post">
+      <Form method="post" action="/login">
         <div>
           <label htmlFor="username">Enter your username: </label>
           <input type="text" name="username" id="username" required />
@@ -11,9 +13,9 @@ export function LoginForm() {
           <input type="password" name="password" id="password" required />
         </div>
         <div>
-          <input type="submit" value="Login" />
+          <button type="submit">Login</button>
         </div>
-      </form>
+      </Form>
     </>
   );
 }
