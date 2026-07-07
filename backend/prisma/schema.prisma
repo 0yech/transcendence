@@ -14,6 +14,19 @@ enum OAuthProvider {
   GITHUB
 }
 
+enum GuildRole {
+  MEMBER
+  OFFICER
+  LEADER
+}
+
+enum GuildInvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  CANCELLED
+}
+
 model User {
   id             String         @id @default(cuid())
 
@@ -29,30 +42,76 @@ model User {
   lobbyId        String?
   lobby          Lobby? @relation(fields: [lobbyId], references: [id], onDelete: SetNull)
 
+  guildId        String?
+  guild          Guild? @relation("GuildMembers", fields: [guildId], references: [id], onDelete: SetNull)
+  guildRole      GuildRole?
+
+  sentGuildInvitations     GuildInvitation[] @relation("GuildInvitationSender")
+  receivedGuildInvitations GuildInvitation[] @relation("GuildInvitationReceiver")
+
   messages       Message[]
 
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
   @@unique([oauthProvider, oauthId])
+  @@index([guildId])
+}
+
+model Guild {
+  id          String   @id @default(cuid())
+
+  name        String   @unique
+  level       Int      @default(1)
+  points      Int      @default(0)
+
+  members     User[]   @relation("GuildMembers")
+  invitations GuildInvitation[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([points])
+}
+
+model GuildInvitation {
+  id         String @id @default(cuid())
+
+  guildId    String
+  guild      Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  senderId   String
+  sender     User   @relation("GuildInvitationSender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  receiverId String
+  receiver   User   @relation("GuildInvitationReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  status     GuildInvitationStatus @default(PENDING)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([receiverId, status])
+  @@index([guildId, status])
+  @@index([guildId, receiverId, status])
 }
 
 model Lobby {
-    id          String          @id @default(cuid())
+  id          String          @id @default(cuid())
 
-    code        String
-    active      Boolean         @default(true)
-    private     Boolean         @default(false)
-    password    String?
+  code        String
+  active      Boolean         @default(true)
+  private     Boolean         @default(false)
+  password    String?
 
-    users       User[] // Users in lobby
+  users       User[]
 
-    chat        Chat?
+  chat        Chat?
 
-    createdAt   DateTime @default(now())
-    updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-    @@index([code, active])
+  @@index([code, active])
 }
 
 model Chat {
@@ -68,17 +127,16 @@ model Chat {
 }
 
 model Message {
-    id        String   @id @default(cuid())
+  id        String   @id @default(cuid())
 
-    content   String
+  content   String
 
-    authorId  String
-    author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
 
-    chatId    String
-    chat      Chat     @relation(fields: [chatId], references: [id])
+  chatId    String
+  chat      Chat     @relation(fields: [chatId], references: [id])
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
-
