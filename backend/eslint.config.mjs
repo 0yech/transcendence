@@ -58,6 +58,12 @@ export default tseslint.config(
           format: null,
           modifiers: ['requiresQuotes'],
         },
+        // Prisma logical operators: OR / AND / NOT.
+        {
+          selector: 'objectLiteralProperty',
+          format: null,
+          filter: { regex: '^(OR|AND|NOT)$', match: true },
+        },
       ],
     },
   },
