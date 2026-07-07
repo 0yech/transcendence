@@ -14,10 +14,7 @@ export class AuthService {
    * @brief Return a JWT for a valid username and password.
    * The JWT will contain the user's ID and username.
    */
-  async signIn(
-    username: string,
-    password: string,
-  ): Promise<{ accessToken: string }> {
+  async signIn(username: string, password: string): Promise<string> {
     const user = await this.usersService.findOne(username);
 
     if (user === null) {
@@ -35,6 +32,6 @@ export class AuthService {
     // in this case, it's the user's id
     const payload = { sub: user.id, username: user.username };
 
-    return { accessToken: await this.jwtService.signAsync(payload) };
+    return await this.jwtService.signAsync(payload);
   }
 }
