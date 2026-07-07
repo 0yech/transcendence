@@ -11,14 +11,11 @@ export async function clientAction({ request }: Route.ActionArgs) {
     }),
   })
     .then((response) => {
-      const body = response.json();
-      console.log(body);
       if (!response.ok) {
         throw new Error(
           `HTTP error: ${response.status} ${response.statusText}`,
         );
       }
-      return body;
     })
     .catch((error) => {
       console.error('Error logging in: ', error);
