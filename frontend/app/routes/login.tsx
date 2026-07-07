@@ -25,6 +25,7 @@ export default function Login() {
       <title>Login to Transcendence</title>
       <h1>Login to Transcendence</h1>
       <LoginForm />
+      <a href='/register'>Don't have an account yet?</a>
     </>
   );
 }
