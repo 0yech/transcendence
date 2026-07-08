@@ -3,7 +3,7 @@ import type { Route } from '../+types/root';
 
 export async function clientAction({ request }: Route.ActionArgs) {
   const data = await request.formData();
-  await fetch('http://127.0.0.1:3000/auth/login', {
+  await fetch('/api/auth/login', {
     method: 'POST',
     body: JSON.stringify(Object.fromEntries(data)),
     headers: new Headers({
@@ -11,14 +11,11 @@ export async function clientAction({ request }: Route.ActionArgs) {
     }),
   })
     .then((response) => {
-      const body = response.json();
-      console.log(body);
       if (!response.ok) {
         throw new Error(
           `HTTP error: ${response.status} ${response.statusText}`,
         );
       }
-      return body;
     })
     .catch((error) => {
       console.error('Error logging in: ', error);
