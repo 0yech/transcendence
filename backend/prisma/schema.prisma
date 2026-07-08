@@ -14,9 +14,29 @@ enum OAuthProvider {
   GITHUB
 }
 
+enum GameStatus {
+  IN_PROGRESS
+  FINISHED
+  CANCELLED
+}
+
+enum GamePlayerStatus {
+  ACTIVE
+  ELIMINATED
+  LEFT
+  WINNER
+}
+
+enum GameActionType {
+  GAME_STARTED
+  CARD_PLAYED
+  FOUR_ONO99_DISCARDED
+  PLAYER_ELIMINATED
+  GAME_FINISHED
+}
+
 model User {
   id             String         @id @default(cuid())
-
   username       String         @unique
   email          String         @unique
   hashedPassword String?
@@ -27,9 +47,12 @@ model User {
   avatarUrl      String?
 
   lobbyId        String?
-  lobby          Lobby? @relation(fields: [lobbyId], references: [id], onDelete: SetNull)
+  lobby          Lobby?         @relation(fields: [lobbyId], references: [id], onDelete: SetNull)
 
   messages       Message[]
+
+  gamePlayers    GamePlayer[]
+  gameActions    GameAction[]
 
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
@@ -38,21 +61,19 @@ model User {
 }
 
 model Lobby {
-    id          String          @id @default(cuid())
+  id        String   @id @default(cuid())
+  code      String   @unique
+  active    Boolean  @default(true)
+  private   Boolean  @default(false)
+  password  String?
 
-    code        String
-    active      Boolean         @default(true)
-    private     Boolean         @default(false)
-    password    String?
+  users     User[]   // Users in lobby
+  chat      Chat?
 
-    users       User[] // Users in lobby
+  games     Game[]
 
-    chat        Chat?
-
-    createdAt   DateTime @default(now())
-    updatedAt   DateTime @updatedAt
-
-    @@index([code, active])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Chat {
@@ -68,17 +89,136 @@ model Chat {
 }
 
 model Message {
-    id        String   @id @default(cuid())
+  id        String   @id @default(cuid())
+  content   String
 
-    content   String
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
 
-    authorId  String
-    author    User     @relation(fields: [authorId], references: [id])
+  chatId    String
+  chat      Chat     @relation(fields: [chatId], references: [id])
 
-    chatId    String
-    chat      Chat     @relation(fields: [chatId], references: [id])
-
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
+model Game {
+  id              String     @id @default(cuid())
+
+  lobbyId         String
+  lobby           Lobby      @relation(fields: [lobbyId], references: [id], onDelete: Cascade)
+
+  status          GameStatus @default(IN_PROGRESS)
+
+  // Secret backend-only seed.
+  // Never return this field to the frontend.
+  seedPrivate     String
+
+  // Safe to expose.
+  // Lets you identify/debug the seed without revealing it.
+  seedHash        String
+
+  total           Int        @default(0)
+
+  // 1 = normal order, -1 = reversed order.
+  direction       Int        @default(1)
+
+  currentPlayerId String?
+  lastPlayedById  String?
+  winnerId        String?
+
+  // 1 = normal turn.
+  // 2 = player must play two cards because of Play 2.
+  pendingPlays    Int        @default(1)
+
+  turnNumber      Int        @default(1)
+
+  // Needed for deterministic reshuffles during replay.
+  reshuffleIndex  Int        @default(0)
+
+  // Current state cache.
+  // This makes the live game easy to serve.
+  deck            Json       @default("[]")
+  discardPile     Json       @default("[]")
+
+  players         GamePlayer[]
+  actions         GameAction[]
+
+  createdAt       DateTime   @default(now())
+  startedAt       DateTime   @default(now())
+  finishedAt      DateTime?
+  updatedAt       DateTime   @updatedAt
+
+  @@index([lobbyId])
+  @@index([status])
+}
+
+model GamePlayer {
+  id            String           @id @default(cuid())
+
+  gameId        String
+  game          Game             @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  userId        String
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Stable player order for dealing and turn rotation.
+  seat          Int
+
+  status        GamePlayerStatus @default(ACTIVE)
+
+  // Current hand cache.
+  // Only the owner should receive this in API/WebSocket responses.
+  hand          Json             @default("[]")
+
+  eliminatedAt  DateTime?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@unique([gameId, userId])
+  @@unique([gameId, seat])
+  @@index([gameId])
+  @@index([userId])
+  @@index([status])
+}
+
+model GameAction {
+  id          String         @id @default(cuid())
+
+  gameId      String
+  game        Game           @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  actorUserId String?
+  actor       User?          @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  type        GameActionType
+
+  // Monotonic order inside one game.
+  sequence    Int
+
+  // Turn number at the moment this action happened.
+  turnNumber  Int
+
+  // Lightweight replay payload.
+  // Examples:
+  // CARD_PLAYED:
+  // {
+  //   "cardId": "NUMBER_7_0",
+  //   "card": { "type": "NUMBER", "value": 7, "label": "7" },
+  //   "totalBefore": 20,
+  //   "totalAfter": 27
+  // }
+  //
+  // PLAYER_ELIMINATED:
+  // {
+  //   "reason": "NO_LEGAL_MOVE",
+  //   "total": 98
+  // }
+  payload     Json
+
+  createdAt   DateTime       @default(now())
+
+  @@unique([gameId, sequence])
+  @@index([gameId])
+  @@index([actorUserId])
+}
