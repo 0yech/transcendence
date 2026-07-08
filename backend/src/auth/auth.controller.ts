@@ -70,8 +70,11 @@ export class AuthController {
       signInDto.username,
       signInDto.password,
     );
-    console.log(token);
-    response.cookie('session_id', token);
+    response.cookie('session_id', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+    });
   }
 
   /**
