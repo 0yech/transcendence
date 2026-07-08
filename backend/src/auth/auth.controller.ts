@@ -7,6 +7,7 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -15,7 +16,7 @@ import { AuthGuard } from './auth.guard';
 import { CurrentUser } from './current-user.decorator';
 import type { JwtPayload } from './jwt-payload.interface';
 import { UsersService } from 'src/users/users.service';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -66,15 +67,29 @@ export class AuthController {
       throw new BadRequestException();
     }
 
-    const token = await this.authService.signIn(
+    const { accessToken, refreshToken } = await this.authService.signIn(
       signInDto.username,
       signInDto.password,
     );
-    response.cookie('access_token', token, {
+    response.cookie('access_token', accessToken, {
       httpOnly: true,
       secure: true,
       sameSite: 'lax',
     });
+    response.cookie('refresh_token', refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      path: '/api/auth',
+    });
+  }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Post('logout')
+  async signOut(@Req() request: Request) {
+    const refreshToken = request.cookies['refresh_token'];
+    this.authService.signOut(refreshToken);
   }
 
   /**
