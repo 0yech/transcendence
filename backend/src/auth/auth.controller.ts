@@ -70,7 +70,7 @@ export class AuthController {
       signInDto.username,
       signInDto.password,
     );
-    response.cookie('session_id', token, {
+    response.cookie('access_token', token, {
       httpOnly: true,
       secure: true,
       sameSite: 'lax',
