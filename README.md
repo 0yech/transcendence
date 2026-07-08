@@ -71,4 +71,4 @@ TODO
 TODO
 ### Authentication
 - [RFC 8725 - JSON Web Token Best Current Practices](https://www.rfc-editor.org/rfc/rfc8725.html)
-- [Medium Article - How logout actually works with JWT](https://medium.com/@ygsh0816/how-logout-actually-works-with-jwt-in-real-systems-6f4fb9d8e750)
+- [OWASP - Session Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html)
