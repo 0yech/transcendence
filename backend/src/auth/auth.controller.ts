@@ -95,8 +95,17 @@ export class AuthController {
   ) {
     const refreshToken = request.cookies['refresh_token'];
     await this.authService.signOut(refreshToken);
-    response.clearCookie('access_token');
-    response.clearCookie('refresh_token');
+    response.clearCookie('access_token', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+    });
+    response.clearCookie('refresh_token', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      path: '/api/auth',
+    });
   }
 
   /**
