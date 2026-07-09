@@ -84,12 +84,34 @@ export class AuthController {
     });
   }
 
+  /**
+   * @brief This endpoint removes the session attached to a given refresh token.
+   */
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
   @Post('logout')
   async signOut(@Req() request: Request) {
     const refreshToken = request.cookies['refresh_token'];
     this.authService.signOut(refreshToken);
+  }
+
+  /**
+   * @brief This endpoints aims to refresh an access token once it has expired.
+   * To that end, the refresh token is used, which holds the username of the
+   * user that has the session attached to the refresh token.
+   */
+  @Get('refresh')
+  async refresh(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const refreshToken = request.cookies['refresh_token'];
+    const newAccessToken = await this.authService.refresh(refreshToken);
+    response.cookie('access_token', newAccessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+    });
   }
 
   /**

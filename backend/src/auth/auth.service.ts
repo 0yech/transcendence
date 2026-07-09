@@ -46,7 +46,7 @@ export class AuthService {
     const accessToken = await this.issueNewAccessToken(user);
     const refreshToken = crypto.randomUUID();
 
-    this.sessions.set(refreshToken, user.id);
+    this.sessions.set(refreshToken, user.username);
 
     return {
       accessToken: accessToken,
@@ -59,5 +59,16 @@ export class AuthService {
    */
   async signOut(refreshToken: string) {
     this.sessions.delete(refreshToken);
+  }
+
+  /**
+   * @brief Issue a new access token for the session a given refresh token refers to.
+   */
+  async refresh(refreshToken: string) {
+    const sessionUser = this.sessions.get(refreshToken);
+    if (sessionUser === undefined) throw new UnauthorizedException();
+    const user = await this.usersService.findOne(sessionUser);
+    if (user === null) throw new UnauthorizedException();
+    return this.issueNewAccessToken(user);
   }
 }
