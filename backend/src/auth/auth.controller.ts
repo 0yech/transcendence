@@ -113,7 +113,7 @@ export class AuthController {
    * To that end, the refresh token is used, which holds the username of the
    * user that has the session attached to the refresh token.
    */
-  @Get('refresh')
+  @Post('refresh')
   async refresh(
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
