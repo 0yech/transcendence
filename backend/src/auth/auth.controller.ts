@@ -89,9 +89,14 @@ export class AuthController {
    */
   @HttpCode(HttpStatus.OK)
   @Post('logout')
-  async signOut(@Req() request: Request) {
+  async signOut(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
     const refreshToken = request.cookies['refresh_token'];
-    this.authService.signOut(refreshToken);
+    await this.authService.signOut(refreshToken);
+    response.clearCookie('access_token');
+    response.clearCookie('refresh_token');
   }
 
   /**
