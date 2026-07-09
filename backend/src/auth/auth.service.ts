@@ -2,7 +2,6 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
-import { JwtPayload } from './jwt-payload.interface';
 
 @Injectable()
 export class AuthService {
@@ -12,6 +11,16 @@ export class AuthService {
   ) {}
 
   sessions: Map<string, string> = new Map();
+
+  /**
+   * @brief For a given user, issue a new access token.
+   */
+  issueNewAccessToken(user: { id: string; username: string }): Promise<string> {
+    // sub is conventional in JWT, and means "subject"
+    // in this case, it's the user's id
+    const accessTokenPayload = { sub: user.id, username: user.username };
+    return this.jwtService.signAsync(accessTokenPayload);
+  }
 
   /**
    * @brief Return a JWT for a valid username and password.
@@ -34,15 +43,13 @@ export class AuthService {
       }
     }
 
-    // sub is conventional in JWT, and means "subject"
-    // in this case, it's the user's id
-    const accessTokenPayload = { sub: user.id, username: user.username };
+    const accessToken = await this.issueNewAccessToken(user);
     const refreshToken = crypto.randomUUID();
 
     this.sessions.set(refreshToken, user.id);
 
     return {
-      accessToken: await this.jwtService.signAsync(accessTokenPayload),
+      accessToken: accessToken,
       refreshToken: refreshToken,
     };
   }
