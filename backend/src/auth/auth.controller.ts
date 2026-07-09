@@ -87,7 +87,6 @@ export class AuthController {
   /**
    * @brief This endpoint removes the session attached to a given refresh token.
    */
-  @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
   @Post('logout')
   async signOut(@Req() request: Request) {
