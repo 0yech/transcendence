@@ -69,6 +69,10 @@ TODO
 ## Resources
 
 TODO
+### Frameworks
+- [NestJS Documentation](https://docs.nestjs.com)
 ### Authentication
 - [RFC 8725 - JSON Web Token Best Current Practices](https://www.rfc-editor.org/rfc/rfc8725.html)
 - [OWASP - Session Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html)
+### Data Validation
+- [class-validator](https://github.com/typestack/class-validator)
