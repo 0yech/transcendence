@@ -33,15 +33,6 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('register')
   async register(@Body() registerDto: RegisterDto) {
-    if (
-      registerDto === undefined ||
-      registerDto.username === undefined ||
-      registerDto.email === undefined ||
-      registerDto.password === undefined
-    ) {
-      throw new BadRequestException();
-    }
-
     const newUser = await this.usersService.createOne(
       registerDto.username,
       registerDto.email,
@@ -59,14 +50,6 @@ export class AuthController {
     @Body() signInDto: LoginDto,
     @Res({ passthrough: true }) response: Response,
   ) {
-    if (
-      signInDto === undefined ||
-      signInDto.username === undefined ||
-      signInDto.password === undefined
-    ) {
-      throw new BadRequestException();
-    }
-
     const { accessToken, refreshToken } = await this.authService.signIn(
       signInDto.username,
       signInDto.password,
