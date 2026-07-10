@@ -13,6 +13,7 @@
       pkgs = import nixpkgs { inherit system; };
     in pkgs.mkShell {
       packages = with pkgs; [
+        gh
         gnumake
         nodejs
         docker
