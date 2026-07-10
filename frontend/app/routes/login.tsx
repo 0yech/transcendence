@@ -1,5 +1,6 @@
 import { LoginForm } from '../auth/login';
 import type { Route } from '../+types/root';
+import { redirect } from 'react-router';
 
 export async function clientAction({ request }: Route.ActionArgs) {
   const data = await request.formData();
@@ -16,9 +17,14 @@ export async function clientAction({ request }: Route.ActionArgs) {
           `HTTP error: ${response.status} ${response.statusText}`,
         );
       }
+      throw redirect('/profile');
     })
     .catch((error) => {
-      console.error('Error logging in: ', error);
+      if (error instanceof Error) {
+        console.error('Error logging in: ', error);
+      } else {
+        throw error; // Rethrow a potential redirect
+      }
     });
 }
 
