@@ -17,6 +17,8 @@ import { CurrentUser } from './current-user.decorator';
 import type { JwtPayload } from './jwt-payload.interface';
 import { UsersService } from 'src/users/users.service';
 import type { Request, Response } from 'express';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -25,13 +27,12 @@ export class AuthController {
     private readonly usersService: UsersService,
   ) {}
 
-  // TODO Replace Record<string, string> with a DTO class to validate the body in a pipe
   /**
    * @brief Creates a user and returns a logged in JWT for that new user.
    */
   @HttpCode(HttpStatus.OK)
   @Post('register')
-  async register(@Body() registerDto: Record<string, string>) {
+  async register(@Body() registerDto: RegisterDto) {
     if (
       registerDto === undefined ||
       registerDto.username === undefined ||
@@ -52,11 +53,10 @@ export class AuthController {
     }
   }
 
-  // TODO Replace Record<string, string> with a DTO class to validate the body in a pipe
   @HttpCode(HttpStatus.OK)
   @Post('login')
   async signIn(
-    @Body() signInDto: Record<string, string>,
+    @Body() signInDto: LoginDto,
     @Res({ passthrough: true }) response: Response,
   ) {
     if (
