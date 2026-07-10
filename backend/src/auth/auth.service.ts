@@ -10,11 +10,26 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
+  sessions: Map<string, string> = new Map();
+
+  /**
+   * @brief For a given user, issue a new access token.
+   */
+  issueNewAccessToken(user: { id: string; username: string }): Promise<string> {
+    // sub is conventional in JWT, and means "subject"
+    // in this case, it's the user's id
+    const accessTokenPayload = { sub: user.id, username: user.username };
+    return this.jwtService.signAsync(accessTokenPayload);
+  }
+
   /**
    * @brief Return a JWT for a valid username and password.
    * The JWT will contain the user's ID and username.
    */
-  async signIn(username: string, password: string): Promise<string> {
+  async signIn(
+    username: string,
+    password: string,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     const user = await this.usersService.findOne(username);
 
     if (user === null) {
@@ -28,10 +43,32 @@ export class AuthService {
       }
     }
 
-    // sub is conventional in JWT, and means "subject"
-    // in this case, it's the user's id
-    const payload = { sub: user.id, username: user.username };
+    const accessToken = await this.issueNewAccessToken(user);
+    const refreshToken = crypto.randomUUID();
 
-    return await this.jwtService.signAsync(payload);
+    this.sessions.set(refreshToken, user.username);
+
+    return {
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+    };
+  }
+
+  /**
+   * @brief This function removes a currently active session from the session list.
+   */
+  async signOut(refreshToken: string) {
+    this.sessions.delete(refreshToken);
+  }
+
+  /**
+   * @brief Issue a new access token for the session a given refresh token refers to.
+   */
+  async refresh(refreshToken: string) {
+    const sessionUser = this.sessions.get(refreshToken);
+    if (sessionUser === undefined) throw new UnauthorizedException();
+    const user = await this.usersService.findOne(sessionUser);
+    if (user === null) throw new UnauthorizedException();
+    return this.issueNewAccessToken(user);
   }
 }

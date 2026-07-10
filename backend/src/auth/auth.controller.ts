@@ -7,6 +7,7 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -15,7 +16,7 @@ import { AuthGuard } from './auth.guard';
 import { CurrentUser } from './current-user.decorator';
 import type { JwtPayload } from './jwt-payload.interface';
 import { UsersService } from 'src/users/users.service';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -66,11 +67,60 @@ export class AuthController {
       throw new BadRequestException();
     }
 
-    const token = await this.authService.signIn(
+    const { accessToken, refreshToken } = await this.authService.signIn(
       signInDto.username,
       signInDto.password,
     );
-    response.cookie('session_id', token, {
+    response.cookie('access_token', accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+    });
+    response.cookie('refresh_token', refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      path: '/api/auth',
+    });
+  }
+
+  /**
+   * @brief This endpoint removes the session attached to a given refresh token.
+   */
+  @HttpCode(HttpStatus.OK)
+  @Post('logout')
+  async signOut(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const refreshToken = request.cookies['refresh_token'];
+    await this.authService.signOut(refreshToken);
+    response.clearCookie('access_token', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+    });
+    response.clearCookie('refresh_token', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      path: '/api/auth',
+    });
+  }
+
+  /**
+   * @brief This endpoints aims to refresh an access token once it has expired.
+   * To that end, the refresh token is used, which holds the username of the
+   * user that has the session attached to the refresh token.
+   */
+  @Post('refresh')
+  async refresh(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const refreshToken = request.cookies['refresh_token'];
+    const newAccessToken = await this.authService.refresh(refreshToken);
+    response.cookie('access_token', newAccessToken, {
       httpOnly: true,
       secure: true,
       sameSite: 'lax',
