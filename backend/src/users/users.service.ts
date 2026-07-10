@@ -23,10 +23,8 @@ export class UsersService {
    * @return The newly created User object, as a Promise.
    */
   async createOne(username: string, email: string, password: string) {
-    const existingUser = await this.prisma.user.findUnique({
-      where: {
-        username: username,
-      },
+    const existingUser = await this.prisma.user.findFirst({
+      where: { OR: [{ username }, { email }] },
     });
     if (existingUser !== null) {
       throw new ConflictException();

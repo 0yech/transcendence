@@ -7,4 +7,10 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
+  server: {
+    proxy: {
+      // Redirect all API requests to the backend
+      '/api': 'http://backend:3000',
+    },
+  },
 });

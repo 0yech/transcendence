@@ -22,7 +22,22 @@ export default tseslint.config(
       ...reactHooks.configs.recommended.rules,
       'react-refresh/only-export-components': [
         'warn',
-        { allowConstantExport: true },
+        {
+          allowConstantExport: true,
+          // Allow react-router export names to be in the same file as component exports,
+          // silencing fast refresh warnings that are handled by the react-router vite plugin.
+          allowExportNames: [
+            'loader',
+            'clientLoader',
+            'action',
+            'clientAction',
+            'meta',
+            'links',
+            'headers',
+            'handle',
+            'shouldRevalidate',
+          ],
+        },
       ],
       // Enforce casing of names (not their meaning). Most-general selector
       // first, more-specific ones override it below.
