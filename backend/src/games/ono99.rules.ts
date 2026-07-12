@@ -78,7 +78,7 @@ export function drawUntilFour(params: {
   privateSeed: string;
   reshuffleIndex: number;
 }) {
-  let hand = [...params.hand];
+  const hand = [...params.hand];
   let deck = [...params.deck];
   let discardPile = [...params.discardPile];
   let reshuffleIndex = params.reshuffleIndex;
@@ -89,7 +89,6 @@ export function drawUntilFour(params: {
         discardPile,
         `${params.privateSeed}:reshuffle:${reshuffleIndex}`,
       );
-
       discardPile = [];
       reshuffleIndex += 1;
     }

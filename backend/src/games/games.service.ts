@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '../generated/prisma/client';
 import { createSeededOno99Deck, dealHands } from './ono99.deck';
 import { createPrivateSeed, hashSeed } from './seeded-rng';
 import { Ono99Card } from './ono99.types';
@@ -155,7 +156,7 @@ export class GamesService {
         pendingPlays: 1,
         turnNumber: 1,
 
-        deck: dealt.drawPile as any,
+        deck: dealt.drawPile as Prisma.InputJsonValue,
         discardPile: [],
 
         players: {
@@ -163,7 +164,7 @@ export class GamesService {
             userId: user.id,
             seat,
             status: 'ACTIVE',
-            hand: dealt.hands[seat] as any,
+            hand: dealt.hands[seat] as Prisma.InputJsonValue,
           })),
         },
 
@@ -347,7 +348,7 @@ export class GamesService {
     await this.prisma.gamePlayer.update({
       where: { id: player.id },
       data: {
-        hand: draw.hand as any,
+        hand: draw.hand as Prisma.InputJsonValue,
       },
     });
 
@@ -369,8 +370,8 @@ export class GamesService {
         lastPlayedById: userId,
         turnNumber: { increment: 1 },
         reshuffleIndex: draw.reshuffleIndex,
-        deck: draw.deck as any,
-        discardPile: draw.discardPile as any,
+        deck: draw.deck as Prisma.InputJsonValue,
+        discardPile: draw.discardPile as Prisma.InputJsonValue,
         actions: {
           create: {
             actorUserId: userId,
@@ -544,7 +545,7 @@ export class GamesService {
     await this.prisma.gamePlayer.update({
       where: { id: player.id },
       data: {
-        hand: draw.hand as any,
+        hand: draw.hand as Prisma.InputJsonValue,
       },
     });
 
@@ -567,8 +568,8 @@ export class GamesService {
         pendingPlays: next.pendingPlays,
         turnNumber: { increment: 1 },
         reshuffleIndex: draw.reshuffleIndex,
-        deck: draw.deck as any,
-        discardPile: draw.discardPile as any,
+        deck: draw.deck as Prisma.InputJsonValue,
+        discardPile: draw.discardPile as Prisma.InputJsonValue,
         actions: {
           create: {
             actorUserId: userId,
@@ -643,7 +644,7 @@ export class GamesService {
         username: player.user?.username,
         avatarUrl: player.user?.avatarUrl,
       })),
-      actions: game.actions.map((action: any) => ({
+      actions: game.actions.map((action) => ({
         type: action.type,
         actorUserId: action.actorUserId,
         sequence: action.sequence,
