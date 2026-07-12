@@ -205,8 +205,8 @@ export class GamesService {
    * @throws NotFoundException If the game does not exist.
    * @throws ForbiddenException If the user is not a player in the game.
    */
-  async getGame(gameId: string, userId: string) {
-    const game = await this.getFullGame(gameId);
+  async getGame(lobbyCode: string, userId: string) {
+    const game = await this.getActiveGameByLobbyCode(lobbyCode);
     this.assertPlayerInGame(game, userId);
 
     return this.toPublicGame(game, userId);
@@ -232,7 +232,7 @@ export class GamesService {
    * @throws ForbiddenException If the user is not active in the game or it is not their turn.
    * @throws NotFoundException If the game does not exist.
    */
-  async playSlot(gameId: string, userId: string, slot: number) {
+  async playSlot(lobbyCode: string, userId: string, slot: number) {
     if (!Number.isInteger(slot)) {
       throw new BadRequestException('slot must be an integer');
     }
@@ -241,7 +241,7 @@ export class GamesService {
       throw new BadRequestException('slot must be between 1 and 4');
     }
 
-    const game = await this.getFullGame(gameId);
+    const game = await this.getActiveGameByLobbyCode(lobbyCode);
 
     this.assertInProgress(game);
     this.assertPlayerInGame(game, userId);
@@ -262,7 +262,7 @@ export class GamesService {
       throw new BadRequestException(`No card in slot ${slot}`);
     }
 
-    return this.playCard(gameId, userId, card.id);
+    return this.playCardByGameId(game.id, userId, card.id);
   }
 
   /**
@@ -283,7 +283,17 @@ export class GamesService {
    * or it is not their turn.
    * @throws NotFoundException If the game does not exist.
    */
-  async playCard(gameId: string, userId: string, cardId: string) {
+  async playCard(lobbyCode: string, userId: string, cardId: string) {
+    const game = await this.getActiveGameByLobbyCode(lobbyCode);
+
+    return this.playCardByGameId(game.id, userId, cardId);
+  }
+
+  private async playCardByGameId(
+    gameId: string,
+    userId: string,
+    cardId: string,
+  ) {
     if (!cardId || typeof cardId !== 'string') {
       throw new BadRequestException('cardId is required');
     }
@@ -411,8 +421,9 @@ export class GamesService {
    * or it is not their turn.
    * @throws NotFoundException If the game does not exist.
    */
-  async unableToPlay(gameId: string, userId: string) {
-    const game = await this.getFullGame(gameId);
+  async unableToPlay(lobbyCode: string, userId: string) {
+    const game = await this.getActiveGameByLobbyCode(lobbyCode);
+    const gameId = game.id;
 
     this.assertInProgress(game);
     this.assertPlayerInGame(game, userId);
@@ -499,8 +510,9 @@ export class GamesService {
    * or it is not their turn.
    * @throws NotFoundException If the game does not exist.
    */
-  async discardFourOno99(gameId: string, userId: string) {
-    const game = await this.getFullGame(gameId);
+  async discardFourOno99(lobbyCode: string, userId: string) {
+    const game = await this.getActiveGameByLobbyCode(lobbyCode);
+    const gameId = game.id;
 
     this.assertInProgress(game);
     this.assertPlayerInGame(game, userId);
@@ -830,6 +842,44 @@ export class GamesService {
     });
 
     return last ? last.sequence + 1 : 0;
+  }
+
+  private async getActiveGameByLobbyCode(
+    lobbyCode: string,
+  ): Promise<GameWithPlayers> {
+    const normalizedCode = lobbyCode.trim().toUpperCase();
+
+    const lobby = await this.prisma.lobby.findFirst({
+      where: {
+        code: normalizedCode,
+        active: true,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!lobby) {
+      throw new NotFoundException(
+        `Active lobby with code ${normalizedCode} not found`,
+      );
+    }
+
+    const game = await this.prisma.game.findFirst({
+      where: {
+        lobbyId: lobby.id,
+        status: 'IN_PROGRESS',
+      },
+      include: this.gameInclude(),
+    });
+
+    if (!game) {
+      throw new NotFoundException(
+        `No game in progress for lobby ${normalizedCode}`,
+      );
+    }
+
+    return game as unknown as GameWithPlayers;
   }
 
   /**

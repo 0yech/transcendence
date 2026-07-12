@@ -17,22 +17,25 @@ export class GamesController {
     return this.gamesService.startFromLobby(lobbyCode, user.sub);
   }
 
-  @Get(':gameId')
-  getGame(@Param('gameId') gameId: string, @CurrentUser() user: JwtPayload) {
-    return this.gamesService.getGame(gameId, user.sub);
+  @Get(':lobbyCode')
+  getGame(
+    @Param('lobbyCode') lobbyCode: string,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.gamesService.getGame(lobbyCode, user.sub);
   }
 
   /**
    * Real API endpoint.
    * The frontend can send the exact card id.
    */
-  @Post(':gameId/play')
+  @Post(':lobbyCode/play')
   playCard(
-    @Param('gameId') gameId: string,
+    @Param('lobbyCode') lobbyCode: string,
     @CurrentUser() user: JwtPayload,
     @Body() body: { cardId: string },
   ) {
-    return this.gamesService.playCard(gameId, user.sub, body.cardId);
+    return this.gamesService.playCard(lobbyCode, user.sub, body.cardId);
   }
 
   /**
@@ -43,29 +46,29 @@ export class GamesController {
    * slot = 2 means second card in hand
    * etc.
    */
-  @Post(':gameId/play-slot')
+  @Post(':lobbyCode/play-slot')
   playSlot(
-    @Param('gameId') gameId: string,
+    @Param('lobbyCode') lobbyCode: string,
     @CurrentUser() user: JwtPayload,
     @Body() body: { slot: number },
   ) {
-    return this.gamesService.playSlot(gameId, user.sub, body.slot);
+    return this.gamesService.playSlot(lobbyCode, user.sub, body.slot);
   }
 
-  @Post(':gameId/unable')
+  @Post(':lobbyCode/unable')
   unableToPlay(
-    @Param('gameId') gameId: string,
+    @Param('lobbyCode') lobbyCode: string,
     @CurrentUser() user: JwtPayload,
   ) {
-    return this.gamesService.unableToPlay(gameId, user.sub);
+    return this.gamesService.unableToPlay(lobbyCode, user.sub);
   }
 
-  @Post(':gameId/discard-four-ono99')
+  @Post(':lobbyCode/discard-four-ono99')
   discardFourOno99(
-    @Param('gameId') gameId: string,
+    @Param('lobbyCode') lobbyCode: string,
     @CurrentUser() user: JwtPayload,
   ) {
-    return this.gamesService.discardFourOno99(gameId, user.sub);
+    return this.gamesService.discardFourOno99(lobbyCode, user.sub);
   }
 
   @Get(':gameId/replay')
