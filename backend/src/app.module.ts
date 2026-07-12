@@ -4,11 +4,12 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { GamesModule } from './games/games.module';
+import { GuildsModule } from './guilds/guilds.module';
 import { LobbiesModule } from './lobbies/lobbies.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
-  imports: [AuthModule, UsersModule, LobbiesModule, GamesModule],
+  imports: [AuthModule, UsersModule, LobbiesModule, GuildsModule, GamesModule],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -9,12 +9,12 @@ import { GamesService } from './games.service';
 export class GamesController {
   constructor(private readonly gamesService: GamesService) {}
 
-  @Post('lobbies/:lobbyId/start')
+  @Post('lobbies/:lobbyCode/start')
   startFromLobby(
-    @Param('lobbyId') lobbyId: string,
+    @Param('lobbyCode') lobbyCode: string,
     @CurrentUser() user: JwtPayload,
   ) {
-    return this.gamesService.startFromLobby(lobbyId, user.sub);
+    return this.gamesService.startFromLobby(lobbyCode, user.sub);
   }
 
   @Get(':gameId')

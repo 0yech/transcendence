@@ -84,9 +84,14 @@ export class GamesService {
    * @throws BadRequestException If the lobby has less than 2 players, more than 6 players,
    * or already has an active game.
    */
-  async startFromLobby(lobbyId: string, requesterId: string) {
-    const lobby = await this.prisma.lobby.findUnique({
-      where: { id: lobbyId },
+  async startFromLobby(lobbyCode: string, requesterId: string) {
+    const normalizedCode = lobbyCode.trim().toUpperCase();
+
+    const lobby = await this.prisma.lobby.findFirst({
+      where: {
+        code: normalizedCode,
+        active: true,
+      },
       include: {
         users: {
           orderBy: {
@@ -96,8 +101,10 @@ export class GamesService {
       },
     });
 
-    if (!lobby || !lobby.active) {
-      throw new NotFoundException('Lobby not found');
+    if (!lobby) {
+      throw new NotFoundException(
+        `Active lobby with code ${normalizedCode} not found`,
+      );
     }
 
     const requesterIsInLobby = lobby.users.some(
@@ -118,7 +125,7 @@ export class GamesService {
 
     const activeGame = await this.prisma.game.findFirst({
       where: {
-        lobbyId,
+        lobbyId: lobby.id,
         status: 'IN_PROGRESS',
       },
     });
@@ -135,16 +142,22 @@ export class GamesService {
 
     const game = await this.prisma.game.create({
       data: {
-        lobbyId,
+        lobbyId: lobby.id,
+
         seedPrivate,
         seedHash,
+
         total: 0,
         direction: 1,
+
         currentPlayerId: lobby.users[0].id,
+
         pendingPlays: 1,
         turnNumber: 1,
+
         deck: dealt.drawPile as any,
         discardPile: [],
+
         players: {
           create: lobby.users.map((user: { id: string }, seat: number) => ({
             userId: user.id,
@@ -153,6 +166,7 @@ export class GamesService {
             hand: dealt.hands[seat] as any,
           })),
         },
+
         actions: {
           create: {
             actorUserId: requesterId,
@@ -171,6 +185,7 @@ export class GamesService {
           },
         },
       },
+
       include: this.gameInclude(),
     });
 
