@@ -27,69 +27,90 @@ enum GuildInvitationStatus {
   CANCELLED
 }
 
+enum GameStatus {
+  IN_PROGRESS
+  FINISHED
+  CANCELLED
+}
+
+enum GamePlayerStatus {
+  ACTIVE
+  ELIMINATED
+  LEFT
+  WINNER
+}
+
+enum GameActionType {
+  GAME_STARTED
+  CARD_PLAYED
+  FOUR_ONO99_DISCARDED
+  PLAYER_ELIMINATED
+  GAME_FINISHED
+}
+
 model User {
-  id             String         @id @default(cuid())
+  id              String         @id @default(cuid())
+  username        String         @unique
+  email           String         @unique
+  hashedPassword  String?
+  oauthProvider   OAuthProvider?
+  oauthId         String?
+  avatarUrl       String?
 
-  username       String         @unique
-  email          String         @unique
-  hashedPassword String?
+  lobbyId String?
+  lobby   Lobby?  @relation(fields: [lobbyId], references: [id], onDelete: SetNull)
 
-  oauthProvider  OAuthProvider?
-  oauthId        String?
+  guildId   String?
+  guild     Guild?     @relation("GuildMembers", fields: [guildId], references: [id], onDelete: SetNull)
+  guildRole GuildRole?
 
-  avatarUrl      String?
+  sentGuildInvitations GuildInvitation[] @relation("GuildInvitationSender")
 
-  lobbyId        String?
-  lobby          Lobby? @relation(fields: [lobbyId], references: [id], onDelete: SetNull)
-
-  guildId        String?
-  guild          Guild? @relation("GuildMembers", fields: [guildId], references: [id], onDelete: SetNull)
-  guildRole      GuildRole?
-
-  sentGuildInvitations     GuildInvitation[] @relation("GuildInvitationSender")
   receivedGuildInvitations GuildInvitation[] @relation("GuildInvitationReceiver")
 
-  messages       Message[]
+  messages Message[]
 
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  gamePlayers GamePlayer[]
+  gameActions GameAction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([oauthProvider, oauthId])
   @@index([guildId])
 }
 
 model Guild {
-  id          String   @id @default(cuid())
+  id     String @id @default(cuid())
+  name   String @unique
+  level  Int    @default(1)
+  points Int    @default(0)
 
-  name        String   @unique
-  level       Int      @default(1)
-  points      Int      @default(0)
-
-  members     User[]   @relation("GuildMembers")
+  members     User[]              @relation("GuildMembers")
   invitations GuildInvitation[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([points])
 }
 
 model GuildInvitation {
-  id         String @id @default(cuid())
+  id String @id @default(cuid())
 
-  guildId    String
-  guild      Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  guildId String
+  guild   Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
 
-  senderId   String
-  sender     User   @relation("GuildInvitationSender", fields: [senderId], references: [id], onDelete: Cascade)
+  senderId String
+  sender   User   @relation("GuildInvitationSender", fields: [senderId], references: [id],onDelete: Cascade)
 
   receiverId String
   receiver   User   @relation("GuildInvitationReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
 
-  status     GuildInvitationStatus @default(PENDING)
+  status GuildInvitationStatus @default(PENDING)
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([receiverId, status])
   @@index([guildId, status])
@@ -97,46 +118,135 @@ model GuildInvitation {
 }
 
 model Lobby {
-  id          String          @id @default(cuid())
+  id       String  @id @default(cuid())
+  code     String
+  active   Boolean @default(true)
+  private  Boolean @default(false)
+  password String?
 
-  code        String
-  active      Boolean         @default(true)
-  private     Boolean         @default(false)
-  password    String?
+  users User[]
+  chat  Chat?
+  games Game[]
 
-  users       User[]
-
-  chat        Chat?
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([code, active])
 }
 
 model Chat {
-  id        String    @id @default(cuid())
+  id String @id @default(cuid())
 
-  lobbyId   String    @unique
-  lobby     Lobby     @relation(fields: [lobbyId], references: [id], onDelete: Cascade)
+  lobbyId String @unique
+  lobby   Lobby  @relation(fields: [lobbyId], references: [id], onDelete: Cascade)
 
-  messages  Message[]
-
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-}
-
-model Message {
-  id        String   @id @default(cuid())
-
-  content   String
-
-  authorId  String
-  author    User     @relation(fields: [authorId], references: [id])
-
-  chatId    String
-  chat      Chat     @relation(fields: [chatId], references: [id])
+  messages Message[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Message {
+  id      String @id @default(cuid())
+  content String
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+
+  chatId String
+  chat   Chat   @relation(fields: [chatId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Game {
+  id String @id @default(cuid())
+
+  lobbyId String
+  lobby   Lobby  @relation(fields: [lobbyId], references: [id], onDelete: Cascade)
+
+  status GameStatus @default(IN_PROGRESS)
+
+  seedPrivate String
+  seedHash String
+
+  total     Int @default(0)
+  direction Int @default(1)
+
+  currentPlayerId String?
+  lastPlayedById  String?
+  winnerId        String?
+
+  pendingPlays Int @default(1)
+
+  turnNumber Int @default(1)
+
+  reshuffleIndex Int @default(0)
+
+  deck        Json @default("[]")
+  discardPile Json @default("[]")
+
+  players GamePlayer[]
+  actions GameAction[]
+
+  createdAt  DateTime  @default(now())
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+  updatedAt  DateTime  @updatedAt
+
+  @@index([lobbyId])
+  @@index([status])
+}
+
+model GamePlayer {
+  id String @id @default(cuid())
+
+  gameId String
+  game   Game   @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  seat Int
+
+  status GamePlayerStatus @default(ACTIVE)
+
+  hand Json @default("[]")
+
+  eliminatedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([gameId, userId])
+  @@unique([gameId, seat])
+  @@index([gameId])
+  @@index([userId])
+  @@index([status])
+}
+
+model GameAction {
+  id String @id @default(cuid())
+
+  gameId String
+  game   Game   @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  actorUserId String?
+  actor       User?   @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  type GameActionType
+
+  sequence Int
+
+  turnNumber Int
+
+  // Used for replay data
+  payload Json
+
+  createdAt DateTime @default(now())
+
+  @@unique([gameId, sequence])
+  @@index([gameId])
+  @@index([actorUserId])
 }
