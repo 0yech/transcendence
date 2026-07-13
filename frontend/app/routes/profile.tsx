@@ -8,16 +8,19 @@ export async function clientLoader() {
 }
 
 export default function Profile({ loaderData }: Route.ComponentProps) {
-  const { username, email } = loaderData;
+  const { username, email, guildId } = loaderData;
   return (
     <>
       <title>{username}'s Profile</title>
-      <h1>{username}'s Profile</h1>
+      <h1 className="text-3xl font-bold">{username}'s Profile</h1>
 
       <LogoutButton />
 
-      <h2>Email</h2>
+      <h2 className="text-2xl font-bold">Email</h2>
       <div>{email}</div>
+
+      <h2 className="text-2xl font-bold">Current Guild</h2>
+      <div>{guildId || 'No active guild'}</div>
     </>
   );
 }

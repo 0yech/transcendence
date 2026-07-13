@@ -22,7 +22,7 @@ export default function Login() {
   return (
     <>
       <title>Login to Transcendence</title>
-      <h1>Login to Transcendence</h1>
+      <h1 className="text-3xl font-bold">Login to Transcendence</h1>
       <LoginForm />
       <Link to="/register">Don't have an account yet?</Link>
     </>

@@ -22,7 +22,7 @@ export default function Register() {
   return (
     <>
       <title>Register to Transcendence</title>
-      <h1>Register to Transcendence</h1>
+      <h1 className="text-3xl font-bold">Register to Transcendence</h1>
       <RegisterForm />
       <Link to="/login">Already have an account?</Link>
     </>
