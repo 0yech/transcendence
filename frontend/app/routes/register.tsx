@@ -1,29 +1,24 @@
 import { RegisterForm } from '../auth/register';
 import type { Route } from '../+types/root';
-import { Link } from 'react-router';
+import { Link, redirect } from 'react-router';
 
 export async function clientAction({ request }: Route.ActionArgs) {
   const data = await request.formData();
-  await fetch('/api/auth/register', {
+  const response = await fetch('/api/auth/register', {
     method: 'POST',
     body: JSON.stringify(Object.fromEntries(data)),
     headers: new Headers({
       'Content-Type': 'application/json',
     }),
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error(
-          `HTTP error: ${response.status} ${response.statusText}`,
-        );
-      }
-    })
-    .catch((error) => {
-      console.error('Error logging in: ', error);
-    });
+  });
+  if (!response.ok) {
+    alert(`Error registering: ${response.status} ${response.statusText}`);
+  } else {
+    throw redirect('/login');
+  }
 }
 
-export default function Login() {
+export default function Register() {
   return (
     <>
       <title>Register to Transcendence</title>
