@@ -5,7 +5,8 @@ export async function clientAction() {
     method: 'POST',
   });
   if (!response.ok) {
-    alert(`Error logging out: ${response.status} ${response.statusText}`);
+    const body = await response.json();
+    alert(`Error logging out: ${body.message}`);
   }
   throw redirect('/login');
 }

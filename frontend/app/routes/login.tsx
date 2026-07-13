@@ -11,8 +11,10 @@ export async function clientAction({ request }: Route.ActionArgs) {
       'Content-Type': 'application/json',
     }),
   });
+
   if (!response.ok) {
-    alert(`Error logging in: ${response.status} ${response.statusText}`);
+    const body = await response.json();
+    alert(`Error logging in: ${body.message}`);
   } else {
     throw redirect('/profile');
   }
