@@ -119,7 +119,6 @@ export class AuthController {
     if (user === undefined || user.username === undefined) {
       throw new BadRequestException();
     }
-    // TODO Remove password from returned User object
-    return this.usersService.findOne(user.username);
+    return this.usersService.findOnePublic(user.username);
   }
 }

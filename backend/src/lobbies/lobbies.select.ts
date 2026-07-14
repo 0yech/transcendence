@@ -1,10 +1,4 @@
-export const publicUserSelect = {
-  id: true,
-  username: true,
-  avatarUrl: true,
-  createdAt: true,
-  updatedAt: true,
-} as const;
+import { publicUserSelect } from 'src/users/users.select';
 
 export const publicChatSelect = {
   id: true,

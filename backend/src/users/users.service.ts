@@ -1,19 +1,34 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { publicUserSelect } from './users.select';
 
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * @brief Find and return a user based on username
+   * @brief Find and return a user based on username. The result must never be
+   * returned to the frontend.
    */
   async findOne(username: string) {
     return this.prisma.user.findUnique({
       where: {
         username: username,
       },
+    });
+  }
+
+  /**
+   * @brief Find and return a user based on username, only containing publicly
+   * accessible information.
+   */
+  async findOnePublic(username: string) {
+    return this.prisma.user.findUnique({
+      where: {
+        username: username,
+      },
+      select: publicUserSelect,
     });
   }
 
