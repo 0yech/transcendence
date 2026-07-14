@@ -84,12 +84,27 @@ export class AuthService {
 
   /**
    * @brief Issue a new access token for the session a given refresh token refers to.
+   * If the session has been alive for more than two weeks, kill it and redirect
+   * the user to the login page.
+   *
+   * @throws UnauthorizedException whenever a session is expired, doesn't exist,
+   * or the user is missing.
    */
   async refresh(refreshToken: string) {
     const session = this.sessions.get(refreshToken);
     if (session === undefined) throw new UnauthorizedException();
+
+    const now = Date.now();
+    const twoWeeksMs = 1000 * 60 * 60 * 24 * 14;
+    const timeElapsedMs = now - session.startDate.getTime();
+    if (timeElapsedMs > twoWeeksMs) {
+      this.sessions.delete(refreshToken);
+      console.log('Session expired for user', session.user, Date.now());
+      throw new UnauthorizedException();
+    }
     const user = await this.usersService.findOne(session.user);
     if (user === null) throw new UnauthorizedException();
+
     return this.issueNewAccessToken(user);
   }
 }
