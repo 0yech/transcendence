@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
+import { Cron } from '@nestjs/schedule';
 
 const SESSION_LIFETIME_MS = 1000 * 60 * 60 * 24 * 14; // Two weeks
 
@@ -108,5 +109,17 @@ export class AuthService {
     if (user === null) throw new UnauthorizedException();
 
     return this.issueNewAccessToken(user);
+  }
+
+  /**
+   * @brief Every hour, goes through all active sessions, and kills expired ones.
+   */
+  @Cron('* 0 * * * *')
+  async cleanupSessions() {
+    this.sessions.forEach((session, refreshToken) => {
+      if (session.isExpired()) {
+        this.sessions.delete(refreshToken);
+      }
+    });
   }
 }
