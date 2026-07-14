@@ -3,6 +3,8 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
 
+const SESSION_LIFETIME_MS = 1000 * 60 * 60 * 24 * 14; // Two weeks
+
 /**
  * @brief Represents a session currently active for a given user in the AuthService
  * service.
@@ -13,14 +15,18 @@ import * as bcrypt from 'bcrypt';
  * expire after two weeks, past which you can't refresh your access token.
  */
 class AuthSession {
-  constructor(public user: string) {
-    this.user = user;
-    this.startDate = new Date();
+  public readonly user: string;
+  public readonly startDate = new Date();
 
-    console.log('Created new session for user', this.user, this.startDate);
+  constructor(user: string) {
+    this.user = user;
   }
 
-  public startDate: Date;
+  isExpired(): boolean {
+    const now = Date.now();
+    const timeElapsedMs = now - this.startDate.getTime();
+    return timeElapsedMs > SESSION_LIFETIME_MS;
+  }
 }
 
 @Injectable()
@@ -30,8 +36,8 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  // Map of refresh token to username
-  sessions: Map<string, AuthSession> = new Map();
+  // Map of refresh token to session
+  private readonly sessions: Map<string, AuthSession> = new Map();
 
   /**
    * @brief For a given user, issue a new access token.
@@ -84,8 +90,8 @@ export class AuthService {
 
   /**
    * @brief Issue a new access token for the session a given refresh token refers to.
-   * If the session has been alive for more than two weeks, kill it and redirect
-   * the user to the login page.
+   * If the session has been alive for more than two weeks, kill it. The user
+   * will need to log in again.
    *
    * @throws UnauthorizedException whenever a session is expired, doesn't exist,
    * or the user is missing.
@@ -94,12 +100,8 @@ export class AuthService {
     const session = this.sessions.get(refreshToken);
     if (session === undefined) throw new UnauthorizedException();
 
-    const now = Date.now();
-    const twoWeeksMs = 1000 * 60 * 60 * 24 * 14;
-    const timeElapsedMs = now - session.startDate.getTime();
-    if (timeElapsedMs > twoWeeksMs) {
+    if (session.isExpired()) {
       this.sessions.delete(refreshToken);
-      console.log('Session expired for user', session.user, Date.now());
       throw new UnauthorizedException();
     }
     const user = await this.usersService.findOne(session.user);
