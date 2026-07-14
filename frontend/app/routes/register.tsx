@@ -1,34 +1,32 @@
 import { RegisterForm } from '../auth/register';
 import type { Route } from '../+types/root';
+import { Link, redirect } from 'react-router';
 
 export async function clientAction({ request }: Route.ActionArgs) {
   const data = await request.formData();
-  await fetch('/api/auth/register', {
+  const response = await fetch('/api/auth/register', {
     method: 'POST',
     body: JSON.stringify(Object.fromEntries(data)),
     headers: new Headers({
       'Content-Type': 'application/json',
     }),
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error(
-          `HTTP error: ${response.status} ${response.statusText}`,
-        );
-      }
-    })
-    .catch((error) => {
-      console.error('Error logging in: ', error);
-    });
+  });
+
+  if (!response.ok) {
+    const body = await response.json();
+    alert(`Error registering: ${body.message}`);
+  } else {
+    throw redirect('/login');
+  }
 }
 
-export default function Login() {
+export default function Register() {
   return (
     <>
       <title>Register to Transcendence</title>
-      <h1>Register to Transcendence</h1>
+      <h1 className="text-3xl font-bold">Register to Transcendence</h1>
       <RegisterForm />
-      <a href="/login">Already have an account?</a>
+      <Link to="/login">Already have an account?</Link>
     </>
   );
 }
