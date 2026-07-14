@@ -7,9 +7,17 @@ import { GamesModule } from './games/games.module';
 import { GuildsModule } from './guilds/guilds.module';
 import { LobbiesModule } from './lobbies/lobbies.module';
 import { UsersModule } from './users/users.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
-  imports: [AuthModule, UsersModule, LobbiesModule, GuildsModule, GamesModule],
+  imports: [
+    AuthModule,
+    UsersModule,
+    LobbiesModule,
+    GuildsModule,
+    GamesModule,
+    ScheduleModule.forRoot(),
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
