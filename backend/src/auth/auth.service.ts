@@ -3,6 +3,32 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
 
+const SESSION_LIFETIME_MS = 1000 * 60 * 60 * 24 * 14; // Two weeks
+
+/**
+ * @brief Represents a session currently active for a given user in the AuthService
+ * service.
+ * Class instances will be used in the `sessions` map of the AuthService, mapped
+ * by refresh token.
+ *
+ * @description Holds the start date of the sessions, so that it can be made to
+ * expire after two weeks, past which you can't refresh your access token.
+ */
+class AuthSession {
+  public readonly user: string;
+  public readonly startDate = new Date();
+
+  constructor(user: string) {
+    this.user = user;
+  }
+
+  isExpired(): boolean {
+    const now = Date.now();
+    const timeElapsedMs = now - this.startDate.getTime();
+    return timeElapsedMs > SESSION_LIFETIME_MS;
+  }
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -10,7 +36,8 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  sessions: Map<string, string> = new Map();
+  // Map of refresh token to session
+  private readonly sessions: Map<string, AuthSession> = new Map();
 
   /**
    * @brief For a given user, issue a new access token.
@@ -46,7 +73,7 @@ export class AuthService {
     const accessToken = await this.issueNewAccessToken(user);
     const refreshToken = crypto.randomUUID();
 
-    this.sessions.set(refreshToken, user.username);
+    this.sessions.set(refreshToken, new AuthSession(user.username));
 
     return {
       accessToken: accessToken,
@@ -63,12 +90,23 @@ export class AuthService {
 
   /**
    * @brief Issue a new access token for the session a given refresh token refers to.
+   * If the session has been alive for more than two weeks, kill it. The user
+   * will need to log in again.
+   *
+   * @throws UnauthorizedException whenever a session is expired, doesn't exist,
+   * or the user is missing.
    */
   async refresh(refreshToken: string) {
-    const sessionUser = this.sessions.get(refreshToken);
-    if (sessionUser === undefined) throw new UnauthorizedException();
-    const user = await this.usersService.findOne(sessionUser);
+    const session = this.sessions.get(refreshToken);
+    if (session === undefined) throw new UnauthorizedException();
+
+    if (session.isExpired()) {
+      this.sessions.delete(refreshToken);
+      throw new UnauthorizedException();
+    }
+    const user = await this.usersService.findOne(session.user);
     if (user === null) throw new UnauthorizedException();
+
     return this.issueNewAccessToken(user);
   }
 }
