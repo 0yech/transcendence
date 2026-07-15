@@ -3,11 +3,6 @@ COPY . /app
 WORKDIR /app
 RUN npm ci
 
-FROM node:24-alpine AS production-dependencies-env
-COPY ./package.json package-lock.json /app/
-WORKDIR /app
-RUN npm ci --omit=dev
-
 FROM node:24-alpine AS build-env
 COPY . /app/
 COPY --from=development-dependencies-env /app/node_modules /app/node_modules
@@ -21,9 +16,6 @@ COPY --from=build-env /app/build /app/build
 WORKDIR /app
 CMD ["npm", "run", "dev", "--", "--host"]
 
-FROM node:24-alpine AS production
-COPY ./package.json package-lock.json /app/
-COPY --from=production-dependencies-env /app/node_modules /app/node_modules
-COPY --from=build-env /app/build /app/build
-WORKDIR /app
-CMD ["npm", "run", "start"]
+FROM nginx AS production
+COPY --from=build-env /app/build/client /usr/share/nginx/html/
+COPY nginx.conf /etc/nginx/nginx.conf
