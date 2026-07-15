@@ -1,0 +1,30 @@
+name: transcendence
+services:
+  frontend:
+    container_name: frontend
+    build:
+      context: ./frontend
+      target: production
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+  backend:
+    container_name: backend
+    build:
+      context: ./backend
+      target: production
+    restart: unless-stopped
+    depends_on:
+      - database
+    command: 'sh -c "npx prisma db push && npx prisma generate && npm run start"'
+  database:
+    container_name: database
+    image: postgres:16-alpine
+    restart: unless-stopped
+    volumes:
+      - database_data:/var/lib/postgresql/data
+
+volumes:
+  database_data:
