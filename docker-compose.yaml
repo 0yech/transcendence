@@ -19,12 +19,19 @@ services:
     depends_on:
       - database
     command: 'sh -c "npx prisma db push && npx prisma generate && npm run start"'
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
   database:
     container_name: database
     image: postgres:16-alpine
     restart: unless-stopped
     volumes:
       - database_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
 
 volumes:
   database_data:
