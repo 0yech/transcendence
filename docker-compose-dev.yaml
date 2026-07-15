@@ -38,9 +38,6 @@ services:
       # the container's Linux-built node_modules instead of the host's
       - /app/node_modules
     command: 'sh -c "npx prisma db push && npx prisma generate && (npx prisma studio --port 5555 --browser none &) && npm run start:dev"'
-    # environment:
-    # secrets:
-    # networks:
   database:
     container_name: database
     image: postgres:16-alpine
@@ -51,19 +48,6 @@ services:
       - "5432:5432"
     volumes:
       - database_data:/var/lib/postgresql/data
-  # database:
-  # container_name: database
-  # image:
-  # restart: unless-stopped
-  # environment:
-  # secrets:
-  # volumes:
-  # networks:
-
-# secrets:
 
 volumes:
   database_data:
-
-networks:
-  transcendence:
