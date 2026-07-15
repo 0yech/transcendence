@@ -18,4 +18,4 @@ FROM node:24-alpine AS production
 COPY ./package.json package-lock.json /app/
 COPY --from=production-dependencies-env /app/node_modules /app/node_modules
 WORKDIR /app
-CMD ["npm", "run", "start"]
+CMD ["npm", "run", "start:prod"]
