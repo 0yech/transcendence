@@ -14,8 +14,17 @@ COPY --from=development-dependencies-env /app/node_modules /app/node_modules
 WORKDIR /app
 CMD ["npm", "run", "dev", "--", "--host"]
 
+FROM node:24-alpine AS build-env
+COPY . /app/
+COPY --from=development-dependencies-env /app/node_modules /app/node_modules
+WORKDIR /app
+RUN ["npm", "run", "build"]
+
 FROM node:24-alpine AS production
 COPY ./package.json package-lock.json /app/
+COPY ./prisma /app/prisma
+COPY ./prisma.config.ts /app/
+COPY --from=build-env /app/dist /app/dist
 COPY --from=production-dependencies-env /app/node_modules /app/node_modules
 WORKDIR /app
 CMD ["npm", "run", "start:prod"]
