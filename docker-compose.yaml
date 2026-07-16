@@ -18,7 +18,7 @@ services:
     restart: unless-stopped
     depends_on:
       - database
-    command: 'sh -c "npx prisma db push && npx prisma generate && npm run start"'
+    command: 'sh -c "npx prisma db push && npx prisma generate && npm run start:prod"'
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - JWT_SECRET=${JWT_SECRET}
