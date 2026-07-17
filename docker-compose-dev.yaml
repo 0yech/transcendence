@@ -26,7 +26,7 @@ services:
     depends_on:
       - database
     env_file:
-      - .env-example
+      - .env.example
     ports:
       - "3000:3000"
       # Prisma Studio (backgrounded in the command below)
@@ -43,7 +43,7 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     env_file:
-      - .env-example
+      - .env.example
     ports:
       - "5432:5432"
     volumes:
