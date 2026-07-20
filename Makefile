@@ -12,7 +12,7 @@ dev-clean:
 dev-re: dev-clean dev-up
 
 up:
-	docker compose up -d
+	docker compose up
 
 build:
 	docker compose build

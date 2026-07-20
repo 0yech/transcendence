@@ -1,25 +1,30 @@
-# syntax=docker/dockerfile:1
-
-# Development image for the NestJS backend.
-#
-# Written as a multi-stage build with a single `development` stage for now.
-# A `production` stage (npm run build -> node dist/main on a slim image) can be
-# added below later without touching this one. docker-compose-dev.yaml selects
-# this stage via `target: development`.
-FROM node:24-alpine AS development
-
+FROM node:24-alpine AS development-dependencies-env
+COPY . /app
 WORKDIR /app
-
-# Copy ONLY the manifests first, then install
-COPY package*.json ./
 RUN npm ci
 
-# Copy the rest of the source. In dev this is shadowed by the bind mount from
-# docker-compose-dev.yaml for live edits, but copying it here keeps the
-# image runnable on its own, e.g. `docker run` without compose.
-COPY . .
+FROM node:24-alpine AS production-dependencies-env
+COPY ./package.json package-lock.json /app/
+WORKDIR /app
+RUN npm ci --omit=dev
 
-EXPOSE 3000
+FROM node:24-alpine AS development
+COPY ./package.json package-lock.json /app/
+COPY --from=development-dependencies-env /app/node_modules /app/node_modules
+WORKDIR /app
+CMD ["npm", "run", "dev", "--", "--host"]
 
-# nest watch mode: recompiles and restarts when files under /app change.
-CMD ["npm", "run", "start:dev"]
+FROM node:24-alpine AS build-env
+COPY . /app/
+COPY --from=development-dependencies-env /app/node_modules /app/node_modules
+WORKDIR /app
+RUN ["npm", "run", "build"]
+
+FROM node:24-alpine AS production
+COPY ./package.json package-lock.json /app/
+COPY ./prisma /app/prisma
+COPY ./prisma.config.ts /app/
+COPY --from=build-env /app/dist /app/dist
+COPY --from=production-dependencies-env /app/node_modules /app/node_modules
+WORKDIR /app
+CMD ["npm", "run", "start:prod"]
