@@ -12,7 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthGuard } from './auth.guard';
+import { JwtAuthGuard } from './auth.guard';
 import { CurrentUser } from './current-user.decorator';
 import type { JwtPayload } from './jwt-payload.interface';
 import { UsersService } from 'src/users/users.service';
@@ -113,7 +113,7 @@ export class AuthController {
   /**
    * @brief Returns the incoming request's JWT's payload, defined in the AuthService.
    */
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('me')
   getCurrentUser(@CurrentUser() user: JwtPayload) {
     if (user === undefined || user.username === undefined) {
