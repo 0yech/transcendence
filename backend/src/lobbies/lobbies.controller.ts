@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { LobbiesService } from './lobbies.service';
-import { AuthGuard } from '../auth/auth.guard';
+import { JwtAuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { JwtPayload } from '../auth/jwt-payload.interface';
 
@@ -8,7 +8,7 @@ import type { JwtPayload } from '../auth/jwt-payload.interface';
 export class LobbiesController {
   constructor(private readonly lobbiesService: LobbiesService) {}
 
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Post()
   createLobby(
     @CurrentUser() user: JwtPayload,
@@ -27,7 +27,7 @@ export class LobbiesController {
     return this.lobbiesService.findLobbyByCode(code);
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Post(':code/join')
   joinLobby(
     @CurrentUser() user: JwtPayload,
@@ -37,7 +37,7 @@ export class LobbiesController {
     return this.lobbiesService.joinLobby(code, user.sub, body?.password);
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Post('leave')
   leaveLobby(@CurrentUser() user: JwtPayload) {
     return this.lobbiesService.leaveLobby(user.sub);

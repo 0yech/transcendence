@@ -7,7 +7,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '../auth/auth.guard';
+import { JwtAuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { JwtPayload } from '../auth/jwt-payload.interface';
 import { GuildsService } from './guilds.service';
@@ -21,31 +21,31 @@ export class GuildsController {
     return this.guildsService.getGuilds();
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('me')
   getMyGuild(@CurrentUser() user: JwtPayload) {
     return this.guildsService.getMyGuild(user.sub);
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Post()
   createGuild(@CurrentUser() user: JwtPayload, @Body() body: { name: string }) {
     return this.guildsService.createGuild(user.sub, body.name);
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Post('leave')
   leaveGuild(@CurrentUser() user: JwtPayload) {
     return this.guildsService.leaveGuild(user.sub);
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Delete()
   deleteGuild(@CurrentUser() user: JwtPayload) {
     return this.guildsService.deleteGuild(user.sub);
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Post('invitations')
   inviteUser(
     @CurrentUser() user: JwtPayload,
@@ -54,13 +54,13 @@ export class GuildsController {
     return this.guildsService.inviteUser(user.sub, body.username);
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('invitations')
   getMyInvitations(@CurrentUser() user: JwtPayload) {
     return this.guildsService.getUserInvitations(user.sub);
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Post('invitations/:invitationId/accept')
   acceptInvitation(
     @CurrentUser() user: JwtPayload,
@@ -69,7 +69,7 @@ export class GuildsController {
     return this.guildsService.acceptInvitation(invitationId, user.sub);
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Post('invitations/:invitationId/decline')
   declineInvitation(
     @CurrentUser() user: JwtPayload,
@@ -78,7 +78,7 @@ export class GuildsController {
     return this.guildsService.declineInvitation(invitationId, user.sub);
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Post('members/:memberId/kick')
   kickMember(
     @CurrentUser() user: JwtPayload,
