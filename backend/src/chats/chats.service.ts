@@ -61,6 +61,10 @@ export class ChatsService {
    * @return The newly created message.
    */
   async createLobbyMessage(lobbyCode: string, userId: string, content: string) {
+    /*
+     * Normalize the content before validation and persistence so that
+     * whitespace-only messages cannot be stored.
+     */
     const normalizedContent = content.trim();
 
     if (normalizedContent.length === 0) {
@@ -69,6 +73,10 @@ export class ChatsService {
 
     const lobby = await this.findLobbyForMember(lobbyCode, userId);
 
+    /*
+     * Persist the message before broadcasting it so that clients never
+     * receive a message that was not successfully stored.
+     */
     const message = await this.prisma.message.create({
       data: {
         content: normalizedContent,
@@ -90,6 +98,10 @@ export class ChatsService {
       },
     });
 
+    /*
+     * Broadcast the same public message representation returned by
+     * the REST endpoint to every socket joined to the lobby room.
+     */
     this.chatsGateway.emitMessageCreated(lobby.id, message);
 
     return message;
