@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
 import { Cron } from '@nestjs/schedule';
+import { OauthPayload } from './oauth-payload.interface';
 
 const SESSION_LIFETIME_MS = 1000 * 60 * 60 * 24 * 14; // Two weeks
 
@@ -58,16 +59,56 @@ export class AuthService {
     username: string,
     password: string,
   ): Promise<{ accessToken: string; refreshToken: string }> {
-    const user = await this.usersService.findOne(username);
+    const user = await this.usersService.findOneUsername(username);
 
     if (user === null) {
       throw new UnauthorizedException("User doesn't exist.");
     }
 
-    if (user.hashedPassword !== null) {
-      const match = await bcrypt.compare(password, user.hashedPassword);
-      if (!match) {
-        throw new UnauthorizedException("Password doesn't match.");
+    if (user.hashedPassword === null) {
+      throw new UnauthorizedException(
+        'Please login using your Oauth provider.',
+      );
+    }
+    const match = await bcrypt.compare(password, user.hashedPassword);
+    if (!match) {
+      throw new UnauthorizedException("Password doesn't match.");
+    }
+
+    const accessToken = await this.issueNewAccessToken(user);
+    const refreshToken = crypto.randomUUID();
+
+    this.sessions.set(refreshToken, new AuthSession(user.username));
+
+    return {
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+    };
+  }
+
+  /**
+   * @brief Sign in using data returned from an Oauth provider.
+   * Since the provider already checked for credentials for us, we act as if
+   * they had already logged in, either returning a token directly, or registering
+   * a new user.
+   */
+  async signInOauth(
+    userData: OauthPayload,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
+    let username = userData.username;
+    const { email, pictureUrl } = userData;
+
+    let user = await this.usersService.findOneEmail(email);
+
+    if (user === null) {
+      if (!username) {
+        username = await this.usersService.createUsername(email);
+      }
+      user = await this.usersService.createOne(username, email);
+      if (pictureUrl) {
+        await this.usersService.updateOne(user.id, {
+          pictureUrl: pictureUrl,
+        });
       }
     }
 
@@ -105,7 +146,7 @@ export class AuthService {
       this.sessions.delete(refreshToken);
       throw new UnauthorizedException();
     }
-    const user = await this.usersService.findOne(session.user);
+    const user = await this.usersService.findOneUsername(session.user);
     if (user === null) throw new UnauthorizedException();
 
     return this.issueNewAccessToken(user);
