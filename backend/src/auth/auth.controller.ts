@@ -1,7 +1,6 @@
 import {
   BadRequestException,
   Body,
-  ConflictException,
   Controller,
   Get,
   HttpCode,
@@ -28,20 +27,16 @@ export class AuthController {
   ) {}
 
   /**
-   * @brief Creates a user and returns a logged in JWT for that new user.
+   * @brief Creates a user on the database.
    */
   @HttpCode(HttpStatus.OK)
   @Post('register')
   async register(@Body() registerDto: RegisterDto) {
-    const newUser = await this.usersService.createOne(
+    await this.usersService.createOne(
       registerDto.username,
       registerDto.email,
       registerDto.password,
     );
-
-    if (newUser === undefined) {
-      throw new ConflictException();
-    }
   }
 
   @HttpCode(HttpStatus.OK)
