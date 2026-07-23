@@ -1,4 +1,8 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { publicUserSelect } from './users.select';
@@ -11,10 +15,22 @@ export class UsersService {
    * @brief Find and return a user based on username. The result must never be
    * returned to the frontend.
    */
-  async findOne(username: string) {
+  async findOneUsername(username: string) {
     return this.prisma.user.findUnique({
       where: {
         username: username,
+      },
+    });
+  }
+
+  /**
+   * @brief Find and return a user based on email. The result must never be
+   * returned to the frontend.
+   */
+  async findOneEmail(email: string) {
+    return this.prisma.user.findUnique({
+      where: {
+        email: email,
       },
     });
   }
@@ -37,7 +53,7 @@ export class UsersService {
    *
    * @return The newly created User object, as a Promise.
    */
-  async createOne(username: string, email: string, password: string) {
+  async createOne(username: string, email: string, password?: string) {
     const existingUser = await this.prisma.user.findFirst({
       where: { OR: [{ username }, { email }] },
     });
@@ -45,9 +61,12 @@ export class UsersService {
       throw new ConflictException();
     }
 
-    // Hash password
-    const saltRounds = 10;
-    const hash = await bcrypt.hash(password, saltRounds);
+    let hash = undefined;
+    if (password) {
+      // Hash password
+      const saltRounds = 10;
+      hash = await bcrypt.hash(password, saltRounds);
+    }
 
     const user = await this.prisma.user.create({
       data: {
@@ -57,5 +76,58 @@ export class UsersService {
       },
     });
     return user;
+  }
+
+  /**
+   * @brief Updates a user's personal information on the database.
+   */
+  async updateOne(
+    id: string,
+    data: { username?: string; email?: string; pictureUrl?: string },
+  ) {
+    await this.prisma.user.update({
+      where: { id: id },
+      // If a value is undefined, the value won't be updated
+      data: {
+        username: data.username,
+        email: data.email,
+        avatarUrl: data.pictureUrl,
+      },
+    });
+  }
+
+  /**
+   * @brief Creates a unique username for a given email. Checks for existing
+   * usernames, and appends a number if a username already exists.
+   */
+  async createUsername(email: string) {
+    const atIndex = email.indexOf('@');
+    const username = email.substring(0, atIndex);
+
+    const existingUser = await this.prisma.user.findUnique({
+      where: {
+        username: username,
+      },
+    });
+
+    // Avoid naming collisions
+    if (existingUser !== null) {
+      for (let index = 1; index < 100; ++index) {
+        const newUsername = username + index;
+        const existingUser = await this.prisma.user.findUnique({
+          where: {
+            username: newUsername,
+          },
+        });
+        if (!existingUser) {
+          return newUsername;
+        }
+      }
+      throw new InternalServerErrorException(
+        "Couldn't create a unique username; try creating an account normally instead.",
+      );
+    }
+
+    return username;
   }
 }

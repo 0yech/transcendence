@@ -1,6 +1,7 @@
 import { LoginForm } from '../auth/login';
 import type { Route } from '../+types/root';
 import { Link, redirect } from 'react-router';
+import { OauthLoginOptions } from '~/auth/oauth';
 
 export async function clientAction({ request }: Route.ActionArgs) {
   const data = await request.formData();
@@ -27,6 +28,8 @@ export default function Login() {
       <h1 className="text-3xl font-bold">Login to Transcendence</h1>
       <LoginForm />
       <Link to="/register">Don't have an account yet?</Link>
+
+      <OauthLoginOptions />
     </>
   );
 }

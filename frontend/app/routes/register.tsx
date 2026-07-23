@@ -1,6 +1,7 @@
 import { RegisterForm } from '../auth/register';
 import type { Route } from '../+types/root';
 import { Link, redirect } from 'react-router';
+import { OauthLoginOptions } from '~/auth/oauth';
 
 export async function clientAction({ request }: Route.ActionArgs) {
   const data = await request.formData();
@@ -27,6 +28,8 @@ export default function Register() {
       <h1 className="text-3xl font-bold">Register to Transcendence</h1>
       <RegisterForm />
       <Link to="/login">Already have an account?</Link>
+
+      <OauthLoginOptions />
     </>
   );
 }
