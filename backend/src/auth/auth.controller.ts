@@ -103,6 +103,44 @@ export class AuthController {
   }
 
   /**
+   * @brief This route will redirect the user to the google login screen.
+   */
+  @Get('github')
+  @UseGuards(AuthGuard('github'))
+  async githubAuth() {}
+
+  /**
+   * @brief This route will be hit after logging in on user.
+   */
+  @Get('github/callback')
+  @UseGuards(AuthGuard('github'))
+  async githubAuthCallback(
+    @Req() req: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const userData = req.user as OauthPayload; // stashed user information from guards
+    if (!userData) {
+      throw new Error('Missing user data from Github');
+    }
+
+    const { accessToken, refreshToken } =
+      await this.authService.signInOauth(userData);
+
+    response.cookie('access_token', accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+    });
+    response.cookie('refresh_token', refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      path: '/api/auth',
+    });
+    response.redirect(`${process.env.FRONTEND_ORIGIN}profile`);
+  }
+
+  /**
    * @brief This endpoint removes the session attached to a given refresh token.
    */
   @HttpCode(HttpStatus.OK)

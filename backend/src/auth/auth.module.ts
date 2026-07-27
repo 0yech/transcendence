@@ -5,10 +5,11 @@ import { UsersModule } from 'src/users/users.module';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from './constants';
 import { GoogleStrategy } from './google.strategy';
+import { GithubStrategy } from './github.strategy';
 
 @Module({
   controllers: [AuthController],
-  providers: [AuthService, GoogleStrategy],
+  providers: [AuthService, GoogleStrategy, GithubStrategy],
   imports: [
     UsersModule,
     JwtModule.register({
