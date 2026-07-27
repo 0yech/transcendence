@@ -21,6 +21,7 @@ services:
       - database
     command: 'sh -c "npx prisma db push && npx prisma generate && npm run start:prod"'
     environment:
+      - FRONTEND_ORIGIN=${FRONTEND_ORIGIN}
       - DATABASE_URL=${DATABASE_URL}
       - JWT_SECRET=${JWT_SECRET}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
