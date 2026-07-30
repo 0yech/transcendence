@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ChatsGateway } from './chats.gateway';
+import { publicMessageSelect } from './chats.select';
 
 @Injectable()
 export class ChatsService {
@@ -30,19 +31,7 @@ export class ChatsService {
       where: {
         chatId: lobby.chatId,
       },
-      select: {
-        id: true,
-        content: true,
-        createdAt: true,
-        updatedAt: true,
-        author: {
-          select: {
-            id: true,
-            username: true,
-            avatarUrl: true,
-          },
-        },
-      },
+      select: publicMessageSelect,
       orderBy: {
         createdAt: 'asc',
       },
@@ -83,19 +72,7 @@ export class ChatsService {
         authorId: userId,
         chatId: lobby.chatId,
       },
-      select: {
-        id: true,
-        content: true,
-        createdAt: true,
-        updatedAt: true,
-        author: {
-          select: {
-            id: true,
-            username: true,
-            avatarUrl: true,
-          },
-        },
-      },
+      select: publicMessageSelect,
     });
 
     /*
