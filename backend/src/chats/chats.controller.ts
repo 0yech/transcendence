@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '../auth/auth.guard';
+import { JwtAuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { JwtPayload } from '../auth/jwt-payload.interface';
 import { ChatsService } from './chats.service';
@@ -12,7 +12,7 @@ import { CreateMessageDto } from './dto/create-message.dto';
  * Real-time message delivery is handled separately by ChatsGateway.
  */
 @Controller('lobbies/:code/messages')
-@UseGuards(AuthGuard)
+@UseGuards(JwtAuthGuard)
 export class ChatsController {
   constructor(private readonly chatsService: ChatsService) {}
 
