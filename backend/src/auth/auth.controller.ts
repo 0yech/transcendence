@@ -1,7 +1,6 @@
 import {
   BadRequestException,
   Body,
-  ConflictException,
   Controller,
   Get,
   HttpCode,
@@ -12,13 +11,15 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthGuard } from './auth.guard';
+import { JwtAuthGuard } from './auth.guard';
 import { CurrentUser } from './current-user.decorator';
 import type { JwtPayload } from './jwt-payload.interface';
 import { UsersService } from 'src/users/users.service';
 import type { Request, Response } from 'express';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { OauthPayload } from './oauth-payload.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -28,20 +29,16 @@ export class AuthController {
   ) {}
 
   /**
-   * @brief Creates a user and returns a logged in JWT for that new user.
+   * @brief Creates a user on the database.
    */
   @HttpCode(HttpStatus.OK)
   @Post('register')
   async register(@Body() registerDto: RegisterDto) {
-    const newUser = await this.usersService.createOne(
+    await this.usersService.createOne(
       registerDto.username,
       registerDto.email,
       registerDto.password,
     );
-
-    if (newUser === undefined) {
-      throw new ConflictException();
-    }
   }
 
   @HttpCode(HttpStatus.OK)
@@ -65,6 +62,44 @@ export class AuthController {
       sameSite: 'lax',
       path: '/api/auth',
     });
+  }
+
+  /**
+   * @brief This route will redirect the user to the google login screen.
+   */
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  async googleAuth() {}
+
+  /**
+   * @brief This route will be hit after logging in on user.
+   */
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  async googleAuthCallback(
+    @Req() req: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const userData = req.user as OauthPayload; // stashed user information from guards
+    if (!userData) {
+      throw new Error('Missing user data from Google');
+    }
+
+    const { accessToken, refreshToken } =
+      await this.authService.signInOauth(userData);
+
+    response.cookie('access_token', accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+    });
+    response.cookie('refresh_token', refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      path: '/api/auth',
+    });
+    response.redirect(`${process.env.FRONTEND_ORIGIN}profile`);
   }
 
   /**
@@ -113,7 +148,7 @@ export class AuthController {
   /**
    * @brief Returns the incoming request's JWT's payload, defined in the AuthService.
    */
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('me')
   getCurrentUser(@CurrentUser() user: JwtPayload) {
     if (user === undefined || user.username === undefined) {
