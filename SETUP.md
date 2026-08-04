@@ -6,6 +6,7 @@ cd transcendence
 ```
 
 Rename/Fill .env files according to .env.example files
+(.env for prod, .env.dev for dev)
 
 ```bash
 cp backend/.env.example backend/.env
