@@ -1,6 +1,6 @@
 import apiFetch from '~/utils/api-fetch';
-import type { Route } from '../+types/profile';
 import { LogoutButton } from '~/auth/logout';
+import type { Route } from './+types/profile';
 
 export async function clientLoader() {
   const data = await apiFetch('/api/auth/me');
