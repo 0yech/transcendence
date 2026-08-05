@@ -45,7 +45,14 @@ export class FortytwoStrategy extends PassportStrategy(
   ): Promise<OauthPayload> {
     console.log(profile);
     const { emails, photos } = profile;
-    if (!emails || !emails[0] || !photos || !photos[0].value) {
+    if (
+      !emails ||
+      !emails[0] ||
+      !emails[0].value ||
+      !photos ||
+      !photos[0] ||
+      !photos[0].value
+    ) {
       throw new Error('Missing information in 42 profile');
     }
     const user = {
