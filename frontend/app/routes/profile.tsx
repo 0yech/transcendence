@@ -8,11 +8,12 @@ export async function clientLoader() {
 }
 
 export default function Profile({ loaderData }: Route.ComponentProps) {
-  const { username, email, guildId } = loaderData;
+  const { username, email, guildId, avatarUrl } = loaderData;
   return (
     <>
       <title>{username}'s Profile</title>
       <h1 className="text-3xl font-bold">{username}'s Profile</h1>
+      <img src={avatarUrl} />
 
       <LogoutButton />
 
