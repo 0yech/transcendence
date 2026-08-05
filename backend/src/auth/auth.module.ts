@@ -6,10 +6,11 @@ import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from './constants';
 import { GoogleStrategy } from './google.strategy';
 import { GithubStrategy } from './github.strategy';
+import { FortytwoStrategy } from './fortytwo.strategy';
 
 @Module({
   controllers: [AuthController],
-  providers: [AuthService, GoogleStrategy, GithubStrategy],
+  providers: [AuthService, GoogleStrategy, GithubStrategy, FortytwoStrategy],
   imports: [
     UsersModule,
     JwtModule.register({
