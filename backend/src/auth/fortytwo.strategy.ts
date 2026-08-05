@@ -43,7 +43,6 @@ export class FortytwoStrategy extends PassportStrategy(
     _refreshToken: string,
     profile: passport.Profile,
   ): Promise<OauthPayload> {
-    console.log(profile);
     const { emails, photos } = profile;
     if (
       !emails ||
