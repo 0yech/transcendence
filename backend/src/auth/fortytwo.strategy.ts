@@ -21,7 +21,7 @@ export class FortytwoStrategy extends PassportStrategy(
       clientID: process.env.FORTYTWO_CLIENT_ID,
       clientSecret: process.env.FORTYTWO_CLIENT_SECRET,
       callbackURL: `${process.env.FRONTEND_ORIGIN}api/auth/fortytwo/callback`,
-      // Define our own profile fields to overrite the wonky ones from the 42 library
+      // Define our own profile fields to overwrite the wonky ones from the 42 library
       profileFields: {
         id: function (obj) {
           return String(obj.id);
