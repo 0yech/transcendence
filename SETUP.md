@@ -10,7 +10,7 @@ Rename/Fill .env files according to .env.example files
 
 ```bash
 cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env
+cp .env.example .env
 ```
 
 Install dependencies for the backend
