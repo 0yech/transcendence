@@ -24,7 +24,14 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
     profile: Profile,
   ): Promise<OauthPayload> {
     const { emails, photos } = profile;
-    if (!emails || !photos) {
+    if (
+      !emails ||
+      !emails[0] ||
+      !emails[0].value ||
+      !photos ||
+      !photos[0] ||
+      !photos[0].value
+    ) {
       throw new Error('Missing information in Github profile');
     }
     const user = {
