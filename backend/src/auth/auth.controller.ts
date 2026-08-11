@@ -15,11 +15,17 @@ import { JwtAuthGuard } from './auth.guard';
 import { CurrentUser } from './current-user.decorator';
 import type { JwtPayload } from './jwt-payload.interface';
 import { UsersService } from 'src/users/users.service';
-import type { Request, Response } from 'express';
+import type { CookieOptions, Request, Response } from 'express';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { OauthPayload } from './oauth-payload.interface';
+
+const cookieOptions: CookieOptions = {
+  httpOnly: true,
+  secure: true,
+  sameSite: 'lax',
+};
 
 @Controller('auth')
 export class AuthController {
@@ -51,15 +57,11 @@ export class AuthController {
       signInDto.username,
       signInDto.password,
     );
-    response.cookie('access_token', accessToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-    });
+    response.cookie('access_token', accessToken, cookieOptions);
     response.cookie('refresh_token', refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
+      httpOnly: cookieOptions.httpOnly,
+      secure: cookieOptions.secure,
+      sameSite: cookieOptions.sameSite,
       path: '/api/auth',
     });
   }
@@ -88,15 +90,11 @@ export class AuthController {
     const { accessToken, refreshToken } =
       await this.authService.signInOauth(userData);
 
-    response.cookie('access_token', accessToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-    });
+    response.cookie('access_token', accessToken, cookieOptions);
     response.cookie('refresh_token', refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
+      httpOnly: cookieOptions.httpOnly,
+      secure: cookieOptions.secure,
+      sameSite: cookieOptions.sameSite,
       path: '/api/auth',
     });
     response.redirect(`${process.env.FRONTEND_ORIGIN}profile`);
@@ -126,17 +124,8 @@ export class AuthController {
     const { accessToken, refreshToken } =
       await this.authService.signInOauth(userData);
 
-    response.cookie('access_token', accessToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-    });
-    response.cookie('refresh_token', refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-      path: '/api/auth',
-    });
+    response.cookie('access_token', accessToken, cookieOptions);
+    response.cookie('refresh_token', refreshToken, {});
     response.redirect(`${process.env.FRONTEND_ORIGIN}profile`);
   }
 
@@ -164,15 +153,11 @@ export class AuthController {
     const { accessToken, refreshToken } =
       await this.authService.signInOauth(userData);
 
-    response.cookie('access_token', accessToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-    });
+    response.cookie('access_token', accessToken, cookieOptions);
     response.cookie('refresh_token', refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
+      httpOnly: cookieOptions.httpOnly,
+      secure: cookieOptions.secure,
+      sameSite: cookieOptions.sameSite,
       path: '/api/auth',
     });
     response.redirect(`${process.env.FRONTEND_ORIGIN}profile`);
@@ -189,15 +174,11 @@ export class AuthController {
   ) {
     const refreshToken = request.cookies['refresh_token'];
     await this.authService.signOut(refreshToken);
-    response.clearCookie('access_token', {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-    });
+    response.clearCookie('access_token', cookieOptions);
     response.clearCookie('refresh_token', {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
+      httpOnly: cookieOptions.httpOnly,
+      secure: cookieOptions.secure,
+      sameSite: cookieOptions.sameSite,
       path: '/api/auth',
     });
   }
@@ -214,11 +195,7 @@ export class AuthController {
   ) {
     const refreshToken = request.cookies['refresh_token'];
     const newAccessToken = await this.authService.refresh(refreshToken);
-    response.cookie('access_token', newAccessToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-    });
+    response.cookie('access_token', newAccessToken, cookieOptions);
   }
 
   /**
