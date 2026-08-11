@@ -213,6 +213,79 @@ export class GamesService {
     return this.toPublicGame(game, userId);
   }
 
+    async getGameById(
+    gameId: string,
+    userId: string,
+  ) {
+    const game =
+      await this.getFullGame(gameId);
+
+    this.assertPlayerInGame(
+      game,
+      userId,
+    );
+
+    return this.toPublicGame(
+      game,
+      userId,
+    );
+  }
+
+  async assertLobbyAccess(
+    lobbyCode: string,
+    userId: string,
+  ) {
+    if (
+      typeof lobbyCode !== 'string' ||
+      !lobbyCode.trim()
+    ) {
+      throw new BadRequestException(
+        'lobbyCode is required',
+      );
+    }
+
+    const normalizedCode =
+      lobbyCode
+        .trim()
+        .toUpperCase();
+
+    const lobby =
+      await this.prisma.lobby.findFirst({
+        where: {
+          code: normalizedCode,
+          active: true,
+        },
+
+        include: {
+          users: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      });
+
+    if (!lobby) {
+      throw new NotFoundException(
+        `Active lobby with code ${normalizedCode} not found`,
+      );
+    }
+
+    const isInLobby =
+      lobby.users.some(
+        (user) =>
+          user.id === userId,
+      );
+
+    if (!isInLobby) {
+      throw new ForbiddenException(
+        'You are not in this lobby',
+      );
+    }
+
+    return normalizedCode;
+  }
+
   /**
    * @brief Plays a card by its visible hand slot.
    *
@@ -603,7 +676,7 @@ export class GamesService {
    * @throws NotFoundException If the game does not exist.
    * @throws ForbiddenException If the user is not a player in the game.
    */
-  async getReplay(gameId: string, userId: string) {
+  async getReplay(gameId: string) {
     const game = await this.prisma.game.findUnique({
       where: { id: gameId },
       include: {
@@ -629,7 +702,13 @@ export class GamesService {
       throw new NotFoundException('Game not found');
     }
 
-    this.assertPlayerInGame(game as unknown as GameWithPlayers, userId);
+    if (game.status !== 'FINISHED' &&
+        game.status !== 'CANCELLED'
+    ) {
+      throw new NotFoundException(
+        `Finished game ${gameId} not found`,
+      );
+    }
 
     return {
       id: game.id,
