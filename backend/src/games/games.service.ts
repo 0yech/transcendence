@@ -670,7 +670,6 @@ export class GamesService {
    * The private seed, deck cache and hidden hands are never returned.
    *
    * @param gameId The id of the game.
-   * @param userId The authenticated user id.
    * @return The replay metadata and ordered list of public game actions.
    *
    * @throws NotFoundException If the game does not exist.
