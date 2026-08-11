@@ -71,7 +71,6 @@ export class GamesService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-
   /**
    * @brief Serializes actions for a single game.
    *
@@ -253,57 +252,35 @@ export class GamesService {
     return this.toPublicGame(game, userId);
   }
 
-    async getGameById(
-    gameId: string,
-    userId: string,
-  ) {
-    const game =
-      await this.getFullGame(gameId);
+  async getGameById(gameId: string, userId: string) {
+    const game = await this.getFullGame(gameId);
 
-    this.assertPlayerInGame(
-      game,
-      userId,
-    );
+    this.assertPlayerInGame(game, userId);
 
-    return this.toPublicGame(
-      game,
-      userId,
-    );
+    return this.toPublicGame(game, userId);
   }
 
-  async assertLobbyAccess(
-    lobbyCode: string,
-    userId: string,
-  ) {
-    if (
-      typeof lobbyCode !== 'string' ||
-      !lobbyCode.trim()
-    ) {
-      throw new BadRequestException(
-        'lobbyCode is required',
-      );
+  async assertLobbyAccess(lobbyCode: string, userId: string) {
+    if (typeof lobbyCode !== 'string' || !lobbyCode.trim()) {
+      throw new BadRequestException('lobbyCode is required');
     }
 
-    const normalizedCode =
-      lobbyCode
-        .trim()
-        .toUpperCase();
+    const normalizedCode = lobbyCode.trim().toUpperCase();
 
-    const lobby =
-      await this.prisma.lobby.findFirst({
-        where: {
-          code: normalizedCode,
-          active: true,
-        },
+    const lobby = await this.prisma.lobby.findFirst({
+      where: {
+        code: normalizedCode,
+        active: true,
+      },
 
-        include: {
-          users: {
-            select: {
-              id: true,
-            },
+      include: {
+        users: {
+          select: {
+            id: true,
           },
         },
-      });
+      },
+    });
 
     if (!lobby) {
       throw new NotFoundException(
@@ -311,16 +288,10 @@ export class GamesService {
       );
     }
 
-    const isInLobby =
-      lobby.users.some(
-        (user) =>
-          user.id === userId,
-      );
+    const isInLobby = lobby.users.some((user) => user.id === userId);
 
     if (!isInLobby) {
-      throw new ForbiddenException(
-        'You are not in this lobby',
-      );
+      throw new ForbiddenException('You are not in this lobby');
     }
 
     return normalizedCode;
@@ -614,10 +585,7 @@ export class GamesService {
         include: this.gameInclude(),
       });
 
-      return this.finishIfNeeded(
-        updated as unknown as GameWithPlayers,
-        userId,
-      );
+      return this.finishIfNeeded(updated as unknown as GameWithPlayers, userId);
     });
   }
 
@@ -648,78 +616,75 @@ export class GamesService {
       this.assertPlayerInGame(game, userId);
       this.assertCurrentPlayer(game, userId);
 
-    const player = game.players.find(
-      (p: GamePlayerWithUser) => p.userId === userId,
-    );
+      const player = game.players.find(
+        (p: GamePlayerWithUser) => p.userId === userId,
+      );
 
-    if (!player || player.status !== 'ACTIVE') {
-      throw new ForbiddenException('You are not active in this game');
-    }
+      if (!player || player.status !== 'ACTIVE') {
+        throw new ForbiddenException('You are not active in this game');
+      }
 
-    const removed = removeFourOno99(player.hand as Ono99Card[]);
+      const removed = removeFourOno99(player.hand as Ono99Card[]);
 
-    const discardPile = [
-      ...(game.discardPile as Ono99Card[]),
-      ...removed.removed,
-    ];
+      const discardPile = [
+        ...(game.discardPile as Ono99Card[]),
+        ...removed.removed,
+      ];
 
-    const draw = drawUntilFour({
-      hand: removed.hand,
-      deck: game.deck as Ono99Card[],
-      discardPile,
-      privateSeed: game.seedPrivate,
-      reshuffleIndex: game.reshuffleIndex,
-    });
+      const draw = drawUntilFour({
+        hand: removed.hand,
+        deck: game.deck as Ono99Card[],
+        discardPile,
+        privateSeed: game.seedPrivate,
+        reshuffleIndex: game.reshuffleIndex,
+      });
 
-    await this.prisma.gamePlayer.update({
-      where: { id: player.id },
-      data: {
-        hand: draw.hand as Prisma.InputJsonValue,
-      },
-    });
+      await this.prisma.gamePlayer.update({
+        where: { id: player.id },
+        data: {
+          hand: draw.hand as Prisma.InputJsonValue,
+        },
+      });
 
-    const next =
-      game.pendingPlays === 2
-        ? { currentPlayerId: userId, pendingPlays: 1 }
-        : {
-            currentPlayerId: this.findNextActivePlayerId(
-              game,
-              userId,
-              game.direction,
-            ),
-            pendingPlays: 1,
-          };
+      const next =
+        game.pendingPlays === 2
+          ? { currentPlayerId: userId, pendingPlays: 1 }
+          : {
+              currentPlayerId: this.findNextActivePlayerId(
+                game,
+                userId,
+                game.direction,
+              ),
+              pendingPlays: 1,
+            };
 
-    const updated = await this.prisma.game.update({
-      where: { id: gameId },
-      data: {
-        currentPlayerId: next.currentPlayerId,
-        pendingPlays: next.pendingPlays,
-        turnNumber: { increment: 1 },
-        reshuffleIndex: draw.reshuffleIndex,
-        deck: draw.deck as Prisma.InputJsonValue,
-        discardPile: draw.discardPile as Prisma.InputJsonValue,
-        actions: {
-          create: {
-            actorUserId: userId,
-            type: 'FOUR_ONO99_DISCARDED',
-            sequence: await this.nextSequence(gameId),
-            turnNumber: game.turnNumber,
-            payload: {
-              cardIds: removed.removed.map((card: Ono99Card) => card.id),
-              totalBefore: game.total,
-              totalAfter: game.total,
+      const updated = await this.prisma.game.update({
+        where: { id: gameId },
+        data: {
+          currentPlayerId: next.currentPlayerId,
+          pendingPlays: next.pendingPlays,
+          turnNumber: { increment: 1 },
+          reshuffleIndex: draw.reshuffleIndex,
+          deck: draw.deck as Prisma.InputJsonValue,
+          discardPile: draw.discardPile as Prisma.InputJsonValue,
+          actions: {
+            create: {
+              actorUserId: userId,
+              type: 'FOUR_ONO99_DISCARDED',
+              sequence: await this.nextSequence(gameId),
+              turnNumber: game.turnNumber,
+              payload: {
+                cardIds: removed.removed.map((card: Ono99Card) => card.id),
+                totalBefore: game.total,
+                totalAfter: game.total,
+              },
             },
           },
         },
-      },
-      include: this.gameInclude(),
-    });
+        include: this.gameInclude(),
+      });
 
-      return this.finishIfNeeded(
-        updated as unknown as GameWithPlayers,
-        userId,
-      );
+      return this.finishIfNeeded(updated as unknown as GameWithPlayers, userId);
     });
   }
 
@@ -761,12 +726,8 @@ export class GamesService {
       throw new NotFoundException('Game not found');
     }
 
-    if (game.status !== 'FINISHED' &&
-        game.status !== 'CANCELLED'
-    ) {
-      throw new NotFoundException(
-        `Finished game ${gameId} not found`,
-      );
+    if (game.status !== 'FINISHED' && game.status !== 'CANCELLED') {
+      throw new NotFoundException(`Finished game ${gameId} not found`);
     }
 
     return {
