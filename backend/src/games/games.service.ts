@@ -67,8 +67,48 @@ type GameWithPlayers = {
  */
 @Injectable()
 export class GamesService {
+  private readonly gameLocks = new Map<string, Promise<void>>();
+
   constructor(private readonly prisma: PrismaService) {}
 
+
+  /**
+   * @brief Serializes actions for a single game.
+   *
+   * Actions for different games may still run concurrently.
+   *
+   * @param gameId The game to lock.
+   * @param action The action to execute while holding the lock.
+   * @returns The result of the action.
+   */
+  private async withGameLock<T>(
+    gameId: string,
+    action: () => Promise<T>,
+  ): Promise<T> {
+    const previous = this.gameLocks.get(gameId) ?? Promise.resolve();
+
+    let release!: () => void;
+
+    const current = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+
+    const queued = previous.then(() => current);
+
+    this.gameLocks.set(gameId, queued);
+
+    await previous;
+
+    try {
+      return await action();
+    } finally {
+      release();
+
+      if (this.gameLocks.get(gameId) === queued) {
+        this.gameLocks.delete(gameId);
+      }
+    }
+  }
   /**
    * @brief Starts a new ONO99 game from an active lobby.
    *
@@ -315,28 +355,32 @@ export class GamesService {
       throw new BadRequestException('slot must be between 1 and 4');
     }
 
-    const game = await this.getActiveGameByLobbyCode(lobbyCode);
+    const activeGame = await this.getActiveGameByLobbyCode(lobbyCode);
 
-    this.assertInProgress(game);
-    this.assertPlayerInGame(game, userId);
-    this.assertCurrentPlayer(game, userId);
+    return this.withGameLock(activeGame.id, async () => {
+      const game = await this.getFullGame(activeGame.id);
 
-    const player = game.players.find(
-      (p: GamePlayerWithUser) => p.userId === userId,
-    );
+      this.assertInProgress(game);
+      this.assertPlayerInGame(game, userId);
+      this.assertCurrentPlayer(game, userId);
 
-    if (!player || player.status !== 'ACTIVE') {
-      throw new ForbiddenException('You are not active in this game');
-    }
+      const player = game.players.find(
+        (p: GamePlayerWithUser) => p.userId === userId,
+      );
 
-    const hand = player.hand as Ono99Card[];
-    const card = hand[slot - 1];
+      if (!player || player.status !== 'ACTIVE') {
+        throw new ForbiddenException('You are not active in this game');
+      }
 
-    if (!card) {
-      throw new BadRequestException(`No card in slot ${slot}`);
-    }
+      const hand = player.hand as Ono99Card[];
+      const card = hand[slot - 1];
 
-    return this.playCardByGameId(game.id, userId, card.id);
+      if (!card) {
+        throw new BadRequestException(`No card in slot ${slot}`);
+      }
+
+      return this.playCardByGameId(game.id, userId, card.id);
+    });
   }
 
   /**
@@ -360,7 +404,9 @@ export class GamesService {
   async playCard(lobbyCode: string, userId: string, cardId: string) {
     const game = await this.getActiveGameByLobbyCode(lobbyCode);
 
-    return this.playCardByGameId(game.id, userId, cardId);
+    return this.withGameLock(game.id, () =>
+      this.playCardByGameId(game.id, userId, cardId),
+    );
   }
 
   private async playCardByGameId(
@@ -496,76 +542,83 @@ export class GamesService {
    * @throws NotFoundException If the game does not exist.
    */
   async unableToPlay(lobbyCode: string, userId: string) {
-    const game = await this.getActiveGameByLobbyCode(lobbyCode);
-    const gameId = game.id;
+    const activeGame = await this.getActiveGameByLobbyCode(lobbyCode);
 
-    this.assertInProgress(game);
-    this.assertPlayerInGame(game, userId);
-    this.assertCurrentPlayer(game, userId);
+    return this.withGameLock(activeGame.id, async () => {
+      const game = await this.getFullGame(activeGame.id);
+      const gameId = game.id;
 
-    const player = game.players.find(
-      (p: GamePlayerWithUser) => p.userId === userId,
-    );
+      this.assertInProgress(game);
+      this.assertPlayerInGame(game, userId);
+      this.assertCurrentPlayer(game, userId);
 
-    if (!player || player.status !== 'ACTIVE') {
-      throw new ForbiddenException('You are not active in this game');
-    }
+      const player = game.players.find(
+        (p: GamePlayerWithUser) => p.userId === userId,
+      );
 
-    const hand = player.hand as Ono99Card[];
+      if (!player || player.status !== 'ACTIVE') {
+        throw new ForbiddenException('You are not active in this game');
+      }
 
-    if (hasPlayableCard(hand, game.total) || hasFourOno99(hand)) {
-      throw new BadRequestException('You still have a legal move');
-    }
+      const hand = player.hand as Ono99Card[];
 
-    await this.prisma.gamePlayer.update({
-      where: { id: player.id },
-      data: {
-        status: 'ELIMINATED',
-        eliminatedAt: new Date(),
-      },
-    });
+      if (hasPlayableCard(hand, game.total) || hasFourOno99(hand)) {
+        throw new BadRequestException('You still have a legal move');
+      }
 
-    await this.prisma.gameAction.create({
-      data: {
-        gameId,
-        actorUserId: userId,
-        type: 'PLAYER_ELIMINATED',
-        sequence: await this.nextSequence(gameId),
-        turnNumber: game.turnNumber,
-        payload: {
-          reason: 'NO_LEGAL_MOVE',
-          total: game.total,
+      await this.prisma.gamePlayer.update({
+        where: { id: player.id },
+        data: {
+          status: 'ELIMINATED',
+          eliminatedAt: new Date(),
         },
-      },
+      });
+
+      await this.prisma.gameAction.create({
+        data: {
+          gameId,
+          actorUserId: userId,
+          type: 'PLAYER_ELIMINATED',
+          sequence: await this.nextSequence(gameId),
+          turnNumber: game.turnNumber,
+          payload: {
+            reason: 'NO_LEGAL_MOVE',
+            total: game.total,
+          },
+        },
+      });
+
+      const refreshed = await this.getFullGame(gameId);
+
+      const activePlayers = refreshed.players.filter(
+        (p: GamePlayerWithUser) => p.status === 'ACTIVE',
+      );
+
+      if (activePlayers.length === 1) {
+        return this.finishGame(gameId, activePlayers[0].userId, userId);
+      }
+
+      const nextPlayerId = this.findNextActivePlayerId(
+        refreshed,
+        userId,
+        refreshed.direction,
+      );
+
+      const updated = await this.prisma.game.update({
+        where: { id: gameId },
+        data: {
+          currentPlayerId: nextPlayerId,
+          pendingPlays: 1,
+          turnNumber: { increment: 1 },
+        },
+        include: this.gameInclude(),
+      });
+
+      return this.finishIfNeeded(
+        updated as unknown as GameWithPlayers,
+        userId,
+      );
     });
-
-    const refreshed = await this.getFullGame(gameId);
-
-    const activePlayers = refreshed.players.filter(
-      (p: GamePlayerWithUser) => p.status === 'ACTIVE',
-    );
-
-    if (activePlayers.length === 1) {
-      return this.finishGame(gameId, activePlayers[0].userId, userId);
-    }
-
-    const nextPlayerId = this.findNextActivePlayerId(
-      refreshed,
-      userId,
-      refreshed.direction,
-    );
-
-    const updated = await this.prisma.game.update({
-      where: { id: gameId },
-      data: {
-        currentPlayerId: nextPlayerId,
-        pendingPlays: 1,
-        turnNumber: { increment: 1 },
-      },
-      include: this.gameInclude(),
-    });
-
-    return this.finishIfNeeded(updated as unknown as GameWithPlayers, userId);
   }
 
   /**
@@ -585,12 +638,15 @@ export class GamesService {
    * @throws NotFoundException If the game does not exist.
    */
   async discardFourOno99(lobbyCode: string, userId: string) {
-    const game = await this.getActiveGameByLobbyCode(lobbyCode);
-    const gameId = game.id;
+    const activeGame = await this.getActiveGameByLobbyCode(lobbyCode);
 
-    this.assertInProgress(game);
-    this.assertPlayerInGame(game, userId);
-    this.assertCurrentPlayer(game, userId);
+    return this.withGameLock(activeGame.id, async () => {
+      const game = await this.getFullGame(activeGame.id);
+      const gameId = game.id;
+
+      this.assertInProgress(game);
+      this.assertPlayerInGame(game, userId);
+      this.assertCurrentPlayer(game, userId);
 
     const player = game.players.find(
       (p: GamePlayerWithUser) => p.userId === userId,
@@ -660,7 +716,11 @@ export class GamesService {
       include: this.gameInclude(),
     });
 
-    return this.finishIfNeeded(updated as unknown as GameWithPlayers, userId);
+      return this.finishIfNeeded(
+        updated as unknown as GameWithPlayers,
+        userId,
+      );
+    });
   }
 
   /**
