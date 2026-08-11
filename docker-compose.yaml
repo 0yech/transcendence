@@ -8,9 +8,13 @@ services:
     restart: unless-stopped
     depends_on:
       - backend
+    # Substitute environment variables in nginx.conf.template with envsubst
+    command: /bin/bash -c "envsubst < /etc/nginx/nginx.conf.template '$${BACKEND_PORT}' > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
+    environment:
+      - BACKEND_PORT=${BACKEND_PORT}
     ports:
       - "80:80"
-      - "443:443"
+      - "$FRONTEND_PORT:443"
   backend:
     container_name: backend
     build:
@@ -22,6 +26,8 @@ services:
     command: 'sh -c "npx prisma db push && npx prisma generate && npm run start:prod"'
     environment:
       - FRONTEND_ORIGIN=${FRONTEND_ORIGIN}
+      - FRONTEND_PORT=${FRONTEND_PORT}
+      - BACKEND_PORT=${BACKEND_PORT}
       - DATABASE_URL=${DATABASE_URL}
       - JWT_SECRET=${JWT_SECRET}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}

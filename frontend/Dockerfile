@@ -18,7 +18,8 @@ CMD ["npm", "run", "dev", "--", "--host"]
 
 FROM nginx AS production
 COPY --from=build-env /app/build/client /usr/share/nginx/html/
-COPY nginx.conf /etc/nginx/nginx.conf
+# This file will be converted to an actual nginx configuration by envsubst
+COPY nginx.conf.template /etc/nginx/nginx.conf.template
 RUN mkdir -p /etc/nginx/ssl && \
     openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
     -keyout /etc/nginx/ssl/server.key \
