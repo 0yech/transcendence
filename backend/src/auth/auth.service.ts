@@ -155,7 +155,7 @@ export class AuthService {
   /**
    * @brief Every hour, goes through all active sessions, and kills expired ones.
    */
-  @Cron('* 0 * * * *')
+  @Cron('0 0 * * * *')
   async cleanupSessions() {
     this.sessions.forEach((session, refreshToken) => {
       if (session.isExpired()) {
