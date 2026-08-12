@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  InternalServerErrorException,
   Post,
   Req,
   Res,
@@ -186,6 +187,19 @@ export class AuthController {
       sameSite: cookieOptions.sameSite,
       path: '/api/auth',
     });
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('remove-account')
+  @UseGuards(JwtAuthGuard)
+  async removeAccount(@CurrentUser() currentUser: JwtPayload) {
+    const publicUser = await this.usersService.findOnePublic(
+      currentUser.username,
+    );
+    if (publicUser === null) {
+      throw new InternalServerErrorException('Current user is missing');
+    }
+    await this.usersService.deleteOne(publicUser.id);
   }
 
   /**

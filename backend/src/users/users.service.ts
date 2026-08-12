@@ -97,6 +97,16 @@ export class UsersService {
   }
 
   /**
+   * @brief Remove a specific user account. Only an authenticated user can delete
+   * their own account.
+   */
+  async deleteOne(id: string) {
+    await this.prisma.user.delete({
+      where: { id: id },
+    });
+  }
+
+  /**
    * @brief Creates a unique username for a given email. Checks for existing
    * usernames, and appends a number if a username already exists.
    */
