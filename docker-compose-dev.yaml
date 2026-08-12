@@ -8,8 +8,10 @@ services:
     restart: unless-stopped
     depends_on:
       - backend
+    env_file:
+      - .env.dev
     ports:
-      - "$FRONTEND_PORT:443"
+      - "$FRONTEND_PORT:5173"
     volumes:
       # Mount the source for hot reloads
       - ./frontend:/app
