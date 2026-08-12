@@ -194,7 +194,7 @@ export class GamesService {
       include: this.gameInclude(),
     });
 
-    return this.toPublicGame(game as unknown as GameWithPlayers, requesterId);
+    return this.toPublicGame(game, requesterId);
   }
 
   /**
@@ -406,7 +406,7 @@ export class GamesService {
       include: this.gameInclude(),
     });
 
-    return this.finishIfNeeded(updated as unknown as GameWithPlayers, userId);
+    return this.finishIfNeeded(updated, userId);
   }
 
   /**
@@ -496,7 +496,7 @@ export class GamesService {
       include: this.gameInclude(),
     });
 
-    return this.finishIfNeeded(updated as unknown as GameWithPlayers, userId);
+    return this.finishIfNeeded(updated, userId);
   }
 
   /**
@@ -591,7 +591,7 @@ export class GamesService {
       include: this.gameInclude(),
     });
 
-    return this.finishIfNeeded(updated as unknown as GameWithPlayers, userId);
+    return this.finishIfNeeded(updated, userId);
   }
 
   /**
@@ -633,7 +633,7 @@ export class GamesService {
       throw new NotFoundException('Game not found');
     }
 
-    this.assertPlayerInGame(game as unknown as GameWithPlayers, userId);
+    this.assertPlayerInGame(game, userId);
 
     return {
       id: game.id,
@@ -828,7 +828,7 @@ export class GamesService {
       include: this.gameInclude(),
     });
 
-    return this.toPublicGame(updated as unknown as GameWithPlayers, viewerId);
+    return this.toPublicGame(updated, viewerId);
   }
 
   /**
@@ -884,7 +884,7 @@ export class GamesService {
       );
     }
 
-    return game as unknown as GameWithPlayers;
+    return game;
   }
 
   /**
@@ -909,7 +909,7 @@ export class GamesService {
       throw new NotFoundException('Game not found');
     }
 
-    return game as unknown as GameWithPlayers;
+    return game;
   }
 
   /**
