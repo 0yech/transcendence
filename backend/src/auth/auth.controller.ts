@@ -192,7 +192,11 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('remove-account')
   @UseGuards(JwtAuthGuard)
-  async removeAccount(@CurrentUser() currentUser: JwtPayload) {
+  async removeAccount(
+    @Req() request: Request,
+    @CurrentUser() currentUser: JwtPayload,
+    @Res({ passthrough: true }) response: Response,
+  ) {
     const publicUser = await this.usersService.findOnePublic(
       currentUser.username,
     );
@@ -200,6 +204,21 @@ export class AuthController {
       throw new InternalServerErrorException('Current user is missing');
     }
     await this.usersService.deleteOne(publicUser.id);
+
+    // Once account is removed, end the session
+    const refreshToken = request.cookies['refresh_token'];
+    await this.authService.signOut(refreshToken);
+    response.clearCookie('access_token', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+    });
+    response.clearCookie('refresh_token', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      path: '/api/auth',
+    });
   }
 
   /**
