@@ -125,7 +125,12 @@ export class AuthController {
       await this.authService.signInOauth(userData);
 
     response.cookie('access_token', accessToken, cookieOptions);
-    response.cookie('refresh_token', refreshToken, {});
+    response.cookie('refresh_token', refreshToken, {
+      httpOnly: cookieOptions.httpOnly,
+      secure: cookieOptions.secure,
+      sameSite: cookieOptions.sameSite,
+      path: '/api/auth',
+    });
     response.redirect(`${process.env.FRONTEND_ORIGIN}profile`);
   }
 
