@@ -9,8 +9,9 @@ services:
     depends_on:
       - backend
     # Substitute environment variables in nginx.conf.template with envsubst
-    command: /bin/bash -c "envsubst < /etc/nginx/nginx.conf.template '$${BACKEND_PORT}' > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
+    command: /bin/bash -c "envsubst < /etc/nginx/nginx.conf.template '$${BACKEND_PORT} $${DOMAIN}' > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
     environment:
+      - DOMAIN=${DOMAIN}
       - BACKEND_PORT=${BACKEND_PORT}
     ports:
       - "80:80"
