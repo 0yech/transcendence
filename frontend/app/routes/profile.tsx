@@ -1,5 +1,6 @@
 import apiFetch from '~/utils/api-fetch';
 import { LogoutButton } from '~/auth/logout';
+import { RemoveAccountButton } from '~/auth/remove-account';
 import type { Route } from './+types/profile';
 import { HomeButton } from './home';
 
@@ -17,6 +18,7 @@ export default function Profile({ loaderData }: Route.ComponentProps) {
       <img src={avatarUrl} />
 
       <LogoutButton />
+      <RemoveAccountButton />
 
       <HomeButton />
 
