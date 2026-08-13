@@ -61,7 +61,7 @@ export class AuthService {
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const user = await this.usersService.findOneUsername(username);
 
-    if (user === null) {
+    if (user === null || user.deleted) {
       throw new UnauthorizedException("User doesn't exist.");
     }
 
@@ -112,6 +112,10 @@ export class AuthService {
       }
     }
 
+    if (user?.deleted) {
+      throw new UnauthorizedException('Account was deleted.');
+    }
+
     const accessToken = await this.issueNewAccessToken(user);
     const refreshToken = crypto.randomUUID();
 
@@ -147,7 +151,7 @@ export class AuthService {
       throw new UnauthorizedException();
     }
     const user = await this.usersService.findOneUsername(session.user);
-    if (user === null) throw new UnauthorizedException();
+    if (user === null || user.deleted) throw new UnauthorizedException();
 
     return this.issueNewAccessToken(user);
   }

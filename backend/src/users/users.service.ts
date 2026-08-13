@@ -58,7 +58,7 @@ export class UsersService {
       where: { OR: [{ username }, { email }] },
     });
     if (existingUser !== null) {
-      throw new ConflictException();
+      throw new ConflictException('Email or username already exists.');
     }
 
     let hash = undefined;
@@ -101,8 +101,11 @@ export class UsersService {
    * their own account.
    */
   async deleteOne(id: string) {
-    await this.prisma.user.delete({
+    await this.prisma.user.update({
       where: { id: id },
+      data: {
+        deleted: true,
+      },
     });
   }
 
