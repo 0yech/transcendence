@@ -197,13 +197,17 @@ export class AuthController {
     @CurrentUser() currentUser: JwtPayload,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const publicUser = await this.usersService.findOnePublic(
-      currentUser.username,
-    );
-    if (publicUser === null) {
+    const user = await this.usersService.findOneUsername(currentUser.username);
+    if (user === null) {
       throw new InternalServerErrorException('Current user is missing');
     }
-    await this.usersService.deleteOne(publicUser.id);
+    if (user.guildRole === 'LEADER') {
+      throw new InternalServerErrorException(
+        'A guild leader cannot delete their account. \
+Please delegate your role to one of your officers first!',
+      );
+    }
+    this.usersService.deleteOne(user.id);
 
     // Once account is removed, end the session
     const refreshToken = request.cookies['refresh_token'];
