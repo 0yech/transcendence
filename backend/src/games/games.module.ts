@@ -8,9 +8,6 @@ import { GamesService } from './games.service';
 @Module({
   imports: [PrismaModule],
   controllers: [GamesController],
-  providers: [
-    GamesService,
-    GamesGateway,
-  ],
+  providers: [GamesService, GamesGateway],
 })
 export class GamesModule {}
