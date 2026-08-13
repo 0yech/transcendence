@@ -8,15 +8,15 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   server: {
-  proxy: {
-    // Redirect all API requests to the backend
-    '/api': 'http://backend:3000',
+    proxy: {
+      // Redirect all API requests to the backend
+      '/api': 'http://backend:3000',
 
-    // Proxy Socket.IO connections to the backend.
-    '/socket.io': {
-      target: 'http://backend:3000',
-      ws: true,
+      // Proxy Socket.IO connections to the backend.
+      '/socket.io': {
+        target: 'http://backend:3000',
+        ws: true,
+      },
     },
   },
-},
 });
