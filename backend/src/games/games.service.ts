@@ -5,7 +5,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Prisma } from '../generated/prisma/client';
+import {
+  GamePlayerStatus,
+  GameStatus,
+  Prisma,
+} from '../generated/prisma/client';
 import { createSeededOno99Deck, dealHands } from './ono99.deck';
 import { createPrivateSeed, hashSeed } from './seeded-rng';
 import { Ono99Card } from './ono99.types';
@@ -24,7 +28,7 @@ type GamePlayerWithUser = {
   gameId?: string;
   userId: string;
   seat: number;
-  status: string;
+  status: GamePlayerStatus;
   hand: unknown;
   eliminatedAt?: Date | null;
   createdAt?: Date;
@@ -39,7 +43,7 @@ type GamePlayerWithUser = {
 type GameWithPlayers = {
   id: string;
   lobbyId: string;
-  status: string;
+  status: GameStatus;
   seedPrivate: string;
   seedHash: string;
   total: number;
@@ -190,7 +194,7 @@ export class GamesService {
       include: this.gameInclude(),
     });
 
-    return this.toPublicGame(game as unknown as GameWithPlayers, requesterId);
+    return this.toPublicGame(game, requesterId);
   }
 
   /**
@@ -402,7 +406,7 @@ export class GamesService {
       include: this.gameInclude(),
     });
 
-    return this.finishIfNeeded(updated as unknown as GameWithPlayers, userId);
+    return this.finishIfNeeded(updated, userId);
   }
 
   /**
@@ -492,7 +496,7 @@ export class GamesService {
       include: this.gameInclude(),
     });
 
-    return this.finishIfNeeded(updated as unknown as GameWithPlayers, userId);
+    return this.finishIfNeeded(updated, userId);
   }
 
   /**
@@ -587,7 +591,7 @@ export class GamesService {
       include: this.gameInclude(),
     });
 
-    return this.finishIfNeeded(updated as unknown as GameWithPlayers, userId);
+    return this.finishIfNeeded(updated, userId);
   }
 
   /**
@@ -629,7 +633,7 @@ export class GamesService {
       throw new NotFoundException('Game not found');
     }
 
-    this.assertPlayerInGame(game as unknown as GameWithPlayers, userId);
+    this.assertPlayerInGame(game, userId);
 
     return {
       id: game.id,
@@ -824,7 +828,7 @@ export class GamesService {
       include: this.gameInclude(),
     });
 
-    return this.toPublicGame(updated as unknown as GameWithPlayers, viewerId);
+    return this.toPublicGame(updated, viewerId);
   }
 
   /**
@@ -880,7 +884,7 @@ export class GamesService {
       );
     }
 
-    return game as unknown as GameWithPlayers;
+    return game;
   }
 
   /**
@@ -905,7 +909,7 @@ export class GamesService {
       throw new NotFoundException('Game not found');
     }
 
-    return game as unknown as GameWithPlayers;
+    return game;
   }
 
   /**

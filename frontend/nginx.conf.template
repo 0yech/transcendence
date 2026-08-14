@@ -7,14 +7,14 @@ http {
 
     server {
         listen          80;
-        server_name     ono.42.fr www.ono.42.fr;
+        server_name     ${DOMAIN} www.${DOMAIN};
 
         return 301 https://$host$request_uri;
     }
 
     server {
         listen          443 ssl;
-        server_name     ono.42.fr www.ono.42.fr;
+        server_name     ${DOMAIN} www.${DOMAIN};
 
         ssl_certificate     /etc/nginx/ssl/server.crt;
         ssl_certificate_key /etc/nginx/ssl/server.key;
@@ -29,7 +29,7 @@ http {
         }
 
         location /api/ {
-            proxy_pass http://backend:3000;
+            proxy_pass http://backend:${BACKEND_PORT};
 
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
@@ -40,7 +40,7 @@ http {
         }
 
         location /socket.io/ {
-            proxy_pass http://backend:3000;
+            proxy_pass http://backend:${BACKEND_PORT};
 
             proxy_http_version 1.1;
             proxy_set_header Upgrade $http_upgrade;
