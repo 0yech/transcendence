@@ -25,7 +25,9 @@ export default function Login() {
   return (
     <>
       <title>Transcendence</title>
-      <button onClick={() => window.location.href="/"}><h1 className="text-3xl font-bold">Login to Transcendence</h1></button>
+      <button onClick={() => (window.location.href = '/')}>
+        <h1 className="text-3xl font-bold">Login to Transcendence</h1>
+      </button>
       <LoginForm />
       <Link to="/register">Don't have an account yet?</Link>
 

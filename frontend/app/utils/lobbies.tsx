@@ -1,41 +1,78 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 
-export function CreateNewLobby()
-{
-  const url = "/api/lobbies"
-  return (<h2><button onClick={() => {fetch(url, {
-    method: "POST",
-    body: JSON.stringify({
-      "private": false,
-    })
-  })}}>CreateLobby</button></h2>);
+interface UserInterface {
+  id: string;
+  username: string;
+  email: string;
+  avatarUrl: string | null;
+  guildId: string | null;
+  guildRole: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ChatInterface {
+  id: string;
+  lobbyId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface LobbyInterface {
+  id: string;
+  code: string;
+  active: boolean;
+  private: boolean;
+  createdAt: string;
+  updatedAt: string;
+  users: UserInterface[];
+  chat: ChatInterface;
+}
+
+export function CreateNewLobby() {
+  const url: string = '/api/lobbies';
+  return (
+    <h2>
+      <button
+        onClick={() => {
+          fetch(url, {
+            method: 'POST',
+            body: JSON.stringify({
+              private: false,
+            }),
+          });
+        }}
+      >
+        CreateLobby
+      </button>
+    </h2>
+  );
 }
 
 export default function DisplayLobbies() {
-  const [lobbies, setLobbies] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [lobbies, setLobbies] = useState<LobbyInterface[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   const fetchLobbies = async () => {
     try {
-      const response = await fetch("/api/lobbies");
+      const response = await fetch('/api/lobbies');
       if (response.ok) {
         const data = await response.json();
         setLobbies(data);
       }
     } catch (error) {
-      console.error("Error fetching lobbies:", error);
+      console.error('Error fetching lobbies:', error);
     } finally {
       setLoading(false);
     }
   };
 
+  console.log(lobbies);
   useEffect(() => {
-    fetchLobbies();
     const interval = setInterval(() => {
       fetchLobbies();
     }, 5000);
 
-    // 3. Nettoyage de l'intervalle si le composant est démonté
     return () => clearInterval(interval);
   }, []);
 
@@ -46,7 +83,7 @@ export default function DisplayLobbies() {
         headers: {
           'Content-Type': 'application/json',
         },
-    });
+      });
       if (!response.ok) {
         console.error('Failed to join lobby');
       }
@@ -66,12 +103,12 @@ export default function DisplayLobbies() {
         <h1>No active lobbies</h1>
       ) : (
         <ul>
-          {lobbies.map((item: any) => (
-          <li key={item.code}>
-            <button onClick={() => handleJoinLobby(item.code)}>
-            Join Lobby: {item.code}
-            </button>
-          </li>
+          {lobbies.map((item: LobbyInterface) => (
+            <li key={item.code}>
+              <button onClick={() => handleJoinLobby(item.code)}>
+                Join Lobby: {item.code}
+              </button>
+            </li>
           ))}
         </ul>
       )}
