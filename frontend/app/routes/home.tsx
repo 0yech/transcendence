@@ -22,13 +22,17 @@ async function getFetch(route: string) {
   return json;
 }
 
+/** 
+  *
+  * @brief create a useState for home page. loads it and pass it to Welcome component
+  * 
+  */
 export default function Home() {
   const [user, setUser] = useState({
     username: 'Login',
     avatarUrl: 'Chargement...',
   });
   useEffect(() => {
-    // Déclaration d'une fonction asynchrone interne pour le useEffect
     async function fetchUser() {
       const data = await getFetch('/api/auth/me');
       if (data && data.username) {

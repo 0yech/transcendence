@@ -29,6 +29,11 @@ interface LobbyInterface {
   chat: ChatInterface;
 }
 
+/** 
+  *
+  * @brief create a lobby using the api POST /api/lobbies
+  *
+  */
 export function CreateNewLobby() {
   const url: string = '/api/lobbies';
   return (
@@ -49,6 +54,12 @@ export function CreateNewLobby() {
   );
 }
 
+/** 
+  *
+  * @brief display the list of lobby every 5 seconds. can join by clicking on the lobby list
+  * @brief each lobbies displayed are joinable by clicking on them. 
+  * 
+  */
 export default function DisplayLobbies() {
   const [lobbies, setLobbies] = useState<LobbyInterface[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -76,6 +87,12 @@ export default function DisplayLobbies() {
     return () => clearInterval(interval);
   }, []);
 
+  /** 
+    *
+    * @brief Send a POST request to /api/lobbies/xxx/join to join the game when clicking on it
+    * 
+    * @param code used to join the lobby
+    */
   const handleJoinLobby = async (code: string) => {
     try {
       const response = await fetch(`/api/lobbies/${code}/join`, {
