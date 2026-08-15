@@ -22,11 +22,11 @@ async function getFetch(route: string) {
   return json;
 }
 
-/** 
-  *
-  * @brief create a useState for home page. loads it and pass it to Welcome component
-  * 
-  */
+/**
+ *
+ * @brief create a useState for home page. loads it and pass it to Welcome component
+ *
+ */
 export default function Home() {
   const [user, setUser] = useState({
     username: 'Login',
