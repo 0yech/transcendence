@@ -93,12 +93,6 @@ NestJS global validation is enabled.
 | `POST` | `/api/lobbies` | Yes | Create a lobby |
 | `POST` | `/api/lobbies/:code/join` | Yes | Join a lobby |
 | `POST` | `/api/lobbies/leave` | Yes | Leave the user's current lobby |
-| `POST` | `/api/games/lobbies/:lobbyCode/start` | Yes | Start a game from a lobby |
-| `GET` | `/api/games/:lobbyCode` | Yes | Get the game associated with a lobby |
-| `POST` | `/api/games/:lobbyCode/play` | Yes | Play a card by card ID |
-| `POST` | `/api/games/:lobbyCode/play-slot` | Yes | Play a card by hand position |
-| `POST` | `/api/games/:lobbyCode/unable` | Yes | Declare that the player cannot play |
-| `POST` | `/api/games/:lobbyCode/discard-four-ono99` | Yes | Perform the four-card ONO99 discard action |
 | `GET` | `/api/games/:gameId/replay` | Yes | Get a game replay |
 | `GET` | `/api/guilds` | No | List guilds |
 | `GET` | `/api/guilds/me` | Yes | Get the authenticated user's guild |
@@ -377,113 +371,12 @@ Removes the authenticated user from their current lobby.
 
 # Games
 
-All game routes are protected by the JWT authentication guard.
+All game routes were moved to websockets except for the replay GET.
 
-## `POST /api/games/lobbies/:lobbyCode/start`
-
-Starts a game from an existing lobby.
-
-**Authentication:** Required
-
-### Path parameters
-
-| Parameter | Type | Description |
-|---|---|---|
-| `lobbyCode` | string | Code of the lobby to start |
-
-**Body:** None
-
-**Success response:** Initial game state.
-
-**Typical requirements**
-
-- The lobby must exist.
-- The authenticated user must be allowed to start it.
-- The lobby must be in a startable state.
-
-## `GET /api/games/:lobbyCode`
-
-Returns the authenticated player's view of a game's current state.
-
-**Authentication:** Required
-
-### Path parameters
-
-| Parameter | Type | Description |
-|---|---|---|
-| `lobbyCode` | string | Lobby code associated with the game |
-
-**Success response:** Game state filtered/constructed for the requesting user.
-
-## `POST /api/games/:lobbyCode/play`
-
-Plays a card using its exact card ID.
-
-**Authentication:** Required
-
-**Request body**
-
-```json
-{
-  "cardId": "card-id"
-}
-```
-
-| Field | Type | Required | Description |
-|---|---|---:|---|
-| `cardId` | string | Yes | Exact ID of a card in the player's hand |
-
-**Success response:** Updated game state or move result.
-
-> This is the primary endpoint intended for frontend gameplay.
-
-## `POST /api/games/:lobbyCode/play-slot`
-
-Plays a card based on its one-based position in the player's hand.
-
-**Authentication:** Required
-
-**Request body**
-
-```json
-{
-  "slot": 1
-}
-```
-
-| Field | Type | Required | Description |
-|---|---|---:|---|
-| `slot` | number | Yes | One-based hand position: `1` is the first card |
-
-**Success response:** Updated game state or move result.
-
-> This route is intended as a human-friendly alternative for curl/manual testing and simple clients.
-
-## `POST /api/games/:lobbyCode/unable`
-
-Declares that the authenticated player is unable to play.
-
-**Authentication:** Required
-
-**Body:** None
-
-**Success response:** Updated game state/action result.
-
-## `POST /api/games/:lobbyCode/discard-four-ono99`
-
-Performs the ONO99 rule/action that discards four cards.
-
-**Authentication:** Required
-
-**Body:** None
-
-**Success response:** Updated game state/action result.
 
 ## `GET /api/games/:gameId/replay`
 
 Returns replay information for a game.
-
-**Authentication:** Required
 
 ### Path parameters
 
@@ -491,9 +384,7 @@ Returns replay information for a game.
 |---|---|---|
 | `gameId` | string | Persistent game identifier |
 
-**Success response:** Replay data available to the requesting user.
-
-> Route-order note: NestJS must distinguish this path from `GET /api/games/:lobbyCode`. Keep automated tests around `/replay` route matching if these routes are reorganized.
+**Success response:** Replay data of a finished game.
 
 ---
 
