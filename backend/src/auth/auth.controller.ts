@@ -202,12 +202,12 @@ export class AuthController {
       throw new InternalServerErrorException('Current user is missing');
     }
     if (user.guildRole === 'LEADER') {
-      throw new InternalServerErrorException(
+      throw new BadRequestException(
         'A guild leader cannot delete their account. \
 Please delegate your role to one of your officers first!',
       );
     }
-    this.usersService.deleteOne(user.id);
+    await this.usersService.deleteOne(user.id);
 
     // Once account is removed, end the session
     const refreshToken = request.cookies['refresh_token'];
