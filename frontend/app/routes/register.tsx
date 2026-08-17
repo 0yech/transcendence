@@ -1,5 +1,5 @@
 import { RegisterForm } from '../auth/register';
-import type { Route } from '../+types/root';
+import type { Route } from './+types/register';
 import { Link, redirect } from 'react-router';
 import { OauthLoginOptions } from '~/auth/oauth';
 
