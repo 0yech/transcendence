@@ -10,11 +10,11 @@ export default defineConfig({
   server: {
     proxy: {
       // Redirect all API requests to the backend
-      '/api': 'http://backend:3000',
+      '/api': `http://backend:${process.env.BACKEND_PORT}`,
 
       // Proxy Socket.IO connections to the backend.
       '/socket.io': {
-        target: 'http://backend:3000',
+        target: `http://backend:${process.env.BACKEND_PORT}`,
         ws: true,
       },
     },

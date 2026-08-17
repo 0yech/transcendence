@@ -24,8 +24,10 @@ export async function clientAction({ request }: Route.ActionArgs) {
 export default function Login() {
   return (
     <>
-      <title>Login to Transcendence</title>
-      <h1 className="text-3xl font-bold">Login to Transcendence</h1>
+      <title>Transcendence</title>
+      <button onClick={() => (window.location.href = '/')}>
+        <h1 className="text-3xl font-bold">Login to Transcendence</h1>
+      </button>
       <LoginForm />
       <Link to="/register">Don't have an account yet?</Link>
 

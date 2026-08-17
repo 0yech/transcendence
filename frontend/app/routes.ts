@@ -6,4 +6,6 @@ export default [
   route('register', 'routes/register.tsx'),
   route('logout', 'routes/logout.tsx'),
   route('profile', 'routes/profile.tsx'),
+  route('tos', 'routes/tos.tsx'),
+  route('privacy', 'routes/privacy.tsx'),
 ] satisfies RouteConfig;

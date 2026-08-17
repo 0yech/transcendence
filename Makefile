@@ -1,13 +1,13 @@
 all: build up
 
 dev-up:
-	docker compose -f docker-compose-dev.yaml up
+	docker compose --env-file .env.dev -f docker-compose-dev.yaml up
 
 dev-down:
-	docker compose -f docker-compose-dev.yaml down
+	docker compose --env-file .env.dev -f docker-compose-dev.yaml down
 
 dev-clean:
-	docker compose -f docker-compose-dev.yaml down -v --rmi local
+	docker compose --env-file .env.dev -f docker-compose-dev.yaml down -v --rmi local
 
 dev-re: dev-clean dev-up
 

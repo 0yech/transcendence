@@ -1,6 +1,7 @@
 import apiFetch from '~/utils/api-fetch';
 import { LogoutButton } from '~/auth/logout';
 import type { Route } from './+types/profile';
+import { HomeButton } from './home';
 
 export async function clientLoader() {
   const data = await apiFetch('/api/auth/me');
@@ -16,6 +17,8 @@ export default function Profile({ loaderData }: Route.ComponentProps) {
       <img src={avatarUrl} />
 
       <LogoutButton />
+
+      <HomeButton />
 
       <h2 className="text-2xl font-bold">Email</h2>
       <div>{email}</div>
