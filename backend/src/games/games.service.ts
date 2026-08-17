@@ -71,8 +71,47 @@ type GameWithPlayers = {
  */
 @Injectable()
 export class GamesService {
+  private readonly gameLocks = new Map<string, Promise<void>>();
+
   constructor(private readonly prisma: PrismaService) {}
 
+  /**
+   * @brief Serializes actions for a single game.
+   *
+   * Actions for different games may still run concurrently.
+   *
+   * @param gameId The game to lock.
+   * @param action The action to execute while holding the lock.
+   * @returns The result of the action.
+   */
+  private async withGameLock<T>(
+    gameId: string,
+    action: () => Promise<T>,
+  ): Promise<T> {
+    const previous = this.gameLocks.get(gameId) ?? Promise.resolve();
+
+    let release!: () => void;
+
+    const current = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+
+    const queued = previous.then(() => current);
+
+    this.gameLocks.set(gameId, queued);
+
+    await previous;
+
+    try {
+      return await action();
+    } finally {
+      release();
+
+      if (this.gameLocks.get(gameId) === queued) {
+        this.gameLocks.delete(gameId);
+      }
+    }
+  }
   /**
    * @brief Starts a new ONO99 game from an active lobby.
    *
@@ -217,6 +256,51 @@ export class GamesService {
     return this.toPublicGame(game, userId);
   }
 
+  async getGameById(gameId: string, userId: string) {
+    const game = await this.getFullGame(gameId);
+
+    this.assertPlayerInGame(game, userId);
+
+    return this.toPublicGame(game, userId);
+  }
+
+  async assertLobbyAccess(lobbyCode: string, userId: string) {
+    if (typeof lobbyCode !== 'string' || !lobbyCode.trim()) {
+      throw new BadRequestException('lobbyCode is required');
+    }
+
+    const normalizedCode = lobbyCode.trim().toUpperCase();
+
+    const lobby = await this.prisma.lobby.findFirst({
+      where: {
+        code: normalizedCode,
+        active: true,
+      },
+
+      include: {
+        users: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    if (!lobby) {
+      throw new NotFoundException(
+        `Active lobby with code ${normalizedCode} not found`,
+      );
+    }
+
+    const isInLobby = lobby.users.some((user) => user.id === userId);
+
+    if (!isInLobby) {
+      throw new ForbiddenException('You are not in this lobby');
+    }
+
+    return normalizedCode;
+  }
+
   /**
    * @brief Plays a card by its visible hand slot.
    *
@@ -246,28 +330,32 @@ export class GamesService {
       throw new BadRequestException('slot must be between 1 and 4');
     }
 
-    const game = await this.getActiveGameByLobbyCode(lobbyCode);
+    const activeGame = await this.getActiveGameByLobbyCode(lobbyCode);
 
-    this.assertInProgress(game);
-    this.assertPlayerInGame(game, userId);
-    this.assertCurrentPlayer(game, userId);
+    return this.withGameLock(activeGame.id, async () => {
+      const game = await this.getFullGame(activeGame.id);
 
-    const player = game.players.find(
-      (p: GamePlayerWithUser) => p.userId === userId,
-    );
+      this.assertInProgress(game);
+      this.assertPlayerInGame(game, userId);
+      this.assertCurrentPlayer(game, userId);
 
-    if (!player || player.status !== 'ACTIVE') {
-      throw new ForbiddenException('You are not active in this game');
-    }
+      const player = game.players.find(
+        (p: GamePlayerWithUser) => p.userId === userId,
+      );
 
-    const hand = player.hand as Ono99Card[];
-    const card = hand[slot - 1];
+      if (!player || player.status !== 'ACTIVE') {
+        throw new ForbiddenException('You are not active in this game');
+      }
 
-    if (!card) {
-      throw new BadRequestException(`No card in slot ${slot}`);
-    }
+      const hand = player.hand as Ono99Card[];
+      const card = hand[slot - 1];
 
-    return this.playCardByGameId(game.id, userId, card.id);
+      if (!card) {
+        throw new BadRequestException(`No card in slot ${slot}`);
+      }
+
+      return this.playCardByGameId(game.id, userId, card.id);
+    });
   }
 
   /**
@@ -291,7 +379,9 @@ export class GamesService {
   async playCard(lobbyCode: string, userId: string, cardId: string) {
     const game = await this.getActiveGameByLobbyCode(lobbyCode);
 
-    return this.playCardByGameId(game.id, userId, cardId);
+    return this.withGameLock(game.id, () =>
+      this.playCardByGameId(game.id, userId, cardId),
+    );
   }
 
   private async playCardByGameId(
@@ -427,76 +517,80 @@ export class GamesService {
    * @throws NotFoundException If the game does not exist.
    */
   async unableToPlay(lobbyCode: string, userId: string) {
-    const game = await this.getActiveGameByLobbyCode(lobbyCode);
-    const gameId = game.id;
+    const activeGame = await this.getActiveGameByLobbyCode(lobbyCode);
 
-    this.assertInProgress(game);
-    this.assertPlayerInGame(game, userId);
-    this.assertCurrentPlayer(game, userId);
+    return this.withGameLock(activeGame.id, async () => {
+      const game = await this.getFullGame(activeGame.id);
+      const gameId = game.id;
 
-    const player = game.players.find(
-      (p: GamePlayerWithUser) => p.userId === userId,
-    );
+      this.assertInProgress(game);
+      this.assertPlayerInGame(game, userId);
+      this.assertCurrentPlayer(game, userId);
 
-    if (!player || player.status !== 'ACTIVE') {
-      throw new ForbiddenException('You are not active in this game');
-    }
+      const player = game.players.find(
+        (p: GamePlayerWithUser) => p.userId === userId,
+      );
 
-    const hand = player.hand as Ono99Card[];
+      if (!player || player.status !== 'ACTIVE') {
+        throw new ForbiddenException('You are not active in this game');
+      }
 
-    if (hasPlayableCard(hand, game.total) || hasFourOno99(hand)) {
-      throw new BadRequestException('You still have a legal move');
-    }
+      const hand = player.hand as Ono99Card[];
 
-    await this.prisma.gamePlayer.update({
-      where: { id: player.id },
-      data: {
-        status: 'ELIMINATED',
-        eliminatedAt: new Date(),
-      },
-    });
+      if (hasPlayableCard(hand, game.total) || hasFourOno99(hand)) {
+        throw new BadRequestException('You still have a legal move');
+      }
 
-    await this.prisma.gameAction.create({
-      data: {
-        gameId,
-        actorUserId: userId,
-        type: 'PLAYER_ELIMINATED',
-        sequence: await this.nextSequence(gameId),
-        turnNumber: game.turnNumber,
-        payload: {
-          reason: 'NO_LEGAL_MOVE',
-          total: game.total,
+      await this.prisma.gamePlayer.update({
+        where: { id: player.id },
+        data: {
+          status: 'ELIMINATED',
+          eliminatedAt: new Date(),
         },
-      },
+      });
+
+      await this.prisma.gameAction.create({
+        data: {
+          gameId,
+          actorUserId: userId,
+          type: 'PLAYER_ELIMINATED',
+          sequence: await this.nextSequence(gameId),
+          turnNumber: game.turnNumber,
+          payload: {
+            reason: 'NO_LEGAL_MOVE',
+            total: game.total,
+          },
+        },
+      });
+
+      const refreshed = await this.getFullGame(gameId);
+
+      const activePlayers = refreshed.players.filter(
+        (p: GamePlayerWithUser) => p.status === 'ACTIVE',
+      );
+
+      if (activePlayers.length === 1) {
+        return this.finishGame(gameId, activePlayers[0].userId, userId);
+      }
+
+      const nextPlayerId = this.findNextActivePlayerId(
+        refreshed,
+        userId,
+        refreshed.direction,
+      );
+
+      const updated = await this.prisma.game.update({
+        where: { id: gameId },
+        data: {
+          currentPlayerId: nextPlayerId,
+          pendingPlays: 1,
+          turnNumber: { increment: 1 },
+        },
+        include: this.gameInclude(),
+      });
+
+      return this.finishIfNeeded(updated, userId);
     });
-
-    const refreshed = await this.getFullGame(gameId);
-
-    const activePlayers = refreshed.players.filter(
-      (p: GamePlayerWithUser) => p.status === 'ACTIVE',
-    );
-
-    if (activePlayers.length === 1) {
-      return this.finishGame(gameId, activePlayers[0].userId, userId);
-    }
-
-    const nextPlayerId = this.findNextActivePlayerId(
-      refreshed,
-      userId,
-      refreshed.direction,
-    );
-
-    const updated = await this.prisma.game.update({
-      where: { id: gameId },
-      data: {
-        currentPlayerId: nextPlayerId,
-        pendingPlays: 1,
-        turnNumber: { increment: 1 },
-      },
-      include: this.gameInclude(),
-    });
-
-    return this.finishIfNeeded(updated, userId);
   }
 
   /**
@@ -516,82 +610,85 @@ export class GamesService {
    * @throws NotFoundException If the game does not exist.
    */
   async discardFourOno99(lobbyCode: string, userId: string) {
-    const game = await this.getActiveGameByLobbyCode(lobbyCode);
-    const gameId = game.id;
+    const activeGame = await this.getActiveGameByLobbyCode(lobbyCode);
 
-    this.assertInProgress(game);
-    this.assertPlayerInGame(game, userId);
-    this.assertCurrentPlayer(game, userId);
+    return this.withGameLock(activeGame.id, async () => {
+      const game = await this.getFullGame(activeGame.id);
+      const gameId = game.id;
 
-    const player = game.players.find(
-      (p: GamePlayerWithUser) => p.userId === userId,
-    );
+      this.assertInProgress(game);
+      this.assertPlayerInGame(game, userId);
+      this.assertCurrentPlayer(game, userId);
 
-    if (!player || player.status !== 'ACTIVE') {
-      throw new ForbiddenException('You are not active in this game');
-    }
+      const player = game.players.find(
+        (p: GamePlayerWithUser) => p.userId === userId,
+      );
 
-    const removed = removeFourOno99(player.hand as Ono99Card[]);
+      if (!player || player.status !== 'ACTIVE') {
+        throw new ForbiddenException('You are not active in this game');
+      }
 
-    const discardPile = [
-      ...(game.discardPile as Ono99Card[]),
-      ...removed.removed,
-    ];
+      const removed = removeFourOno99(player.hand as Ono99Card[]);
 
-    const draw = drawUntilFour({
-      hand: removed.hand,
-      deck: game.deck as Ono99Card[],
-      discardPile,
-      privateSeed: game.seedPrivate,
-      reshuffleIndex: game.reshuffleIndex,
-    });
+      const discardPile = [
+        ...(game.discardPile as Ono99Card[]),
+        ...removed.removed,
+      ];
 
-    await this.prisma.gamePlayer.update({
-      where: { id: player.id },
-      data: {
-        hand: draw.hand as Prisma.InputJsonValue,
-      },
-    });
+      const draw = drawUntilFour({
+        hand: removed.hand,
+        deck: game.deck as Ono99Card[],
+        discardPile,
+        privateSeed: game.seedPrivate,
+        reshuffleIndex: game.reshuffleIndex,
+      });
 
-    const next =
-      game.pendingPlays === 2
-        ? { currentPlayerId: userId, pendingPlays: 1 }
-        : {
-            currentPlayerId: this.findNextActivePlayerId(
-              game,
-              userId,
-              game.direction,
-            ),
-            pendingPlays: 1,
-          };
+      await this.prisma.gamePlayer.update({
+        where: { id: player.id },
+        data: {
+          hand: draw.hand as Prisma.InputJsonValue,
+        },
+      });
 
-    const updated = await this.prisma.game.update({
-      where: { id: gameId },
-      data: {
-        currentPlayerId: next.currentPlayerId,
-        pendingPlays: next.pendingPlays,
-        turnNumber: { increment: 1 },
-        reshuffleIndex: draw.reshuffleIndex,
-        deck: draw.deck as Prisma.InputJsonValue,
-        discardPile: draw.discardPile as Prisma.InputJsonValue,
-        actions: {
-          create: {
-            actorUserId: userId,
-            type: 'FOUR_ONO99_DISCARDED',
-            sequence: await this.nextSequence(gameId),
-            turnNumber: game.turnNumber,
-            payload: {
-              cardIds: removed.removed.map((card: Ono99Card) => card.id),
-              totalBefore: game.total,
-              totalAfter: game.total,
+      const next =
+        game.pendingPlays === 2
+          ? { currentPlayerId: userId, pendingPlays: 1 }
+          : {
+              currentPlayerId: this.findNextActivePlayerId(
+                game,
+                userId,
+                game.direction,
+              ),
+              pendingPlays: 1,
+            };
+
+      const updated = await this.prisma.game.update({
+        where: { id: gameId },
+        data: {
+          currentPlayerId: next.currentPlayerId,
+          pendingPlays: next.pendingPlays,
+          turnNumber: { increment: 1 },
+          reshuffleIndex: draw.reshuffleIndex,
+          deck: draw.deck as Prisma.InputJsonValue,
+          discardPile: draw.discardPile as Prisma.InputJsonValue,
+          actions: {
+            create: {
+              actorUserId: userId,
+              type: 'FOUR_ONO99_DISCARDED',
+              sequence: await this.nextSequence(gameId),
+              turnNumber: game.turnNumber,
+              payload: {
+                cardIds: removed.removed.map((card: Ono99Card) => card.id),
+                totalBefore: game.total,
+                totalAfter: game.total,
+              },
             },
           },
         },
-      },
-      include: this.gameInclude(),
+        include: this.gameInclude(),
+      });
+      return this.finishIfNeeded(updated, userId);
     });
-
-    return this.finishIfNeeded(updated, userId);
   }
 
   /**
@@ -601,13 +698,12 @@ export class GamesService {
    * The private seed, deck cache and hidden hands are never returned.
    *
    * @param gameId The id of the game.
-   * @param userId The authenticated user id.
    * @return The replay metadata and ordered list of public game actions.
    *
    * @throws NotFoundException If the game does not exist.
    * @throws ForbiddenException If the user is not a player in the game.
    */
-  async getReplay(gameId: string, userId: string) {
+  async getReplay(gameId: string) {
     const game = await this.prisma.game.findUnique({
       where: { id: gameId },
       include: {
@@ -633,7 +729,9 @@ export class GamesService {
       throw new NotFoundException('Game not found');
     }
 
-    this.assertPlayerInGame(game, userId);
+    if (game.status !== 'FINISHED' && game.status !== 'CANCELLED') {
+      throw new NotFoundException(`Finished game ${gameId} not found`);
+    }
 
     return {
       id: game.id,
