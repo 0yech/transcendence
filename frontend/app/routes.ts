@@ -8,4 +8,5 @@ export default [
   route('profile', 'routes/profile.tsx'),
   route('tos', 'routes/tos.tsx'),
   route('privacy', 'routes/privacy.tsx'),
+  route('game/:code', 'routes/game.tsx')
 ] satisfies RouteConfig;

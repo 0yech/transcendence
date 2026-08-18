@@ -15,8 +15,8 @@ export function HomeButton() {
   );
 }
 
-async function getFetch(route: string) {
-  const resp = await fetch(route);
+async function getFetch(apiPath: string) {
+  const resp = await fetch(apiPath);
   if (!resp.ok) return null;
   const json = await resp.json();
   return json;
