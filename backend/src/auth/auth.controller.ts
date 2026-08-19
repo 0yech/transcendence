@@ -185,7 +185,7 @@ export class AuthController {
     @CurrentUser() currentUser: JwtPayload,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const user = await this.usersService.findOneUsername(currentUser.username);
+    const user = await this.usersService.findOne(currentUser.sub);
     if (user === null) {
       throw new InternalServerErrorException('Current user is missing');
     }
@@ -229,7 +229,7 @@ Please delegate your role to one of your officers first!',
   }
 
   /**
-   * @brief Returns the incoming request's JWT's payload, defined in the AuthService.
+   * @brief Returns the incoming request's user's public information.
    */
   @UseGuards(JwtAuthGuard)
   @Get('me')

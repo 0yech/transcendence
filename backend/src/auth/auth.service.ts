@@ -4,6 +4,7 @@ import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
 import { Cron } from '@nestjs/schedule';
 import { OauthPayload } from './oauth-payload.interface';
+import { JwtPayload } from './jwt-payload.interface';
 
 const SESSION_LIFETIME_MS = 1000 * 60 * 60 * 24 * 14; // Two weeks
 
@@ -45,9 +46,10 @@ export class AuthService {
    * @brief For a given user, issue a new access token.
    */
   issueNewAccessToken(user: { id: string; username: string }): Promise<string> {
-    // sub is conventional in JWT, and means "subject"
-    // in this case, it's the user's id
-    const accessTokenPayload = { sub: user.id, username: user.username };
+    const accessTokenPayload: JwtPayload = {
+      sub: user.id,
+      username: user.username,
+    };
     return this.jwtService.signAsync(accessTokenPayload);
   }
 

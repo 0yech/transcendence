@@ -12,6 +12,18 @@ export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
+   * @brief Find and return a user based on its id. Preferred where possible.
+   * The result must never be returned to the frontend.
+   */
+  async findOne(id: string) {
+    return this.prisma.user.findUnique({
+      where: {
+        id: id,
+      },
+    });
+  }
+
+  /**
    * @brief Find and return a user based on username. The result must never be
    * returned to the frontend.
    */
