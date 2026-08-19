@@ -22,6 +22,7 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { OauthPayload } from './oauth-payload.interface';
+import { UpdateDto } from './dto/update.dto';
 
 const cookieOptions: CookieOptions = {
   httpOnly: true,
@@ -175,6 +176,21 @@ export class AuthController {
       secure: cookieOptions.secure,
       sameSite: cookieOptions.sameSite,
       path: '/api/auth',
+    });
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('update-account')
+  @UseGuards(JwtAuthGuard)
+  async updateAccount(
+    @CurrentUser() currentUser: JwtPayload,
+    @Body() updateDto: UpdateDto,
+  ) {
+    await this.usersService.updateOne(currentUser.sub, {
+      username: updateDto.username,
+      email: updateDto.email,
+      pictureUrl: updateDto.pictureUrl,
+      // TODO also update password, probably need to make a method for the auth service
     });
   }
 
