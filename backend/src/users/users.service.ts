@@ -6,6 +6,7 @@ import {
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { publicUserSelect } from './users.select';
+import { PassportSerializer } from '@nestjs/passport';
 
 @Injectable()
 export class UsersService {
@@ -95,7 +96,12 @@ export class UsersService {
    */
   async updateOne(
     id: string,
-    data: { username?: string; email?: string; pictureUrl?: string },
+    data: {
+      username?: string;
+      email?: string;
+      passwordHash?: string;
+      pictureUrl?: string;
+    },
   ) {
     await this.prisma.user.update({
       where: { id: id, deleted: false },
@@ -104,6 +110,7 @@ export class UsersService {
         username: data.username,
         email: data.email,
         avatarUrl: data.pictureUrl,
+        hashedPassword: data.passwordHash,
       },
     });
   }

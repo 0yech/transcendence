@@ -23,6 +23,7 @@ import { LoginDto } from './dto/login.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { OauthPayload } from './oauth-payload.interface';
 import { UpdateDto } from './dto/update.dto';
+import * as bcrypt from 'bcrypt';
 
 const cookieOptions: CookieOptions = {
   httpOnly: true,
@@ -186,11 +187,13 @@ export class AuthController {
     @CurrentUser() currentUser: JwtPayload,
     @Body() updateDto: UpdateDto,
   ) {
+    const hashedPassword = await bcrypt.hash(updateDto.password, 10);
+
     await this.usersService.updateOne(currentUser.sub, {
       username: updateDto.username,
       email: updateDto.email,
       pictureUrl: updateDto.pictureUrl,
-      // TODO also update password, probably need to make a method for the auth service
+      passwordHash: hashedPassword,
     });
   }
 

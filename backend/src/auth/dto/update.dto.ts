@@ -12,10 +12,10 @@ export class UpdateDto {
   @Length(0, 32)
   username!: string;
 
-  // @IsNotEmpty()
-  // @IsString()
-  // @Length(8, 64)
-  // password!: string;
+  @IsNotEmpty()
+  @IsString()
+  @Length(8, 64)
+  password!: string;
 
   @IsNotEmpty()
   @IsUrl()
