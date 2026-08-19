@@ -181,7 +181,7 @@ export class AuthController {
   }
 
   @HttpCode(HttpStatus.OK)
-  @Post('update-account')
+  @Post('update')
   @UseGuards(JwtAuthGuard)
   async updateAccount(
     @CurrentUser() currentUser: JwtPayload,
