@@ -105,6 +105,9 @@ export class UsersService {
       where: { id: id },
       data: {
         deleted: true,
+        username: 'deleted_user_' + id,
+        email: 'deleted_user_' + id,
+        hashedPassword: null,
       },
     });
   }

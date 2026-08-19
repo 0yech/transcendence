@@ -112,10 +112,6 @@ export class AuthService {
       }
     }
 
-    if (user?.deleted) {
-      throw new UnauthorizedException('Account was deleted.');
-    }
-
     const accessToken = await this.issueNewAccessToken(user);
     const refreshToken = crypto.randomUUID();
 
