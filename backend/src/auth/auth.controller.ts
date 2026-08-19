@@ -9,6 +9,7 @@ import {
   Post,
   Req,
   Res,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -233,10 +234,16 @@ Please delegate your role to one of your officers first!',
    */
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  getCurrentUser(@CurrentUser() user: JwtPayload) {
+  async getCurrentUser(@CurrentUser() user: JwtPayload) {
     if (user === undefined || user.username === undefined) {
       throw new BadRequestException();
     }
-    return this.usersService.findOnePublic(user.username);
+
+    const currentUser = await this.usersService.findOnePublic(user.username);
+    if (!currentUser) {
+      throw new UnauthorizedException('User account was deleted.');
+    }
+
+    return currentUser;
   }
 }
