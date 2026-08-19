@@ -68,6 +68,24 @@ export class AuthController {
   }
 
   /**
+   * @brief Creates a new session after OAuth authentication. Then, redirects to
+   * profile if everything went well, or to the registration page if it failed.
+   */
+  async oauthSession(userData: OauthPayload, response: Response) {
+    const { accessToken, refreshToken } =
+      await this.authService.signInOauth(userData);
+
+    response.cookie('access_token', accessToken, cookieOptions);
+    response.cookie('refresh_token', refreshToken, {
+      httpOnly: cookieOptions.httpOnly,
+      secure: cookieOptions.secure,
+      sameSite: cookieOptions.sameSite,
+      path: '/api/auth',
+    });
+    response.redirect(`${process.env.FRONTEND_ORIGIN}profile`);
+  }
+
+  /**
    * @brief This route will redirect the user to the google login screen.
    */
   @Get('google')
@@ -88,17 +106,7 @@ export class AuthController {
       throw new Error('Missing user data from Google');
     }
 
-    const { accessToken, refreshToken } =
-      await this.authService.signInOauth(userData);
-
-    response.cookie('access_token', accessToken, cookieOptions);
-    response.cookie('refresh_token', refreshToken, {
-      httpOnly: cookieOptions.httpOnly,
-      secure: cookieOptions.secure,
-      sameSite: cookieOptions.sameSite,
-      path: '/api/auth',
-    });
-    response.redirect(`${process.env.FRONTEND_ORIGIN}profile`);
+    await this.oauthSession(userData, response);
   }
 
   /**
@@ -122,17 +130,7 @@ export class AuthController {
       throw new Error('Missing user data from Github');
     }
 
-    const { accessToken, refreshToken } =
-      await this.authService.signInOauth(userData);
-
-    response.cookie('access_token', accessToken, cookieOptions);
-    response.cookie('refresh_token', refreshToken, {
-      httpOnly: cookieOptions.httpOnly,
-      secure: cookieOptions.secure,
-      sameSite: cookieOptions.sameSite,
-      path: '/api/auth',
-    });
-    response.redirect(`${process.env.FRONTEND_ORIGIN}profile`);
+    await this.oauthSession(userData, response);
   }
 
   /**
@@ -156,17 +154,7 @@ export class AuthController {
       throw new Error('Missing user data from 42');
     }
 
-    const { accessToken, refreshToken } =
-      await this.authService.signInOauth(userData);
-
-    response.cookie('access_token', accessToken, cookieOptions);
-    response.cookie('refresh_token', refreshToken, {
-      httpOnly: cookieOptions.httpOnly,
-      secure: cookieOptions.secure,
-      sameSite: cookieOptions.sameSite,
-      path: '/api/auth',
-    });
-    response.redirect(`${process.env.FRONTEND_ORIGIN}profile`);
+    await this.oauthSession(userData, response);
   }
 
   /**
