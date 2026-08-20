@@ -1,9 +1,9 @@
 import { LoginForm } from '../auth/login';
-import type { Route } from '../+types/root';
+import type { Route } from './+types/login';
 import { Link, redirect } from 'react-router';
 import { OauthLoginOptions } from '~/auth/oauth';
 
-export async function clientAction({ request }: Route.ActionArgs) {
+export async function clientAction({ request }: Route.ClientActionArgs) {
   const data = await request.formData();
   const response = await fetch('/api/auth/login', {
     method: 'POST',

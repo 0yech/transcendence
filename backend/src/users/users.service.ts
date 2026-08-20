@@ -12,6 +12,18 @@ export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
+   * @brief Find and return a user based on its id. Preferred where possible.
+   * The result must never be returned to the frontend.
+   */
+  async findOne(id: string) {
+    return this.prisma.user.findUnique({
+      where: {
+        id: id,
+      },
+    });
+  }
+
+  /**
    * @brief Find and return a user based on username. The result must never be
    * returned to the frontend.
    */
@@ -58,7 +70,7 @@ export class UsersService {
       where: { OR: [{ username }, { email }] },
     });
     if (existingUser !== null) {
-      throw new ConflictException();
+      throw new ConflictException('Email or username already exists.');
     }
 
     let hash = undefined;
@@ -92,6 +104,22 @@ export class UsersService {
         username: data.username,
         email: data.email,
         avatarUrl: data.pictureUrl,
+      },
+    });
+  }
+
+  /**
+   * @brief Remove a specific user account. Only an authenticated user can delete
+   * their own account.
+   */
+  async deleteOne(id: string) {
+    await this.prisma.user.update({
+      where: { id: id },
+      data: {
+        deleted: true,
+        username: 'deleted_user_' + id,
+        email: 'deleted_user_' + id,
+        hashedPassword: null,
       },
     });
   }
