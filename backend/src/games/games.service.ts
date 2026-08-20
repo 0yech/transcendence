@@ -159,6 +159,10 @@ export class GamesService {
       throw new ForbiddenException('You are not in this lobby');
     }
 
+    if (lobby.leaderId !== requesterId) {
+      throw new ForbiddenException('Only the lobby leader can start the game');
+    }
+
     if (lobby.users.length < 2) {
       throw new BadRequestException('Need at least 2 players');
     }
