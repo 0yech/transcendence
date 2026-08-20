@@ -24,6 +24,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { OauthPayload } from './oauth-payload.interface';
 import { UpdateDto } from './dto/update.dto';
 import * as bcrypt from 'bcrypt';
+import { OAuthProvider } from 'src/generated/prisma/enums';
 
 const cookieOptions: CookieOptions = {
   httpOnly: true,
@@ -74,9 +75,15 @@ export class AuthController {
    * @brief Creates a new session after OAuth authentication. Then, redirects to
    * profile if everything went well, or to the registration page if it failed.
    */
-  async oauthSession(userData: OauthPayload, response: Response) {
-    const { accessToken, refreshToken } =
-      await this.authService.signInOauth(userData);
+  async oauthSession(
+    provider: OAuthProvider,
+    userData: OauthPayload,
+    response: Response,
+  ) {
+    const { accessToken, refreshToken } = await this.authService.signInOauth(
+      provider,
+      userData,
+    );
 
     response.cookie('access_token', accessToken, cookieOptions);
     response.cookie('refresh_token', refreshToken, {
@@ -109,7 +116,7 @@ export class AuthController {
       throw new Error('Missing user data from Google');
     }
 
-    await this.oauthSession(userData, response);
+    await this.oauthSession('GOOGLE', userData, response);
   }
 
   /**
@@ -133,7 +140,7 @@ export class AuthController {
       throw new Error('Missing user data from Github');
     }
 
-    await this.oauthSession(userData, response);
+    await this.oauthSession('GITHUB', userData, response);
   }
 
   /**
@@ -157,7 +164,7 @@ export class AuthController {
       throw new Error('Missing user data from 42');
     }
 
-    await this.oauthSession(userData, response);
+    await this.oauthSession('FORTYTWO', userData, response);
   }
 
   /**
