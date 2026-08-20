@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router';
+import { handleJoinLobby, handleLeaveLobby } from './api-fetch';
 
 interface UserInterface {
   id: string;
@@ -29,6 +31,22 @@ interface LobbyInterface {
   chat: ChatInterface;
 }
 
+export function DisplayUsers(usersObject: { users: UserInterface[] }) {
+  const { users } = usersObject;
+  return (
+    <ul>
+      {users.map((user) => (
+        <li key={user.id}>
+          <div>
+            <p>{user.username} | {user.email}</p>
+            {user.avatarUrl && <img src={user.avatarUrl} alt={user.username} />}
+          </div>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 /**
  *
  * @brief create a lobby using the api POST /api/lobbies
@@ -54,6 +72,22 @@ export function CreateNewLobby() {
   );
 }
 
+export function JoinLobby({ code }: { code: string }) {
+  return (
+    <button onClick={() => handleJoinLobby(code)}>
+      Join this Lobby
+    </button>
+  )
+}
+
+export function LeaveLobby() {
+  return (
+    <button onClick={() => handleLeaveLobby()}>
+      Leave This Lobby
+    </button>
+  )
+}
+
 /**
  *
  * @brief display the list of lobby every 5 seconds. can join by clicking on the lobby list
@@ -61,6 +95,7 @@ export function CreateNewLobby() {
  *
  */
 export default function DisplayLobbies() {
+  const navigate = useNavigate();
   const [lobbies, setLobbies] = useState<LobbyInterface[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -78,36 +113,13 @@ export default function DisplayLobbies() {
     }
   };
 
-  console.log(lobbies);
   useEffect(() => {
     const interval = setInterval(() => {
       fetchLobbies();
-    }, 5000);
+    }, 1000);
 
     return () => clearInterval(interval);
   }, []);
-
-  /**
-   *
-   * @brief Send a POST request to /api/lobbies/xxx/join to join the game when clicking on it
-   *
-   * @param code used to join the lobby
-   */
-  const handleJoinLobby = async (code: string) => {
-    try {
-      const response = await fetch(`/api/lobbies/${code}/join`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      if (!response.ok) {
-        console.error('Failed to join lobby');
-      }
-    } catch (error) {
-      console.error('Error joining lobby:', error);
-    }
-  };
 
   if (loading && lobbies.length === 0) {
     return <h1>Chargement des salons...</h1>;
@@ -122,7 +134,7 @@ export default function DisplayLobbies() {
         <ul>
           {lobbies.map((item: LobbyInterface) => (
             <li key={item.code}>
-              <button onClick={() => handleJoinLobby(item.code)}>
+              <button onClick={() => navigate(`/game/${item.code}`)}>
                 Join Lobby: {item.code}
               </button>
             </li>
