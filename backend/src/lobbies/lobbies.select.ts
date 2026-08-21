@@ -12,6 +12,8 @@ export const publicLobbySelect = {
   code: true,
   active: true,
   private: true,
+  leaderId: true,
+
   createdAt: true,
   updatedAt: true,
 
