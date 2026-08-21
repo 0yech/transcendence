@@ -37,8 +37,7 @@ function mergeMessages(
   }
 
   return Array.from(messages.values()).sort(
-    (a, b) =>
-      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
   );
 }
 
@@ -64,9 +63,6 @@ export default function LobbyChat({ code }: LobbyChatProps) {
    * listens for new messages and disconnects when the component is removed
    */
   useEffect(() => {
-    setMessages([]);
-    setError(null);
-
     const socket = io('/chats', {
       autoConnect: false,
       withCredentials: true,
@@ -99,9 +95,7 @@ export default function LobbyChat({ code }: LobbyChatProps) {
 
             const history: ChatMessage[] = await historyResponse.json();
 
-            setMessages((current) =>
-              mergeMessages(history, current),
-            );
+            setMessages((current) => mergeMessages(history, current));
           } catch (err) {
             setError(
               err instanceof Error ? err.message : 'Could not load messages',
@@ -138,7 +132,9 @@ export default function LobbyChat({ code }: LobbyChatProps) {
    *
    * @param event chat form submit event
    */
-  async function sendMessage(event: SyntheticEvent<HTMLFormElement, SubmitEvent>) {
+  async function sendMessage(
+    event: SyntheticEvent<HTMLFormElement, SubmitEvent>,
+  ) {
     event.preventDefault();
 
     const messageContent = content.trim();
@@ -171,9 +167,7 @@ export default function LobbyChat({ code }: LobbyChatProps) {
       setContent('');
       setError(null);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Could not send message',
-      );
+      setError(err instanceof Error ? err.message : 'Could not send message');
     }
   }
 
