@@ -22,6 +22,12 @@ export class LobbiesController {
     return this.lobbiesService.findActiveLobbies();
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  findCurrentLobby(@CurrentUser() user: JwtPayload) {
+    return this.lobbiesService.findCurrentLobby(user.sub);
+  }
+
   @Get(':code')
   findLobbyByCode(@Param('code') code: string) {
     return this.lobbiesService.findLobbyByCode(code);
