@@ -6,7 +6,6 @@ import {
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { publicUserSelect } from './users.select';
-import { PassportSerializer } from '@nestjs/passport';
 
 @Injectable()
 export class UsersService {
