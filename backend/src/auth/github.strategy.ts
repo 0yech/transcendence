@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Profile, Strategy } from 'passport-github2';
 import { OauthPayload } from './oauth-payload.interface';
+import { OAuthError } from './oauth-error.enum';
+import { OAuthException } from './oauth.exception';
 
 @Injectable()
 export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
@@ -32,7 +34,7 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
       !photos[0] ||
       !photos[0].value
     ) {
-      throw new Error('Missing information in Github profile');
+      throw new OAuthException(OAuthError.MISSING_DATA);
     }
     const user = {
       email: emails[0].value,
