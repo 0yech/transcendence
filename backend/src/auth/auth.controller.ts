@@ -10,6 +10,7 @@ import {
   Req,
   Res,
   UnauthorizedException,
+  UseFilters,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -110,6 +111,7 @@ export class AuthController {
    */
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
+  @UseFilters(OauthCallbackFilter)
   async googleAuthCallback(
     @Req() req: Request,
     @Res({ passthrough: true }) response: Response,
@@ -134,6 +136,7 @@ export class AuthController {
    */
   @Get('github/callback')
   @UseGuards(AuthGuard('github'))
+  @UseFilters(OauthCallbackFilter)
   async githubAuthCallback(
     @Req() req: Request,
     @Res({ passthrough: true }) response: Response,
@@ -158,6 +161,7 @@ export class AuthController {
    */
   @Get('fortytwo/callback')
   @UseGuards(AuthGuard('fortytwo'))
+  @UseFilters(OauthCallbackFilter)
   async fortytwoAuthCallback(
     @Req() req: Request,
     @Res({ passthrough: true }) response: Response,
