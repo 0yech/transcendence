@@ -5,6 +5,7 @@ export default [
   route('login', 'routes/login.tsx'),
   route('register', 'routes/register.tsx'),
   route('logout', 'routes/logout.tsx'),
+  route('remove-account', 'routes/remove-account.tsx'),
   route('profile', 'routes/profile.tsx'),
   route('tos', 'routes/tos.tsx'),
   route('privacy', 'routes/privacy.tsx'),

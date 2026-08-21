@@ -49,16 +49,16 @@ enum GameActionType {
 }
 
 model User {
-  id              String         @id @default(cuid())
-  username        String         @unique
-  email           String         @unique
-  hashedPassword  String?
-  oauthProvider   OAuthProvider?
-  oauthId         String?
-  avatarUrl       String?
+  id             String         @id @default(cuid())
+  username       String         @unique
+  email          String         @unique
+  hashedPassword String?
+  oauthProvider  OAuthProvider?
+  oauthId        String?
+  avatarUrl      String?
 
   lobbyId String?
-  lobby   Lobby?  @relation(fields: [lobbyId], references: [id], onDelete: SetNull)
+  lobby   Lobby?  @relation("LobbyUsers", fields: [lobbyId], references: [id], onDelete: SetNull)
 
   guildId   String?
   guild     Guild?     @relation("GuildMembers", fields: [guildId], references: [id], onDelete: SetNull)
@@ -76,6 +76,8 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  deleted Boolean @default(false)
+
   @@unique([oauthProvider, oauthId])
   @@index([guildId])
 }
@@ -86,7 +88,7 @@ model Guild {
   level  Int    @default(1)
   points Int    @default(0)
 
-  members     User[]              @relation("GuildMembers")
+  members     User[]            @relation("GuildMembers")
   invitations GuildInvitation[]
 
   createdAt DateTime @default(now())
@@ -102,7 +104,7 @@ model GuildInvitation {
   guild   Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
 
   senderId String
-  sender   User   @relation("GuildInvitationSender", fields: [senderId], references: [id],onDelete: Cascade)
+  sender   User   @relation("GuildInvitationSender", fields: [senderId], references: [id], onDelete: Cascade)
 
   receiverId String
   receiver   User   @relation("GuildInvitationReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
@@ -124,9 +126,10 @@ model Lobby {
   private  Boolean @default(false)
   password String?
 
-  users User[]
-  chat  Chat?
-  games Game[]
+  users    User[]  @relation("LobbyUsers")
+  leaderId String?
+  chat     Chat?
+  games    Game[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -169,7 +172,7 @@ model Game {
   status GameStatus @default(IN_PROGRESS)
 
   seedPrivate String
-  seedHash String
+  seedHash    String
 
   total     Int @default(0)
   direction Int @default(1)

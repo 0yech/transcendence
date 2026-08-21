@@ -6,7 +6,7 @@ This document describes the HTTP routes currently exposed by the NestJS backend.
 >
 > All backend routes use the global `/api` prefix.
 >
-> This guide reflects the repository state reviewed on 2026-08-04.
+> This guide reflects the repository state reviewed on 2026-08-19.
 
 ## Environments
 
@@ -85,7 +85,10 @@ NestJS global validation is enabled.
 | `GET` | `/api` | No | Backend health/basic response |
 | `POST` | `/api/auth/register` | No | Register a user |
 | `POST` | `/api/auth/login` | No | Log in and set auth cookies |
+| `GET` | `/api/auth/:provider` | No | Start OAuth login (`google`, `github`, `fortytwo`) |
+| `GET` | `/api/auth/:provider/callback` | No | Complete OAuth login and redirect to the frontend |
 | `POST` | `/api/auth/logout` | Refresh cookie | End the current session and clear cookies |
+| `POST` | `/api/auth/remove-account` | Yes | Anonymize the authenticated user's account and end the session |
 | `POST` | `/api/auth/refresh` | Refresh cookie | Issue a new access-token cookie |
 | `GET` | `/api/auth/me` | Yes | Return the authenticated user's public profile |
 | `GET` | `/api/lobbies` | No | List active lobbies |
@@ -158,9 +161,11 @@ Creates a user account.
 **Possible errors**
 
 - `400 Bad Request` — DTO validation failed.
-- `409 Conflict` — user creation returned a conflict, such as an existing username/email.
+- `409 Conflict` — the username or email already belongs to an existing account.
 
-> Registration currently creates the account but does not set authentication cookies, despite an outdated controller comment suggesting it returns a logged-in JWT. Call the login route afterward.
+> Registration creates the account but does not set authentication cookies. Call the login route afterward.
+
+> Deleting an account rewrites its username and email to `deleted_user_<id>`, so both the original name and the original address are free to register again.
 
 ### Example
 
@@ -206,6 +211,12 @@ Authenticates a user and sets access and refresh token cookies.
 - Sets the `access_token` cookie.
 - Sets the `refresh_token` cookie.
 
+**Possible errors**
+
+- `400 Bad Request` — DTO validation failed.
+- `401 Unauthorized` — the username does not exist, including a deleted account's old username, or the password does not match.
+- `401 Unauthorized` — the account has no password because it was created through an OAuth provider (`"Please login using your Oauth provider."`).
+
 ### Example
 
 ```bash
@@ -219,6 +230,36 @@ curl -i \
   }'
 ```
 
+## `GET /api/auth/:provider`
+
+Redirects the browser to the provider's login screen. The matching Passport strategy handles the request, so the backend returns no body of its own.
+
+**Authentication:** Not required
+
+**Body:** None
+
+### Providers
+
+| Provider | Route | Callback |
+|---|---|---|
+| Google | `/api/auth/google` | `/api/auth/google/callback` |
+| GitHub | `/api/auth/github` | `/api/auth/github/callback` |
+| 42 | `/api/auth/fortytwo` | `/api/auth/fortytwo/callback` |
+
+> These are navigation targets, not `fetch` targets. Point a link or `window.location` at them, because the provider's login screen has to render in the browser.
+
+## `GET /api/auth/:provider/callback`
+
+Consumes the provider's response, creates or reuses the matching account, and redirects back to the frontend. Shared logic lives in `AuthController.oauthSession()`.
+
+**Authentication:** Not required — the provider's response is the credential
+
+**Body:** None
+
+**Success effect:** Sets the `access_token` and `refresh_token` cookies, then redirects to `${FRONTEND_ORIGIN}profile`.
+
+> Failures are not caught, so they render as a JSON error page in the browser window rather than reaching the SPA. Every current failure mode is a `500`: a strategy's `validate()` rejecting a profile without an email or picture, `UsersService.createUsername()` exhausting its suffixes, or a Prisma error.
+
 ## `GET /api/auth/me`
 
 Returns the public profile of the authenticated user.
@@ -230,6 +271,14 @@ Returns the public profile of the authenticated user.
 **Success response:** Public user object selected by `UsersService.findOnePublic()`.
 
 The exact fields are controlled by `backend/src/users/users.select.ts`.
+
+**Possible errors**
+
+- `400 Bad Request` — the access token verified but its payload carries no `username` claim.
+- `401 Unauthorized` — missing, expired, or invalid access token.
+- `401 Unauthorized` — no account answers to the token's username, because the account was deleted (`"User account was deleted."`).
+
+> `JwtAuthGuard` only verifies the token signature, so a deleted account's access token stays valid until it expires (15 minutes, per `signOptions` in `auth.module.ts`). This route rejects it anyway, and `apiFetch` turns that `401` into a refresh attempt that fails too, redirecting the browser to `/login`.
 
 ### Example
 
@@ -250,6 +299,10 @@ Creates a new access token from the refresh token.
 **Success effect:** Replaces/sets the `access_token` cookie.
 
 **Success body:** Empty
+
+**Possible errors**
+
+- `401 Unauthorized` — no session matches the refresh token, the session is older than two weeks (`SESSION_LIFETIME_MS`), or the account has since been deleted.
 
 ### Example
 
@@ -279,6 +332,42 @@ curl -i \
   -b cookies.txt \
   -c cookies.txt \
   -X POST http://localhost:3000/api/auth/logout
+```
+
+## `POST /api/auth/remove-account`
+
+Anonymizes the authenticated user's account, then ends the session the same way `logout` does. No row is removed from the database.
+
+**Authentication:** Required (`access_token` cookie)
+
+**Body:** None
+
+**Success status:** `200 OK`
+
+**Success body:** Empty
+
+**Side effects**
+
+- Sets `deleted = true` on the `User` row identified by the access token's `sub` claim, rewrites its `username` and `email` to `deleted_user_<id>`, and clears `hashedPassword`. The row itself is kept, along with the user's games, messages, guild invitations, and their lobby and guild membership.
+- Rewrites the same values on a repeated call, since the row is found by id, so retrying with an access token issued before deletion is safe.
+- Removes the in-memory session attached to the `refresh_token` cookie. A request with a valid access token but no refresh token still anonymizes the account.
+- Clears the `access_token` and `refresh_token` cookies.
+
+**Possible errors**
+
+- `400 Bad Request` — the user is a guild `LEADER` and must delegate the role before deleting their account.
+- `401 Unauthorized` — missing, expired, or invalid access token.
+- `500 Internal Server Error` — the token is valid but no matching user exists (`"Current user is missing"`).
+
+> Both the username and the email are released for reuse. A deleted user who signs in again through OAuth gets a brand-new account, usually under their old username, because `UsersService.createUsername()` now finds it free.
+
+### Example
+
+```bash
+curl -i \
+  -b cookies.txt \
+  -c cookies.txt \
+  -X POST http://localhost:3000/api/auth/remove-account
 ```
 
 ---
