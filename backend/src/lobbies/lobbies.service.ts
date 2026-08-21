@@ -50,7 +50,7 @@ export class LobbiesService {
     throw new Error('Could not generate a unique active lobby code');
   }
 
-  private async deactivateLobbyIfEmpty(
+  private async updateLobbyAfterLeave(
     tx: Prisma.TransactionClient,
     lobbyId?: string | null,
   ) {
@@ -58,14 +58,44 @@ export class LobbiesService {
       return;
     }
 
-    const usersLeft = await tx.user.count({
-      where: { lobbyId },
+    const lobby = await tx.lobby.findUnique({
+      where: { id: lobbyId },
+      select: {
+        leaderId: true,
+        users: {
+          select: {
+            id: true,
+          },
+        },
+      },
     });
 
-    if (usersLeft === 0) {
+    if (!lobby) {
+      return;
+    }
+
+    if (lobby.users.length === 0) {
       await tx.lobby.update({
         where: { id: lobbyId },
-        data: { active: false },
+        data: {
+          active: false,
+          leaderId: null,
+        },
+      });
+
+      return;
+    }
+
+    const leaderStillHere = lobby.users.some(
+      (user) => user.id === lobby.leaderId,
+    );
+
+    if (!leaderStillHere) {
+      await tx.lobby.update({
+        where: { id: lobbyId },
+        data: {
+          leaderId: lobby.users[0].id,
+        },
       });
     }
   }
@@ -102,6 +132,7 @@ export class LobbiesService {
           code,
           private: data?.private ?? false,
           password: data?.password,
+          leaderId: userId,
           chat: {
             create: {},
           },
@@ -114,7 +145,7 @@ export class LobbiesService {
         select: publicLobbySelect,
       });
 
-      await this.deactivateLobbyIfEmpty(tx, previousLobbyId);
+      await this.updateLobbyAfterLeave(tx, previousLobbyId);
 
       return lobby;
     });
@@ -213,7 +244,7 @@ export class LobbiesService {
           },
         });
 
-        await this.deactivateLobbyIfEmpty(tx, previousLobbyId);
+        await this.updateLobbyAfterLeave(tx, previousLobbyId);
       }
 
       return tx.lobby.findUniqueOrThrow({
@@ -258,7 +289,7 @@ export class LobbiesService {
         },
       });
 
-      await this.deactivateLobbyIfEmpty(tx, previousLobbyId);
+      await this.updateLobbyAfterLeave(tx, previousLobbyId);
     });
 
     return {
