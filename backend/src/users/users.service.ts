@@ -95,15 +95,21 @@ export class UsersService {
    */
   async updateOne(
     id: string,
-    data: { username?: string; email?: string; pictureUrl?: string },
+    data: {
+      username?: string;
+      email?: string;
+      passwordHash?: string;
+      pictureUrl?: string;
+    },
   ) {
     await this.prisma.user.update({
-      where: { id: id },
+      where: { id: id, deleted: false },
       // If a value is undefined, the value won't be updated
       data: {
         username: data.username,
         email: data.email,
         avatarUrl: data.pictureUrl,
+        hashedPassword: data.passwordHash,
       },
     });
   }

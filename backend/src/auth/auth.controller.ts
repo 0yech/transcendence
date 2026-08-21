@@ -22,6 +22,8 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { OauthPayload } from './oauth-payload.interface';
+import { UpdateDto } from './dto/update.dto';
+import * as bcrypt from 'bcrypt';
 
 const cookieOptions: CookieOptions = {
   httpOnly: true,
@@ -175,6 +177,23 @@ export class AuthController {
       secure: cookieOptions.secure,
       sameSite: cookieOptions.sameSite,
       path: '/api/auth',
+    });
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('update')
+  @UseGuards(JwtAuthGuard)
+  async updateAccount(
+    @CurrentUser() currentUser: JwtPayload,
+    @Body() updateDto: UpdateDto,
+  ) {
+    const hashedPassword = await bcrypt.hash(updateDto.password, 10);
+
+    await this.usersService.updateOne(currentUser.sub, {
+      username: updateDto.username,
+      email: updateDto.email,
+      pictureUrl: updateDto.pictureUrl,
+      passwordHash: hashedPassword,
     });
   }
 
