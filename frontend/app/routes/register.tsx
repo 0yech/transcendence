@@ -1,7 +1,7 @@
-import { RegisterForm } from '../auth/register';
+import { RegisterForm } from '../pages/auth/register';
 import type { Route } from './+types/register';
 import { Link, redirect } from 'react-router';
-import { OauthLoginOptions } from '~/auth/oauth';
+import { OauthLoginOptions } from '~/pages/auth/oauth';
 
 export async function clientAction({ request }: Route.ActionArgs) {
   const data = await request.formData();

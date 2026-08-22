@@ -1,0 +1,259 @@
+docker compose --env-file .env.dev -f docker-compose-dev.yaml down -v --rmi local
+docker compose --env-file .env.dev -f docker-compose-dev.yaml up
+#1 [internal] load local bake definitions
+#1 reading from stdin 1.13kB done
+#1 DONE 0.0s
+
+#2 [backend internal] load build definition from Dockerfile
+#2 transferring dockerfile: 993B done
+#2 DONE 0.0s
+
+#3 [frontend internal] load build definition from Dockerfile
+#3 transferring dockerfile: 1.08kB done
+#3 DONE 0.0s
+
+#4 [frontend internal] load metadata for docker.io/library/node:24-alpine
+#4 DONE 0.6s
+
+#5 [frontend internal] load .dockerignore
+#5 transferring context: 141B done
+#5 DONE 0.0s
+
+#6 [backend internal] load .dockerignore
+#6 transferring context: 151B done
+#6 DONE 0.0s
+
+#7 [frontend build-env 1/5] FROM docker.io/library/node:24-alpine@sha256:d32cdf619f63fe0471182d08996dd516c6275bb5fd31ae06e55a570bd9e1ad43
+#7 resolve docker.io/library/node:24-alpine@sha256:d32cdf619f63fe0471182d08996dd516c6275bb5fd31ae06e55a570bd9e1ad43 0.0s done
+#7 DONE 0.0s
+
+#8 [frontend internal] load build context
+#8 transferring context: 4.05kB done
+#8 DONE 0.0s
+
+#9 [backend internal] load build context
+#9 transferring context: 801.74kB done
+#9 DONE 0.0s
+
+#10 [frontend build-env 2/5] COPY . /app/
+#10 CACHED
+
+#11 [frontend development 3/5] COPY --from=development-dependencies-env /app/node_modules /app/node_modules
+#11 CACHED
+
+#12 [frontend development 4/5] COPY --from=build-env /app/build /app/build
+#12 CACHED
+
+#13 [frontend build-env 4/5] WORKDIR /app
+#13 CACHED
+
+#14 [frontend development 2/5] COPY ./package.json package-lock.json /app/
+#14 CACHED
+
+#15 [frontend development-dependencies-env 3/4] WORKDIR /app
+#15 CACHED
+
+#16 [frontend development-dependencies-env 2/4] COPY . /app
+#16 CACHED
+
+#17 [frontend development-dependencies-env 4/4] RUN npm ci
+#17 CACHED
+
+#18 [frontend build-env 5/5] RUN npm run build
+#18 CACHED
+
+#19 [frontend build-env 3/5] COPY --from=development-dependencies-env /app/node_modules /app/node_modules
+#19 CACHED
+
+#20 [backend development 3/4] COPY --from=development-dependencies-env /app/node_modules /app/node_modules
+#20 CACHED
+
+#21 [backend development-dependencies-env 3/4] WORKDIR /app
+#21 CACHED
+
+#22 [backend development-dependencies-env 4/4] RUN npm ci
+#22 CACHED
+
+#23 [backend development-dependencies-env 2/4] COPY . /app
+#23 CACHED
+
+#24 [backend development 2/4] COPY ./package.json package-lock.json /app/
+#24 CACHED
+
+#25 [frontend development 5/5] WORKDIR /app
+#25 CACHED
+
+#26 [backend development 4/4] WORKDIR /app
+#26 CACHED
+
+#27 [frontend] exporting to image
+#27 exporting layers done
+#27 exporting manifest sha256:819faed7f3396d33c113da188e621f20c7a47aefba62084deb19d9e5f4563ca4 done
+#27 exporting config sha256:2859893ebed365453160dac87e1057855fd84174d64e7fbbce15325d2ce2129f done
+#27 exporting attestation manifest sha256:ce4a442247627e665a0c75a94763209680f7a3d340179563a0df4891255940e7
+#27 exporting attestation manifest sha256:ce4a442247627e665a0c75a94763209680f7a3d340179563a0df4891255940e7 0.0s done
+#27 exporting manifest list sha256:90196334ad34882ce7fd6ac763f0cc676db8a72202856e8ccc10f23352134809 0.0s done
+#27 naming to docker.io/library/transcendence-frontend:latest done
+#27 unpacking to docker.io/library/transcendence-frontend:latest
+#27 unpacking to docker.io/library/transcendence-frontend:latest 1.5s done
+#27 DONE 1.6s
+
+#28 [frontend] resolving provenance for metadata file
+#28 DONE 0.0s
+
+#29 [backend] exporting to image
+#29 exporting layers done
+#29 exporting manifest sha256:8c6c1e8e07d62d8b4305739076588f15db85c87a7046e035a5dbcf205fa572a2 done
+#29 exporting config sha256:dbb4c0187332f19b8878483fe8379377e2321ed0a098d0af7c816b1dffb895a7 done
+#29 exporting attestation manifest sha256:f355f5838f2681abab3de31d28bedcf06f61df7b606a0666b8bfa2e43b4d7c79 0.0s done
+#29 exporting manifest list sha256:41cddc6c39ce3314c2a493a76879fd4476dcb097fbe818dadca5fd98cf373dcb 0.0s done
+#29 naming to docker.io/library/transcendence-backend:latest done
+#29 unpacking to docker.io/library/transcendence-backend:latest
+#29 unpacking to docker.io/library/transcendence-backend:latest 4.5s done
+#29 DONE 4.6s
+
+#30 [backend] resolving provenance for metadata file
+#30 DONE 0.0s
+Attaching to backend, database, frontend
+database  | The files belonging to this database system will be owned by user "postgres".
+database  | This user must also own the server process.
+database  | 
+database  | The database cluster will be initialized with locale "en_US.utf8".
+database  | The default database encoding has accordingly been set to "UTF8".
+database  | The default text search configuration will be set to "english".
+database  | 
+database  | Data page checksums are disabled.
+database  | 
+database  | fixing permissions on existing directory /var/lib/postgresql/data ... ok
+database  | creating subdirectories ... ok
+database  | selecting dynamic shared memory implementation ... posix
+database  | selecting default max_connections ... 100
+database  | selecting default shared_buffers ... 128MB
+database  | selecting default time zone ... UTC
+database  | creating configuration files ... ok
+database  | running bootstrap script ... ok
+frontend  | 
+frontend  | > dev
+frontend  | > react-router dev --host
+frontend  | 
+database  | performing post-bootstrap initialization ... ok
+database  | syncing data to disk ... ok
+database  | 
+database  | 
+database  | Success. You can now start the database server using:
+database  | 
+database  |     pg_ctl -D /var/lib/postgresql/data -l logfile start
+database  | 
+database  | waiting for server to start....2026-08-22 20:25:52.723 UTC [41] LOG:  starting PostgreSQL 16.14 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit
+database  | 2026-08-22 20:25:52.726 UTC [41] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+database  | 2026-08-22 20:25:52.732 UTC [44] LOG:  database system was shut down at 2026-08-22 20:25:52 UTC
+database  | 2026-08-22 20:25:52.737 UTC [41] LOG:  database system is ready to accept connections
+database  |  done
+database  | server started
+database  | CREATE DATABASE
+database  | 
+database  | 
+database  | /usr/local/bin/docker-entrypoint.sh: ignoring /docker-entrypoint-initdb.d/*
+database  | 
+database  | waiting for server to shut down....2026-08-22 20:25:52.867 UTC [41] LOG:  received fast shutdown request
+database  | 2026-08-22 20:25:52.870 UTC [41] LOG:  aborting any active transactions
+database  | 2026-08-22 20:25:52.872 UTC [41] LOG:  background worker "logical replication launcher" (PID 47) exited with exit code 1
+database  | 2026-08-22 20:25:52.872 UTC [42] LOG:  shutting down
+database  | 2026-08-22 20:25:52.894 UTC [42] LOG:  checkpoint starting: shutdown immediate
+database  | 2026-08-22 20:25:52.964 UTC [42] LOG:  checkpoint complete: wrote 926 buffers (5.7%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.020 s, sync=0.021 s, total=0.093 s; sync files=301, longest=0.008 s, average=0.001 s; distance=4283 kB, estimate=4283 kB; lsn=0/1925D68, redo lsn=0/1925D68
+database  | 2026-08-22 20:25:52.970 UTC [41] LOG:  database system is shut down
+frontend  |   ➜  Local:   http://localhost:5173/
+frontend  |   ➜  Network: http://172.18.0.4:5173/
+backend   | Datasource "db": PostgreSQL database "transcendence", schema "public" at "database:5432"
+backend   | 
+database  |  done
+database  | server stopped
+database  | 
+database  | PostgreSQL init process complete; ready for start up.
+database  | 
+[Kbackend exited with code 1 (restarting)
+backend   | Loaded Prisma config from prisma.config.ts.
+backend   | 
+backend   | Prisma schema loaded from prisma/schema.prisma.
+backend   | Datasource "db": PostgreSQL database "transcendence", schema "public" at "database:5432"
+backend   | 
+backend   | 🚀  Your database is now in sync with your Prisma schema. Done in 273ms
+backend   | 
+backend   | Loaded Prisma config from prisma.config.ts.
+backend   | 
+backend   | Prisma schema loaded from prisma/schema.prisma.
+backend   | 
+backend   | ✔ Generated Prisma Client (7.9.1) to ./src/generated/prisma in 62ms
+backend   | 
+backend   | 
+backend   | > transcendence-backend@0.0.1 start:dev
+backend   | > nest start --watch
+backend   | 
+backend   | [2J[3J[H[[90m8:25:55 PM[0m] Starting compilation in watch mode...
+backend   | 
+backend   | Loaded Prisma config from prisma.config.ts.
+backend   | 
+backend   | 
+backend   | Prisma Studio is running at: http://localhost:5555
+backend   | 
+backend   | [[90m8:25:57 PM[0m] Found 0 errors. Watching for file changes.
+backend   | 
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPrismaModule dependencies initialized[39m[38;5;3m +17ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mJwtModule dependencies initialized[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUsersModule dependencies initialized[39m[38;5;3m +1ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDiscoveryModule dependencies initialized[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mScheduleModule dependencies initialized[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGamesModule dependencies initialized[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mLobbiesModule dependencies initialized[39m[38;5;3m +1ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGuildsModule dependencies initialized[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAuthModule dependencies initialized[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mChatsModule dependencies initialized[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGamesGateway subscribed to the "game:join" message[39m[38;5;3m +15ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGamesGateway subscribed to the "game:start" message[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGamesGateway subscribed to the "game:play-card" message[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGamesGateway subscribed to the "game:play-slot" message[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGamesGateway subscribed to the "game:unable" message[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGamesGateway subscribed to the "game:discard-four-ono99" message[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mChatsGateway subscribed to the "lobby:join" message[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mChatsGateway subscribed to the "lobby:leave" message[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAppController {/api}:[39m[38;5;3m +1ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api, GET} route[39m[38;5;3m +2ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAuthController {/api/auth}:[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/auth/register, POST} route[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/auth/login, POST} route[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/auth/google, GET} route[39m[38;5;3m +1ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/auth/google/callback, GET} route[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/auth/github, GET} route[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/auth/github/callback, GET} route[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/auth/fortytwo, GET} route[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/auth/fortytwo/callback, GET} route[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/auth/logout, POST} route[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/auth/update, POST} route[39m[38;5;3m +1ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/auth/remove-account, POST} route[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/auth/refresh, POST} route[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/auth/me, GET} route[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mLobbiesController {/api/lobbies}:[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/lobbies, POST} route[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/lobbies, GET} route[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/lobbies/:code, GET} route[39m[38;5;3m +1ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/lobbies/:code/join, POST} route[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/lobbies/leave, POST} route[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mGuildsController {/api/guilds}:[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/guilds, GET} route[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/guilds/me, GET} route[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/guilds, POST} route[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/guilds/leave, POST} route[39m[38;5;3m +1ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/guilds, DELETE} route[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/guilds/invitations, POST} route[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/guilds/invitations, GET} route[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/guilds/invitations/:invitationId/accept, POST} route[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/guilds/invitations/:invitationId/decline, POST} route[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/guilds/members/:memberId/kick, POST} route[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mGamesController {/api/games}:[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:gameId/replay, GET} route[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mChatsController {/api/lobbies/:code/messages}:[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/lobbies/:code/messages, GET} route[39m[38;5;3m +0ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/lobbies/:code/messages, POST} route[39m[38;5;3m +1ms[39m
+backend   | [32m[Nest] 245  - [39m08/22/2026, 8:25:57 PM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +65ms[39m
