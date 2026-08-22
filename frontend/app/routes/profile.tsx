@@ -1,6 +1,6 @@
 import apiFetch from '~/utils/api-fetch';
-import { LogoutButton } from '~/auth/logout';
-import { RemoveAccountButton } from '~/auth/remove-account';
+import { LogoutButton } from '~/pages/auth/logout';
+import { RemoveAccountButton } from '~/pages/auth/remove-account';
 import type { Route } from './+types/profile';
 import { HomeButton } from './home';
 
