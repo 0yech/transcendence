@@ -12,19 +12,19 @@ This document describes the HTTP routes currently exposed by the NestJS backend.
 
 ### Development
 
-| Service | URL / Port |
-|---|---|
-| Frontend | `http://localhost:5173` |
-| Backend | `http://localhost:3000` |
-| API base URL | `http://localhost:3000/api` |
-| Prisma Studio | `http://localhost:5555` |
+| Service       | URL / Port                  |
+| ------------- | --------------------------- |
+| Frontend      | `http://localhost:5173`     |
+| Backend       | `http://localhost:3000`     |
+| API base URL  | `http://localhost:3000/api` |
+| Prisma Studio | `http://localhost:5555`     |
 
 ### Production
 
-| Service | URL / Port |
-|---|---|
-| Frontend | `https://<host>` on port `443` |
-| Backend API | `https://<host>/api` |
+| Service     | URL / Port                     |
+| ----------- | ------------------------------ |
+| Frontend    | `https://<host>` on port `443` |
+| Backend API | `https://<host>/api`           |
 
 ## General API behavior
 
@@ -32,9 +32,9 @@ This document describes the HTTP routes currently exposed by the NestJS backend.
 
 Authentication uses two HTTP-only cookies:
 
-| Cookie | Purpose | Path |
-|---|---|---|
-| `access_token` | Authenticates protected API requests | `/` |
+| Cookie          | Purpose                                      | Path        |
+| --------------- | -------------------------------------------- | ----------- |
+| `access_token`  | Authenticates protected API requests         | `/`         |
 | `refresh_token` | Creates a new access token and ends sessions | `/api/auth` |
 
 The cookies are configured with:
@@ -64,15 +64,15 @@ NestJS global validation is enabled.
 
 ### Common status codes
 
-| Status | Meaning |
-|---|---|
-| `200 OK` | Request succeeded |
-| `201 Created` | NestJS default for a successful `POST` without an explicit status override |
-| `400 Bad Request` | Invalid input, invalid state, or malformed authentication data |
-| `401 Unauthorized` | Missing, expired, or invalid access token |
-| `403 Forbidden` | Authenticated user is not allowed to perform the action |
-| `404 Not Found` | Requested lobby, game, guild, invitation, or user was not found |
-| `409 Conflict` | Resource already exists or conflicts with current state |
+| Status             | Meaning                                                                    |
+| ------------------ | -------------------------------------------------------------------------- |
+| `200 OK`           | Request succeeded                                                          |
+| `201 Created`      | NestJS default for a successful `POST` without an explicit status override |
+| `400 Bad Request`  | Invalid input, invalid state, or malformed authentication data             |
+| `401 Unauthorized` | Missing, expired, or invalid access token                                  |
+| `403 Forbidden`    | Authenticated user is not allowed to perform the action                    |
+| `404 Not Found`    | Requested lobby, game, guild, invitation, or user was not found            |
+| `409 Conflict`     | Resource already exists or conflicts with current state                    |
 
 > Exact errors can also be raised by service-layer business rules. Keep this section updated when service behavior changes.
 
@@ -80,33 +80,33 @@ NestJS global validation is enabled.
 
 # Route summary
 
-| Method | Route | Auth | Purpose |
-|---|---|---:|---|
-| `GET` | `/api` | No | Backend health/basic response |
-| `POST` | `/api/auth/register` | No | Register a user |
-| `POST` | `/api/auth/login` | No | Log in and set auth cookies |
-| `GET` | `/api/auth/:provider` | No | Start OAuth login (`google`, `github`, `fortytwo`) |
-| `GET` | `/api/auth/:provider/callback` | No | Complete OAuth login and redirect to the frontend |
-| `POST` | `/api/auth/logout` | Refresh cookie | End the current session and clear cookies |
-| `POST` | `/api/auth/remove-account` | Yes | Anonymize the authenticated user's account and end the session |
-| `POST` | `/api/auth/refresh` | Refresh cookie | Issue a new access-token cookie |
-| `GET` | `/api/auth/me` | Yes | Return the authenticated user's public profile |
-| `GET` | `/api/lobbies` | No | List active lobbies |
-| `GET` | `/api/lobbies/:code` | No | Get a lobby by code |
-| `POST` | `/api/lobbies` | Yes | Create a lobby |
-| `POST` | `/api/lobbies/:code/join` | Yes | Join a lobby |
-| `POST` | `/api/lobbies/leave` | Yes | Leave the user's current lobby |
-| `GET` | `/api/games/:gameId/replay` | Yes | Get a game replay |
-| `GET` | `/api/guilds` | No | List guilds |
-| `GET` | `/api/guilds/me` | Yes | Get the authenticated user's guild |
-| `POST` | `/api/guilds` | Yes | Create a guild |
-| `POST` | `/api/guilds/leave` | Yes | Leave the current guild |
-| `DELETE` | `/api/guilds` | Yes | Delete the current guild |
-| `POST` | `/api/guilds/invitations` | Yes | Invite a user to the guild |
-| `GET` | `/api/guilds/invitations` | Yes | List the user's guild invitations |
-| `POST` | `/api/guilds/invitations/:invitationId/accept` | Yes | Accept a guild invitation |
-| `POST` | `/api/guilds/invitations/:invitationId/decline` | Yes | Decline a guild invitation |
-| `POST` | `/api/guilds/members/:memberId/kick` | Yes | Remove a member from the guild |
+| Method   | Route                                           |           Auth | Purpose                                                        |
+| -------- | ----------------------------------------------- | -------------: | -------------------------------------------------------------- |
+| `GET`    | `/api`                                          |             No | Backend health/basic response                                  |
+| `POST`   | `/api/auth/register`                            |             No | Register a user                                                |
+| `POST`   | `/api/auth/login`                               |             No | Log in and set auth cookies                                    |
+| `GET`    | `/api/auth/:provider`                           |             No | Start OAuth login (`google`, `github`, `fortytwo`)             |
+| `GET`    | `/api/auth/:provider/callback`                  |             No | Complete OAuth login and redirect to the frontend              |
+| `POST`   | `/api/auth/logout`                              | Refresh cookie | End the current session and clear cookies                      |
+| `POST`   | `/api/auth/remove-account`                      |            Yes | Anonymize the authenticated user's account and end the session |
+| `POST`   | `/api/auth/refresh`                             | Refresh cookie | Issue a new access-token cookie                                |
+| `GET`    | `/api/auth/me`                                  |            Yes | Return the authenticated user's public profile                 |
+| `GET`    | `/api/lobbies`                                  |             No | List active lobbies                                            |
+| `GET`    | `/api/lobbies/:code`                            |             No | Get a lobby by code                                            |
+| `POST`   | `/api/lobbies`                                  |            Yes | Create a lobby                                                 |
+| `POST`   | `/api/lobbies/:code/join`                       |            Yes | Join a lobby                                                   |
+| `POST`   | `/api/lobbies/leave`                            |            Yes | Leave the user's current lobby                                 |
+| `GET`    | `/api/games/:gameId/replay`                     |            Yes | Get a game replay                                              |
+| `GET`    | `/api/guilds`                                   |             No | List guilds                                                    |
+| `GET`    | `/api/guilds/me`                                |            Yes | Get the authenticated user's guild                             |
+| `POST`   | `/api/guilds`                                   |            Yes | Create a guild                                                 |
+| `POST`   | `/api/guilds/leave`                             |            Yes | Leave the current guild                                        |
+| `DELETE` | `/api/guilds`                                   |            Yes | Delete the current guild                                       |
+| `POST`   | `/api/guilds/invitations`                       |            Yes | Invite a user to the guild                                     |
+| `GET`    | `/api/guilds/invitations`                       |            Yes | List the user's guild invitations                              |
+| `POST`   | `/api/guilds/invitations/:invitationId/accept`  |            Yes | Accept a guild invitation                                      |
+| `POST`   | `/api/guilds/invitations/:invitationId/decline` |            Yes | Decline a guild invitation                                     |
+| `POST`   | `/api/guilds/members/:memberId/kick`            |            Yes | Remove a member from the guild                                 |
 
 ---
 
@@ -148,11 +148,11 @@ Creates a user account.
 
 ### Validation
 
-| Field | Type | Rules |
-|---|---|---|
-| `email` | string | Required, valid email, 4–128 characters |
-| `username` | string | Required, maximum 32 characters |
-| `password` | string | Required, 8–64 characters |
+| Field      | Type   | Rules                                   |
+| ---------- | ------ | --------------------------------------- |
+| `email`    | string | Required, valid email, 4–128 characters |
+| `username` | string | Required, maximum 32 characters         |
+| `password` | string | Required, 8–64 characters               |
 
 **Success status:** `200 OK`
 
@@ -197,8 +197,8 @@ Authenticates a user and sets access and refresh token cookies.
 
 ### Validation
 
-| Field | Type | Rules |
-|---|---|---|
+| Field      | Type   | Rules               |
+| ---------- | ------ | ------------------- |
 | `username` | string | Required, non-empty |
 | `password` | string | Required, non-empty |
 
@@ -240,11 +240,11 @@ Redirects the browser to the provider's login screen. The matching Passport stra
 
 ### Providers
 
-| Provider | Route | Callback |
-|---|---|---|
-| Google | `/api/auth/google` | `/api/auth/google/callback` |
-| GitHub | `/api/auth/github` | `/api/auth/github/callback` |
-| 42 | `/api/auth/fortytwo` | `/api/auth/fortytwo/callback` |
+| Provider | Route                | Callback                      |
+| -------- | -------------------- | ----------------------------- |
+| Google   | `/api/auth/google`   | `/api/auth/google/callback`   |
+| GitHub   | `/api/auth/github`   | `/api/auth/github/callback`   |
+| 42       | `/api/auth/fortytwo` | `/api/auth/fortytwo/callback` |
 
 > These are navigation targets, not `fetch` targets. Point a link or `window.location` at them, because the provider's login screen has to render in the browser.
 
@@ -392,9 +392,9 @@ Returns a lobby by its public code.
 
 ### Path parameters
 
-| Parameter | Type | Description |
-|---|---|---|
-| `code` | string | Lobby join/public code |
+| Parameter | Type   | Description            |
+| --------- | ------ | ---------------------- |
+| `code`    | string | Lobby join/public code |
 
 **Success response:** Lobby object returned by `findLobbyByCode()`.
 
@@ -413,10 +413,10 @@ Creates a lobby owned by the authenticated user.
 }
 ```
 
-| Field | Type | Required | Description |
-|---|---|---:|---|
-| `private` | boolean | No | Whether the lobby is private |
-| `password` | string | No | Password used for protected lobby access |
+| Field      | Type    | Required | Description                              |
+| ---------- | ------- | -------: | ---------------------------------------- |
+| `private`  | boolean |       No | Whether the lobby is private             |
+| `password` | string  |       No | Password used for protected lobby access |
 
 **Success response:** Created lobby object.
 
@@ -430,9 +430,9 @@ Adds the authenticated user to a lobby.
 
 ### Path parameters
 
-| Parameter | Type | Description |
-|---|---|---|
-| `code` | string | Lobby code |
+| Parameter | Type   | Description |
+| --------- | ------ | ----------- |
+| `code`    | string | Lobby code  |
 
 **Request body**
 
@@ -462,16 +462,15 @@ Removes the authenticated user from their current lobby.
 
 All game routes were moved to websockets except for the replay GET.
 
-
 ## `GET /api/games/:gameId/replay`
 
 Returns replay information for a game.
 
 ### Path parameters
 
-| Parameter | Type | Description |
-|---|---|---|
-| `gameId` | string | Persistent game identifier |
+| Parameter | Type   | Description                |
+| --------- | ------ | -------------------------- |
+| `gameId`  | string | Persistent game identifier |
 
 **Success response:** Replay data of a finished game.
 
@@ -515,9 +514,9 @@ Creates a guild.
 }
 ```
 
-| Field | Type | Required | Description |
-|---|---|---:|---|
-| `name` | string | Yes | Guild name |
+| Field  | Type   | Required | Description |
+| ------ | ------ | -------: | ----------- |
+| `name` | string |      Yes | Guild name  |
 
 **Success response:** Created guild object.
 
@@ -557,9 +556,9 @@ Invites a user to the authenticated user's guild.
 }
 ```
 
-| Field | Type | Required | Description |
-|---|---|---:|---|
-| `username` | string | Yes | Username of the user to invite |
+| Field      | Type   | Required | Description                    |
+| ---------- | ------ | -------: | ------------------------------ |
+| `username` | string |      Yes | Username of the user to invite |
 
 **Success response:** Created invitation or service-defined result.
 
@@ -581,8 +580,8 @@ Accepts a guild invitation.
 
 ### Path parameters
 
-| Parameter | Type | Description |
-|---|---|---|
+| Parameter      | Type   | Description         |
+| -------------- | ------ | ------------------- |
 | `invitationId` | string | Guild invitation ID |
 
 **Body:** None
@@ -597,8 +596,8 @@ Declines a guild invitation.
 
 ### Path parameters
 
-| Parameter | Type | Description |
-|---|---|---|
+| Parameter      | Type   | Description         |
+| -------------- | ------ | ------------------- |
 | `invitationId` | string | Guild invitation ID |
 
 **Body:** None
@@ -613,8 +612,8 @@ Removes a member from the authenticated user's guild.
 
 ### Path parameters
 
-| Parameter | Type | Description |
-|---|---|---|
+| Parameter  | Type   | Description              |
+| ---------- | ------ | ------------------------ |
 | `memberId` | string | User/member ID to remove |
 
 **Body:** None
@@ -622,4 +621,3 @@ Removes a member from the authenticated user's guild.
 **Typical requirement:** The requesting user must have guild-management permission.
 
 **Success response:** Updated guild or removal result.
-
