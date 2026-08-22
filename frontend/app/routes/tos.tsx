@@ -1,4 +1,4 @@
-import TermsOfService from '~/legal/tos';
+import TermsOfService from '~/pages/legal/tos';
 
 export default function Terms() {
   return (

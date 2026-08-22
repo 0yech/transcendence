@@ -1,7 +1,7 @@
-import { LoginForm } from '../auth/login';
+import { LoginForm } from '../pages/auth/login';
 import type { Route } from './+types/login';
 import { Link, redirect } from 'react-router';
-import { OauthLoginOptions } from '~/auth/oauth';
+import { OauthLoginOptions } from '~/pages/auth/oauth';
 
 export async function clientAction({ request }: Route.ClientActionArgs) {
   const data = await request.formData();

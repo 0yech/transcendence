@@ -32,22 +32,20 @@ export default async function apiFetch(
   return secondTry;
 }
 
-
 export async function handleJoinLobby(code: string) {
   apiFetch(`/api/lobbies/${code}/join`, {
     method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }).catch((e) => "Not logged in :(" + e);
-};
-
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  }).catch((e) => 'Not logged in :(' + e);
+}
 
 export async function handleLeaveLobby() {
-    apiFetch(`/api/lobbies/leave`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-};
+  apiFetch(`/api/lobbies/leave`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+}

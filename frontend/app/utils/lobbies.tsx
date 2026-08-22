@@ -38,13 +38,15 @@ export function DisplayUsers(usersObject: { users: UserInterface[] }) {
       {users.map((user) => (
         <li key={user.id}>
           <div>
-            <p>{user.username} | {user.email}</p>
+            <p>
+              {user.username} | {user.email}
+            </p>
             {user.avatarUrl && <img src={user.avatarUrl} alt={user.username} />}
           </div>
         </li>
       ))}
     </ul>
-  )
+  );
 }
 
 /**
@@ -73,19 +75,11 @@ export function CreateNewLobby() {
 }
 
 export function JoinLobby({ code }: { code: string }) {
-  return (
-    <button onClick={() => handleJoinLobby(code)}>
-      Join this Lobby
-    </button>
-  )
+  return <button onClick={() => handleJoinLobby(code)}>Join this Lobby</button>;
 }
 
 export function LeaveLobby() {
-  return (
-    <button onClick={() => handleLeaveLobby()}>
-      Leave This Lobby
-    </button>
-  )
+  return <button onClick={() => handleLeaveLobby()}>Leave This Lobby</button>;
 }
 
 /**

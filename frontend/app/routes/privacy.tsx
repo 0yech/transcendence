@@ -1,4 +1,4 @@
-import PrivacyPolicy from '~/legal/privacy';
+import PrivacyPolicy from '~/pages/legal/privacy';
 
 export default function Privacy() {
   return (
