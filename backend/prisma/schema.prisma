@@ -54,7 +54,6 @@ model User {
   email          String         @unique
   hashedPassword String?
   oauthProvider  OAuthProvider?
-  oauthId        String?
   avatarUrl      String?
 
   lobbyId String?
@@ -78,7 +77,6 @@ model User {
 
   deleted Boolean @default(false)
 
-  @@unique([oauthProvider, oauthId])
   @@index([guildId])
 }
 
