@@ -6,7 +6,7 @@ import { WebsocketContext } from "./WebSocketContext"
 export function WebSocketRef({children} : {children: ReactNode})
 {
     const wsRef = useRef<Socket | null>(null);
-    function connect(code: string) {
+    function connect(code: string): Promise<boolean> {
 
         wsRef.current = io("/games", {
             reconnection: true
@@ -16,9 +16,13 @@ export function WebSocketRef({children} : {children: ReactNode})
         wsRef.current.on("connect", () => console.log("connected to websocket"));
         wsRef.current.on("disconnect", () => console.log("disconnected"));
     
-        wsRef.current.emit("game:join", {
-            "lobbyCode": code
-        }, (ack: { ok: boolean; lobbyCode: string }) => console.log(ack));
+        return new Promise((resolve) => {
+            if (!wsRef.current)
+                throw new Error("No game joined");
+            wsRef.current.emit("game:join", {
+                "lobbyCode": code
+            }, (ack: { ok: boolean; lobbyCode: string }) => resolve(ack.ok));
+        })
     }
 
     function disconnect() {

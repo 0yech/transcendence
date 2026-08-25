@@ -57,7 +57,7 @@ export function DisplayUsers(usersObject: { users: UserInterface[] }) {
  */
 export function CreateNewLobby() {
   const { connect } = UseWebSocket();
-
+  const navigate = useNavigate();
   async function handleClick() {
     const rep = await apiFetch('/api/lobbies', {
       method: 'POST',
@@ -67,8 +67,12 @@ export function CreateNewLobby() {
     });
     if (!rep.ok)
         return ;
-    apiFetch('/api/lobbies/me').then(((data) => data.json())).then((json) => connect(json.code));
-  }
+    apiFetch('/api/lobbies/me').then(((data) => data.json())).then((json) => {
+      connect(json.code)
+        .then(() => navigate(`/game/${json.code}`))
+        .catch((e) => console.error(e))
+    });
+  };
   return (
     <h2>
       <button onClick={() => handleClick()}>
@@ -83,7 +87,7 @@ export function JoinLobby({ code }: { code: string }) {
   async function handleClickJoin(code:string) {
     try {
       await handleJoinLobby(code);
-      connect(code);
+      await connect(code);
     } catch (e) {
       console.log(e);
     }
@@ -95,7 +99,7 @@ export function LeaveLobby() {
   const { disconnect } = UseWebSocket();
   async function handleClickLeave() {
     try {
-      await handleLeaveLobby();
+      await handleLeaveLobby()
       disconnect();
     } catch (e) {
       console.log(e);

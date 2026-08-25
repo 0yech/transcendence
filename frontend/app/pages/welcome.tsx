@@ -28,7 +28,7 @@ export function Welcome({ data }: WelcomeProps) {
         </div>
       ) : (
         <div>
-          <button onClick={() => navigate('/profile')}>{data.username}</button>
+          <button onClick={() => navigate('/profile')}>Profile: {data.username}</button>
           <CreateNewLobby />
           <Lobbies />
         </div>
