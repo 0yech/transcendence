@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { handleJoinLobby, handleLeaveLobby } from './api-fetch';
+import apiFetch, { handleJoinLobby, handleLeaveLobby } from './api-fetch';
 import { UseWebSocket } from '~/context/UseWebSocket';
 
 interface UserInterface {
@@ -57,18 +57,21 @@ export function DisplayUsers(usersObject: { users: UserInterface[] }) {
  */
 export function CreateNewLobby() {
   const { connect } = UseWebSocket();
+
+  async function handleClick() {
+    const rep = await apiFetch('/api/lobbies', {
+      method: 'POST',
+      body: JSON.stringify({
+        private: false,
+      }),
+    });
+    if (!rep.ok)
+        return ;
+    apiFetch('/api/lobbies/me').then(((data) => data.json())).then((json) => connect(json.code));
+  }
   return (
     <h2>
-      <button
-        onClick={() => {
-          fetch('/api/lobbies', {
-            method: 'POST',
-            body: JSON.stringify({
-              private: false,
-            }),
-          }).then((r) => console.log(r));
-        }}
-      >
+      <button onClick={() => handleClick()}>
         CreateLobby
       </button>
     </h2>
