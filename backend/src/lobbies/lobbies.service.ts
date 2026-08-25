@@ -190,6 +190,30 @@ export class LobbiesService {
   }
 
   /**
+   * @brief Retrieves the lobby of an authenticated user
+   *
+   * @return Matching active lobby.
+   */
+  async findCurrentLobby(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        lobby: {
+          select: publicLobbySelect,
+        },
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with id ${userId} not found`);
+    }
+
+    return user.lobby;
+  }
+
+  /**
    * @brief Adds an authenticated user to a lobby.
    *
    * @param user The user's JWT payload.
