@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Profile, Strategy } from 'passport-google-oauth20';
 import { OauthPayload } from './oauth-payload.interface';
+import { OAuthError } from './oauth-error.enum';
+import { OAuthException } from './oauth.exception';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
@@ -32,7 +34,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       !photos[0] ||
       !photos[0].value
     ) {
-      throw new Error('Missing information in Google profile');
+      throw new OAuthException(OAuthError.MISSING_DATA);
     }
     const user = {
       email: emails[0].value,

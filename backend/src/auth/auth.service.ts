@@ -5,6 +5,9 @@ import * as bcrypt from 'bcrypt';
 import { Cron } from '@nestjs/schedule';
 import { OauthPayload } from './oauth-payload.interface';
 import { JwtPayload } from './jwt-payload.interface';
+import { OAuthProvider } from 'src/generated/prisma/enums';
+import { OAuthError } from './oauth-error.enum';
+import { OAuthException } from './oauth.exception';
 
 const SESSION_LIFETIME_MS = 1000 * 60 * 60 * 24 * 14; // Two weeks
 
@@ -95,23 +98,41 @@ export class AuthService {
    * a new user.
    */
   async signInOauth(
+    provider: OAuthProvider,
     userData: OauthPayload,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     let username = userData.username;
     const { email, pictureUrl } = userData;
 
+    // Find user by email, regardless of provider
     let user = await this.usersService.findOneEmail(email);
 
     if (user === null) {
       if (!username) {
         username = await this.usersService.createUsername(email);
       }
-      user = await this.usersService.createOne(username, email);
+
+      user = await this.usersService.createOne(
+        username,
+        email,
+        undefined,
+        provider,
+      );
+
       if (pictureUrl) {
         await this.usersService.updateOne(user.id, {
           pictureUrl: pictureUrl,
         });
       }
+    }
+
+    // If the account was created without OAuth
+    if (user.oauthProvider === null) {
+      throw new OAuthException(OAuthError.BASIC_AUTH);
+    }
+    // If email was the same, but the provider is different
+    if (user.oauthProvider !== provider) {
+      throw new OAuthException(OAuthError.DIFFERENT_PROVIDER);
     }
 
     const accessToken = await this.issueNewAccessToken(user);

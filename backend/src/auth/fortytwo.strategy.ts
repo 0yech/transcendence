@@ -3,6 +3,8 @@ import { OauthPayload } from './oauth-payload.interface';
 import { PassportStrategy } from '@nestjs/passport';
 import fortytwoStrategy from 'passport-42'; // Default import because of CJS module
 import passport from 'passport';
+import { OAuthError } from './oauth-error.enum';
+import { OAuthException } from './oauth.exception';
 
 @Injectable()
 export class FortytwoStrategy extends PassportStrategy(
@@ -52,7 +54,7 @@ export class FortytwoStrategy extends PassportStrategy(
       !photos[0] ||
       !photos[0].value
     ) {
-      throw new Error('Missing information in 42 profile');
+      throw new OAuthException(OAuthError.MISSING_DATA);
     }
     const user = {
       email: emails[0].value,
