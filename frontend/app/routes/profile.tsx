@@ -18,7 +18,6 @@ export default function Profile({ loaderData }: Route.ComponentProps) {
       <img src={avatarUrl} />
 
       <LogoutButton />
-      <RemoveAccountButton />
 
       <HomeButton />
 
@@ -27,6 +26,7 @@ export default function Profile({ loaderData }: Route.ComponentProps) {
 
       <h2 className="text-2xl font-bold">Current Guild</h2>
       <div>{guildId || 'No active guild'}</div>
+      <RemoveAccountButton />
     </>
   );
 }
