@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { handleJoinLobby, handleLeaveLobby } from './api-fetch';
+import { UseWebSocket } from '~/context/UseWebSocket';
 
 interface UserInterface {
   id: string;
@@ -55,17 +56,17 @@ export function DisplayUsers(usersObject: { users: UserInterface[] }) {
  *
  */
 export function CreateNewLobby() {
-  const url: string = '/api/lobbies';
+  const { connect } = UseWebSocket();
   return (
     <h2>
       <button
         onClick={() => {
-          fetch(url, {
+          fetch('/api/lobbies', {
             method: 'POST',
             body: JSON.stringify({
               private: false,
             }),
-          });
+          }).then((r) => console.log(r));
         }}
       >
         CreateLobby
@@ -75,11 +76,29 @@ export function CreateNewLobby() {
 }
 
 export function JoinLobby({ code }: { code: string }) {
-  return <button onClick={() => handleJoinLobby(code)}>Join this Lobby</button>;
+  const { connect } = UseWebSocket();
+  async function handleClickJoin(code:string) {
+    try {
+      await handleJoinLobby(code);
+      connect(code);
+    } catch (e) {
+      console.log(e);
+    }
+  }
+  return <button onClick={() => handleClickJoin(code)}>Join this Lobby</button>;
 }
 
 export function LeaveLobby() {
-  return <button onClick={() => handleLeaveLobby()}>Leave This Lobby</button>;
+  const { disconnect } = UseWebSocket();
+  async function handleClickLeave() {
+    try {
+      await handleLeaveLobby();
+      disconnect();
+    } catch (e) {
+      console.log(e);
+    }
+  }
+  return <button onClick={() => handleClickLeave()}>Leave This Lobby</button>;
 }
 
 /**
