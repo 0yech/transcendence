@@ -1,6 +1,7 @@
+import { ErrorMessage } from '~/pages/auth/errorMessage';
 import { LoginForm } from '../pages/auth/login';
 import type { Route } from './+types/login';
-import { Link, redirect } from 'react-router';
+import { Link, redirect, useSearchParams } from 'react-router';
 import { OauthLoginOptions } from '~/pages/auth/oauth';
 
 export async function clientAction({ request }: Route.ClientActionArgs) {
@@ -22,6 +23,32 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
 }
 
 export default function Login() {
+  const [searchParams] = useSearchParams();
+
+  const errorType = searchParams.get('error');
+
+  let errorMessage = null;
+  if (errorType !== null) {
+    // Check for OAuth errors
+    switch (errorType) {
+      case 'BASIC_AUTH':
+        errorMessage =
+          'Account was created with username and password. Please login using your username and password.';
+        break;
+      case 'DIFFERENT_PROVIDER':
+        errorMessage =
+          'Account was created with a different OAuth provider. Please login using your usual provider.';
+        break;
+      case 'MISSING_DATA':
+        errorMessage =
+          "The OAuth provider didn't send important data. Make sure your account is complete. For example, on Google, make sure your email has been verified.";
+        break;
+      default:
+        errorMessage = 'Unknown error. Try again? Or check the backend logs.';
+    }
+  }
+
+  // TODO create an error component displaying errors, including the ones that aren't OAuth related
   return (
     <>
       <title>Transcendence</title>
@@ -32,6 +59,8 @@ export default function Login() {
       <Link to="/register">Don't have an account yet?</Link>
 
       <OauthLoginOptions />
+
+      <ErrorMessage message={errorMessage} />
     </>
   );
 }

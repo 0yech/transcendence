@@ -6,6 +6,7 @@ import {
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { publicUserSelect } from './users.select';
+import { OAuthProvider } from 'src/generated/prisma/enums';
 
 @Injectable()
 export class UsersService {
@@ -65,7 +66,12 @@ export class UsersService {
    *
    * @return The newly created User object, as a Promise.
    */
-  async createOne(username: string, email: string, password?: string) {
+  async createOne(
+    username: string,
+    email: string,
+    password?: string,
+    oauthProvider?: OAuthProvider,
+  ) {
     const existingUser = await this.prisma.user.findFirst({
       where: { OR: [{ username }, { email }] },
     });
@@ -85,6 +91,7 @@ export class UsersService {
         username: username,
         email: email,
         hashedPassword: hash,
+        oauthProvider: oauthProvider,
       },
     });
     return user;

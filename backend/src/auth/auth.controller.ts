@@ -10,6 +10,7 @@ import {
   Req,
   Res,
   UnauthorizedException,
+  UseFilters,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -24,6 +25,10 @@ import { AuthGuard } from '@nestjs/passport';
 import { OauthPayload } from './oauth-payload.interface';
 import { UpdateDto } from './dto/update.dto';
 import * as bcrypt from 'bcrypt';
+import { OAuthProvider } from 'src/generated/prisma/enums';
+import { OauthCallbackFilter } from './oauth-callback.filter';
+import { OAuthError } from './oauth-error.enum';
+import { OAuthException } from './oauth.exception';
 
 const cookieOptions: CookieOptions = {
   httpOnly: true,
@@ -74,9 +79,15 @@ export class AuthController {
    * @brief Creates a new session after OAuth authentication. Then, redirects to
    * profile if everything went well, or to the registration page if it failed.
    */
-  async oauthSession(userData: OauthPayload, response: Response) {
-    const { accessToken, refreshToken } =
-      await this.authService.signInOauth(userData);
+  async oauthSession(
+    provider: OAuthProvider,
+    userData: OauthPayload,
+    response: Response,
+  ) {
+    const { accessToken, refreshToken } = await this.authService.signInOauth(
+      provider,
+      userData,
+    );
 
     response.cookie('access_token', accessToken, cookieOptions);
     response.cookie('refresh_token', refreshToken, {
@@ -100,16 +111,17 @@ export class AuthController {
    */
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
+  @UseFilters(OauthCallbackFilter)
   async googleAuthCallback(
     @Req() req: Request,
     @Res({ passthrough: true }) response: Response,
   ) {
     const userData = req.user as OauthPayload; // stashed user information from guards
     if (!userData) {
-      throw new Error('Missing user data from Google');
+      throw new OAuthException(OAuthError.MISSING_DATA);
     }
 
-    await this.oauthSession(userData, response);
+    await this.oauthSession('GOOGLE', userData, response);
   }
 
   /**
@@ -124,16 +136,17 @@ export class AuthController {
    */
   @Get('github/callback')
   @UseGuards(AuthGuard('github'))
+  @UseFilters(OauthCallbackFilter)
   async githubAuthCallback(
     @Req() req: Request,
     @Res({ passthrough: true }) response: Response,
   ) {
     const userData = req.user as OauthPayload; // stashed user information from guards
     if (!userData) {
-      throw new Error('Missing user data from Github');
+      throw new OAuthException(OAuthError.MISSING_DATA);
     }
 
-    await this.oauthSession(userData, response);
+    await this.oauthSession('GITHUB', userData, response);
   }
 
   /**
@@ -148,16 +161,17 @@ export class AuthController {
    */
   @Get('fortytwo/callback')
   @UseGuards(AuthGuard('fortytwo'))
+  @UseFilters(OauthCallbackFilter)
   async fortytwoAuthCallback(
     @Req() req: Request,
     @Res({ passthrough: true }) response: Response,
   ) {
     const userData = req.user as OauthPayload; // stashed user information from guards
     if (!userData) {
-      throw new Error('Missing user data from 42');
+      throw new OAuthException(OAuthError.MISSING_DATA);
     }
 
-    await this.oauthSession(userData, response);
+    await this.oauthSession('FORTYTWO', userData, response);
   }
 
   /**
