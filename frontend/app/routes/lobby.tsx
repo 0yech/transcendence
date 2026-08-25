@@ -11,7 +11,8 @@ export async function clientLoader({ params }: { params: Params<string> }) {
 }
 
 export default function PreGame({ loaderData }: Route.ComponentProps) {
-  const { id, code, active, createdAt, updatedAt, users, chat } = loaderData;
+  console.log(loaderData);
+  const { id, code, active, leaderId, createdAt, updatedAt, users, chat } = loaderData;
   const navigate = useNavigate();
   console.log(users);
   console.log(chat);
@@ -30,6 +31,7 @@ export default function PreGame({ loaderData }: Route.ComponentProps) {
       <h2>Id: {id}</h2>
       <h2>Code: {code}</h2>
       <h2>active: {active}</h2>
+      <h2>leaderId: {leaderId}</h2>
       <h2>createdAt: {createdAt}</h2>
       <h2>updatedAt: {updatedAt}</h2>
       <h2>Users</h2>

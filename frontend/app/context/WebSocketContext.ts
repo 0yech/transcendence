@@ -1,7 +1,7 @@
 import { createContext } from "react";
 
 interface InterfaceWSConnection {
-    connect: (code: string) => void;
+    connect: (code: string) => Promise<boolean>;
     disconnect: () => void;
 }
 

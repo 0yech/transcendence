@@ -38,7 +38,7 @@ export async function handleJoinLobby(code: string) {
     headers: {
       'Content-Type': 'application/json',
     },
-  }).catch((e) => 'Not logged in :(' + e);
+  }).catch((e) => {throw new Error('Not logged in: ' + e)});
 }
 
 export async function handleLeaveLobby() {
