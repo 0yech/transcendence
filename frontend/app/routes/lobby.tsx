@@ -3,6 +3,7 @@ import apiFetch from '~/utils/api-fetch';
 import type { Params } from 'react-router';
 import { DisplayUsers, JoinLobby, LeaveLobby } from '~/utils/lobbies';
 import { useNavigate } from 'react-router';
+import { UseWebSocket } from '~/context/UseWebSocket'; 
 
 export async function clientLoader({ params }: { params: Params<string> }) {
   const { code } = params;
@@ -12,6 +13,7 @@ export async function clientLoader({ params }: { params: Params<string> }) {
 
 export default function PreGame({ loaderData }: Route.ComponentProps) {
   console.log(loaderData);
+  const { startGame } = UseWebSocket();
   const { id, code, active, leaderId, createdAt, updatedAt, users, chat } = loaderData;
   const navigate = useNavigate();
   console.log(users);
@@ -23,6 +25,9 @@ export default function PreGame({ loaderData }: Route.ComponentProps) {
       </li>
       <li>
         <LeaveLobby />
+      </li>
+      <li>
+        <button onClick={() => startGame()}>Start game</button>
       </li>
       <li>
         <button onClick={() => navigate('/')}>Home</button>
