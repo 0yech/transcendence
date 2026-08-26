@@ -11,15 +11,19 @@ import { useNavigate } from 'react-router';
  * @returns the function jsx needed to display the page with what's mentioned on top
  */
 export default function PlayGame() {
-  const { playSlot, gameState, myId } = UseWebSocket();
+  const { playSlot, gameState, userId } = UseWebSocket();
   const navigate = useNavigate();
   let myCards = null;
+  console.log(gameState);
+  console.log(userId());
   if (gameState) {
     const players = gameState.players.find(
-      (element) => element.userId === myId(),
+      (element) => element.userId === userId(),
     );
+    console.log(players);
     if (players) {
       myCards = players.hand;
+      console.log(myCards);
     }
   }
 
