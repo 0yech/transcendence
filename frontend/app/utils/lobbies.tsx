@@ -32,6 +32,11 @@ interface LobbyInterface {
   chat: ChatInterface;
 }
 
+/**
+ * @brief Component that allows users to be displayed
+ *
+ * @returns the jsx for the list of users in a <li>
+ */
 export function DisplayUsers(usersObject: { users: UserInterface[] }) {
   const { users } = usersObject;
   return (
@@ -50,28 +55,40 @@ export function DisplayUsers(usersObject: { users: UserInterface[] }) {
   );
 }
 
+/**
+ * @brief Component that handle the conditions as stated below
+ * @brief handle the "go to game" if a lobby is active
+ * @brief handle the "go to lobby" if a lobby is active
+ * @brief handle the "create lobby" if no lobby is active
+ *
+ * @returns the JSX necessary of stated up
+ */
 export function GoToActiveLobby() {
   const { isConnected, gameStarted } = UseWebSocket();
   const isConnectedToWs = isConnected();
   const activeLobby = gameStarted();
-  console.log(activeLobby);
   const navigate = useNavigate();
   return (
     <>
       {isConnectedToWs ? (
         <li>
           {activeLobby ? (
-            <button onClick={() => navigate(`/game/${isConnectedToWs}/play`)}>Go to active game</button>
+            <button onClick={() => navigate(`/game/${isConnectedToWs}/play`)}>
+              Go to active game
+            </button>
           ) : (
-            <button onClick={() => navigate(`/game/${isConnectedToWs}`)}>Go to active lobby</button>
+            <button onClick={() => navigate(`/game/${isConnectedToWs}`)}>
+              Go to active lobby
+            </button>
           )}
-          
         </li>
-        )
-      : (<li><CreateNewLobby /></li>)
-      }
+      ) : (
+        <li>
+          <CreateNewLobby />
+        </li>
+      )}
     </>
-  )
+  );
 }
 
 /**
@@ -89,44 +106,53 @@ export function CreateNewLobby() {
         private: false,
       }),
     });
-    if (!rep.ok)
-        return ;
-    apiFetch('/api/lobbies/me').then(((data) => data.json())).then((json) => {
-      connect(json.code)
-        .then(() => navigate(`/game/${json.code}`))
-        .catch((e) => console.error(e))
-    });
-  };
+    if (!rep.ok) return;
+    apiFetch('/api/lobbies/me')
+      .then((data) => data.json())
+      .then((json) => {
+        connect(json.code)
+          .then(() => navigate(`/game/${json.code}`))
+          .catch((e) => console.error(e));
+      });
+  }
   return (
     <h2>
-      <button onClick={() => handleClick()}>
-        Create lobby
-      </button>
+      <button onClick={() => handleClick()}>Create lobby</button>
     </h2>
   );
 }
 
+/**
+ *
+ * @brief handle the connection of the user. join the lobby with the request AND the webSocket
+ *
+ */
 export function JoinLobby({ code }: { code: string }) {
   const { connect } = UseWebSocket();
-  async function handleClickJoin(code:string) {
+  async function handleClickJoin(code: string) {
     try {
       await handleJoinLobby(code);
       await connect(code);
     } catch (e) {
-      console.log(e);
+      console.error(e);
     }
   }
   return <button onClick={() => handleClickJoin(code)}>Join this Lobby</button>;
 }
 
+/**
+ *
+ * @brief handle the disconnection of the user. leave the lobby with the request AND the webSocket
+ *
+ */
 export function LeaveLobby() {
   const { disconnect } = UseWebSocket();
   async function handleClickLeave() {
     try {
-      await handleLeaveLobby()
+      await handleLeaveLobby();
       disconnect();
     } catch (e) {
-      console.log(e);
+      console.error(e);
     }
   }
   return <button onClick={() => handleClickLeave()}>Leave This Lobby</button>;
