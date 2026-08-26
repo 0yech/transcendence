@@ -3,6 +3,7 @@ import { LogoutButton } from '~/pages/auth/logout';
 import { RemoveAccountButton } from '~/pages/auth/remove-account';
 import type { Route } from './+types/profile';
 import { HomeButton } from './home';
+import { UseWebSocket } from '~/context/UseWebSocket';
 
 export async function clientLoader() {
   const data = await apiFetch('/api/auth/me');
@@ -10,7 +11,8 @@ export async function clientLoader() {
 }
 
 export default function Profile({ loaderData }: Route.ComponentProps) {
-  const { username, email, guildId, avatarUrl } = loaderData;
+  const { id, username, email, guildId, avatarUrl } = loaderData;
+  UseWebSocket().setUserId(id);
   return (
     <>
       <title>{username}'s Profile</title>

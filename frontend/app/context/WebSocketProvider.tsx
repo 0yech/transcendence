@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { WebsocketContext } from './WebSocketContext';
@@ -27,73 +27,99 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
 
   /**
    *
-   * @brief used to set ONCE and only ONCE the userIdRef for fast comparaisons and easier access
-   *
-   */
-  useEffect(() => {
-    apiFetch('/api/auth/me')
-      .then((data) => data.json())
-      .then((json) => {
-        userIdRef.current = json.id;
-        return json.id;
-      });
-  }, []);
-
-  /**
-   *
    * @brief handle the first connection to a server. start listening on game:state.
    * @brief if it's user's turn or first turn everybody get "teported" to the right route '/game/:code/play'
    * @brief start all the listens (game:state, game:error, connect, disconnect)
    *
    * @returns a promise of if the connect failed or succeded
    */
-  function connect(code: string): Promise<boolean> {
-    wsRef.current = io('/games', {
-      reconnection: true,
-    });
-    codeLink.current = code;
-
-    /**
-     *
-     * @brief handle the useState of the game:state. on every new state a new render is forced
-     */
-    wsRef.current.on('game:state', (e) => {
-      if (e.turnNumber == 1 || e.currentPlayerId == userIdRef.current) {
-        navigate(`/game/${codeLink.current}/play`);
-        gameStartedRef.current = true;
+  const connect = useCallback((code: string): Promise<boolean> => {
+    return new Promise((resolve, reject) => {
+    if (wsRef.current?.connected || code == codeLink.current)
+        return true
+      wsRef.current = io('/games', {
+        reconnection: true,
+      });
+      if (wsRef.current) {
+        disconnect();
       }
-      setGameState(e);
-    });
+      const timeout = setTimeout(() => {
+        reject(new Error('game:join timeout after 2s'));
+      }, 2000);
+      codeLink.current = code;
 
-    /**
-     *
-     * @brief for now nothing happens here i don't really understand what it does
-     */
-    wsRef.current.on('game:error', (e) => {
-      console.log('listening to game:error');
-      console.log(e);
-    });
-    wsRef.current.on('connect', () => console.log('connected to websocket'));
-    wsRef.current.on('disconnect', () => console.log('disconnected'));
+      /**
+       *
+       * @brief for now nothing happens here i don't really understand what it does
+       */
+      wsRef.current.on('game:error', (e) => {
+        console.log('listening to game:error');
+        clearTimeout(timeout);
+        console.log(e);
+      });
+      wsRef.current.on('connect', () => console.log('connected to websocket'));
+      wsRef.current.on('disconnect', () => console.log('disconnected'));
 
-    /**
-     *
-     * @brief handle the game:join. join the game after every listener
-     *
-     * @async @returns create the new Promise<boolean> for the return or a throw if fails
-     *
-     */
-    return new Promise((resolve) => {
-      if (!wsRef.current) throw new Error('No game joined');
-      wsRef.current.emit(
-        'game:join',
-        {
-          lobbyCode: codeLink.current,
-        },
-        (ack: { success: boolean; lobbyCode: string }) => resolve(ack.success),
-      );
+      /**
+       *
+       * @brief handle the game:join. join the game after every listener
+       *
+       * @async @returns create the new Promise<boolean> for the return or a throw if fails
+       *
+       */
+        if (!wsRef.current) {
+          clearTimeout(timeout);
+          throw new Error('No game joined');
+          return ;
+        }
+        wsRef.current.emit(
+          'game:join',
+          {
+            lobbyCode: codeLink.current,
+          },
+          (ack: { success: boolean; lobbyCode: string } | null) => {
+            clearTimeout(timeout);
+            console.log("logged in");
+            return resolve(true)
+          }
+        );
+      /**
+       *
+       * @brief handle the useState of the game:state. on every new state a new render is forced
+       */
+      wsRef.current.on('game:state', (e) => {
+        if (e.turnNumber == 1 || e.currentPlayerId == userIdRef.current) {
+          navigate(`/game/${codeLink.current}/play`);
+          gameStartedRef.current = true;
+        }
+        setGameState(e);
+      });
     });
-  }
+  }, [navigate]);
+
+
+  useEffect(() => {
+    async function initialize() {
+      try {
+        const authResponse = await apiFetch('/api/auth/me');
+        const user = await authResponse.json();
+
+        userIdRef.current = user.id;
+        const lobbyResponse = await apiFetch('/api/lobbies/me');
+        if (!lobbyResponse.ok) {
+          return;
+        }
+        const lobby = await lobbyResponse.json();
+        if (lobby?.code) {
+          await connect(lobby.code);
+        }
+      } catch (error) {
+        console.error('Failed to restore websocket connection:', error);
+      }
+    }
+
+    initialize();
+  }, [connect]);
 
   /**
    *
@@ -106,15 +132,15 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
     return new Promise((resolve) => {
       if (!wsRef.current || !codeLink.current)
         throw new Error('No active game. cannot play a card');
-      wsRef.current.emit(
+      wsRef.current.timeout(2000).emit(
         'game:play-slot',
         {
           lobbyCode: codeLink.current,
           slot: slot,
         },
-        (ack: { ok: boolean }) => {
+        () => {
           console.log('played slot ' + slot);
-          return resolve(ack.ok);
+          return resolve(true);
         },
       );
     });
@@ -133,12 +159,12 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
         throw new Error('No active game. cannot start a game (wsRef)');
       if (!codeLink.current)
         throw new Error('No active game. cannot start a game (codeLink)');
-      wsRef.current.emit(
+      wsRef.current.timeout(2000).emit(
         'game:start',
         {
           lobbyCode: codeLink.current,
         },
-        (ack: { ok: boolean }) => resolve(ack.ok),
+        () => resolve(true),
       );
     });
   }
@@ -172,8 +198,12 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
     return gameStartedRef.current;
   }
 
-  function myId(): string | null {
+  function userId(): string | null {
     return userIdRef.current;
+  }
+
+  function setUserId(id: string): void {
+    userIdRef.current = id;
   }
 
   return (
@@ -185,7 +215,8 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
         playSlot: playCard,
         isConnected: isConnected,
         gameStarted: gameStarted,
-        myId: myId,
+        userId: userId,
+        setUserId: setUserId,
         gameState: useGameState,
       }}
     >
