@@ -48,7 +48,6 @@ export default function Login() {
     }
   }
 
-  // TODO create an error component displaying errors, including the ones that aren't OAuth related
   return (
     <>
       <title>Transcendence</title>
@@ -68,7 +67,7 @@ export default function Login() {
 
       <OauthLoginOptions />
 
-      <ErrorMessage message={errorMessage} />
+      {errorMessage ? <ErrorMessage message={errorMessage} /> : null}
     </>
   );
 }
