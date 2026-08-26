@@ -51,7 +51,8 @@ interface InterfaceWSConnection {
   playSlot: (slot: number) => Promise<boolean>;
   isConnected: () => string | null;
   gameStarted: () => boolean;
-  myId: () => string | null;
+  userId: () => string | null;
+  setUserId: (id: string) => void;
   gameState: InterfaceGameState | null;
 }
 
