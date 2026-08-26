@@ -81,7 +81,7 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
           },
           (ack: { success: boolean; lobbyCode: string } | null) => {
             clearTimeout(timeout);
-            console.log('logged in');
+            console.log('logged in ' + ack);
             return resolve(true);
           },
         );
