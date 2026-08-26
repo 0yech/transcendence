@@ -1,5 +1,6 @@
-import Lobbies, { CreateNewLobby } from '../utils/lobbies';
+import Lobbies from '../utils/lobbies';
 import { useNavigate } from 'react-router';
+import { GoToActiveLobby } from '../utils/lobbies';
 
 interface WelcomeProps {
   data: { username: string; avatarUrl: string };
@@ -29,7 +30,7 @@ export function Welcome({ data }: WelcomeProps) {
       ) : (
         <div>
           <button onClick={() => navigate('/profile')}>Profile: {data.username}</button>
-          <CreateNewLobby />
+          <GoToActiveLobby />
           <Lobbies />
         </div>
       )}

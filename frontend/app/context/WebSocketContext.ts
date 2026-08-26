@@ -5,6 +5,8 @@ interface InterfaceWSConnection {
     disconnect: () => void;
     startGame: () => Promise<boolean>;
     playSlot: (slot: number) => Promise<boolean>;
+    isConnected: () => string | null;
+    gameStarted: () => boolean;
 }
 
 export const WebsocketContext =
