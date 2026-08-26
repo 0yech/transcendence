@@ -1,5 +1,5 @@
 import { ErrorMessage } from '~/pages/auth/errorMessage';
-import { LoginForm } from '~/pages/auth/login';
+import { LoginForm } from '../pages/auth/login';
 import type { Route } from './+types/login';
 import { Link, redirect, useSearchParams } from 'react-router';
 import { OauthLoginOptions } from '~/pages/auth/oauth';

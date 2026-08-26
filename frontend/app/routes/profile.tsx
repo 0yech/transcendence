@@ -20,6 +20,7 @@ export default function Profile({ loaderData }: Route.ComponentProps) {
       <img src={avatarUrl} />
 
       <LogoutButton />
+      <RemoveAccountButton />
 
       <HomeButton />
 
