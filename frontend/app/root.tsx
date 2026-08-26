@@ -47,7 +47,7 @@ export default function App() {
     <WebSocketRef>
       <Outlet />
     </WebSocketRef>
-    );
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
