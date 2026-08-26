@@ -50,6 +50,30 @@ export function DisplayUsers(usersObject: { users: UserInterface[] }) {
   );
 }
 
+export function GoToActiveLobby() {
+  const { isConnected, gameStarted } = UseWebSocket();
+  const isConnectedToWs = isConnected();
+  const activeLobby = gameStarted();
+  console.log(activeLobby);
+  const navigate = useNavigate();
+  return (
+    <>
+      {isConnectedToWs ? (
+        <li>
+          {activeLobby ? (
+            <button onClick={() => navigate(`/game/${isConnectedToWs}/play`)}>Go to active game</button>
+          ) : (
+            <button onClick={() => navigate(`/game/${isConnectedToWs}`)}>Go to active lobby</button>
+          )}
+          
+        </li>
+        )
+      : (<li><CreateNewLobby /></li>)
+      }
+    </>
+  )
+}
+
 /**
  *
  * @brief create a lobby using the api POST /api/lobbies
@@ -76,7 +100,7 @@ export function CreateNewLobby() {
   return (
     <h2>
       <button onClick={() => handleClick()}>
-        CreateLobby
+        Create lobby
       </button>
     </h2>
   );
