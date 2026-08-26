@@ -33,44 +33,46 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
    *
    * @returns a promise of if the connect failed or succeded
    */
-  const connect = useCallback((code: string): Promise<boolean> => {
-    return new Promise((resolve, reject) => {
-    if (wsRef.current?.connected || code == codeLink.current)
-        return true
-      wsRef.current = io('/games', {
-        reconnection: true,
-      });
-      if (wsRef.current) {
-        disconnect();
-      }
-      const timeout = setTimeout(() => {
-        reject(new Error('game:join timeout after 2s'));
-      }, 2000);
-      codeLink.current = code;
+  const connect = useCallback(
+    (code: string): Promise<boolean> => {
+      return new Promise((resolve, reject) => {
+        if (wsRef.current?.connected || code == codeLink.current) return true;
+        wsRef.current = io('/games', {
+          reconnection: true,
+        });
+        if (wsRef.current) {
+          disconnect();
+        }
+        const timeout = setTimeout(() => {
+          reject(new Error('game:join timeout after 2s'));
+        }, 2000);
+        codeLink.current = code;
 
-      /**
-       *
-       * @brief for now nothing happens here i don't really understand what it does
-       */
-      wsRef.current.on('game:error', (e) => {
-        console.log('listening to game:error');
-        clearTimeout(timeout);
-        console.log(e);
-      });
-      wsRef.current.on('connect', () => console.log('connected to websocket'));
-      wsRef.current.on('disconnect', () => console.log('disconnected'));
+        /**
+         *
+         * @brief for now nothing happens here i don't really understand what it does
+         */
+        wsRef.current.on('game:error', (e) => {
+          console.log('listening to game:error');
+          clearTimeout(timeout);
+          console.log(e);
+        });
+        wsRef.current.on('connect', () =>
+          console.log('connected to websocket'),
+        );
+        wsRef.current.on('disconnect', () => console.log('disconnected'));
 
-      /**
-       *
-       * @brief handle the game:join. join the game after every listener
-       *
-       * @async @returns create the new Promise<boolean> for the return or a throw if fails
-       *
-       */
+        /**
+         *
+         * @brief handle the game:join. join the game after every listener
+         *
+         * @async @returns create the new Promise<boolean> for the return or a throw if fails
+         *
+         */
         if (!wsRef.current) {
           clearTimeout(timeout);
           throw new Error('No game joined');
-          return ;
+          return;
         }
         wsRef.current.emit(
           'game:join',
@@ -79,24 +81,25 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
           },
           (ack: { success: boolean; lobbyCode: string } | null) => {
             clearTimeout(timeout);
-            console.log("logged in");
-            return resolve(true)
-          }
+            console.log('logged in');
+            return resolve(true);
+          },
         );
-      /**
-       *
-       * @brief handle the useState of the game:state. on every new state a new render is forced
-       */
-      wsRef.current.on('game:state', (e) => {
-        if (e.turnNumber == 1 || e.currentPlayerId == userIdRef.current) {
-          navigate(`/game/${codeLink.current}/play`);
-          gameStartedRef.current = true;
-        }
-        setGameState(e);
+        /**
+         *
+         * @brief handle the useState of the game:state. on every new state a new render is forced
+         */
+        wsRef.current.on('game:state', (e) => {
+          if (e.turnNumber == 1 || e.currentPlayerId == userIdRef.current) {
+            navigate(`/game/${codeLink.current}/play`);
+            gameStartedRef.current = true;
+          }
+          setGameState(e);
+        });
       });
-    });
-  }, [navigate]);
-
+    },
+    [navigate],
+  );
 
   useEffect(() => {
     async function initialize() {
