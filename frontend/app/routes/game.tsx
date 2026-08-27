@@ -1,0 +1,69 @@
+import { UseWebSocket } from '~/context/UseWebSocket';
+import { useNavigate } from 'react-router';
+
+/**
+ *
+ * @brief use the context api that set the gameState every new state received. check if the user is well connected and is able to play
+ * @brief use the index of each of the card in hand to play the desired slot.
+ * @brief display the winners if any.
+ * @brief display the last card played if any.
+ *
+ * @returns the function jsx needed to display the page with what's mentioned on top
+ */
+export default function PlayGame() {
+  const { playSlot, gameState, userId } = UseWebSocket();
+  const navigate = useNavigate();
+  let myCards = null;
+  console.log(gameState);
+  console.log(userId());
+  if (gameState) {
+    const players = gameState.players.find(
+      (element) => element.userId === userId(),
+    );
+    console.log(players);
+    if (players) {
+      myCards = players.hand;
+      console.log(myCards);
+    }
+  }
+
+  return (
+    <>
+      <li>
+        <button onClick={() => navigate('/')}>home</button>
+      </li>
+      <li>pendingPlays: {gameState?.pendingPlays}</li>
+      <li>DeckCount: {gameState?.deckCount}</li>
+      <li>total: {gameState?.total}</li>
+      {gameState && gameState.winnerId ? (
+        <li>Winner: {gameState.winnerId}</li>
+      ) : (
+        <></>
+      )}
+      {gameState &&
+      gameState.discardPile &&
+      gameState.discardPile.length > 0 ? (
+        <li>
+          LastCardPlayed:{' '}
+          {gameState.discardPile[gameState.discardPile.length - 1].id}
+        </li>
+      ) : (
+        <></>
+      )}
+
+      {Array.isArray(myCards) ? (
+        <>
+          {myCards.map((card, index) => (
+            <li key={card.id}>
+              <button onClick={() => playSlot(index + 1)}>
+                play {index + 1} - {card.id}
+              </button>
+            </li>
+          ))}
+        </>
+      ) : (
+        <>not waa :(</>
+      )}
+    </>
+  );
+}

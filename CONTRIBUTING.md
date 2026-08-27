@@ -14,6 +14,7 @@ this will come later on.
 ## Set up tools
 
 ### Prettier
+
 Prettier is a formatter that allows us to have a consistent syntax style across the entire project, front and backend.
 
 The configuration is already provided as a `.prettierrc` file in the `frontend/` and `backend/` directories.

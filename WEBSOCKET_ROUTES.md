@@ -131,10 +131,10 @@ This is the preferred hand-selection event in the current gateway.
 }
 ```
 
-| Field | Type | Required | Description |
-|---|---|---:|---|
-| `lobbyCode` | string | Yes | Lobby containing the active game |
-| `slot` | integer | Yes | Hand position from `1` to `4` |
+| Field       | Type    | Required | Description                      |
+| ----------- | ------- | -------: | -------------------------------- |
+| `lobbyCode` | string  |      Yes | Lobby containing the active game |
+| `slot`      | integer |      Yes | Hand position from `1` to `4`    |
 
 **Requirements**
 
@@ -171,10 +171,10 @@ Plays a card using its exact internal card ID.
 }
 ```
 
-| Field | Type | Required | Description |
-|---|---|---:|---|
-| `lobbyCode` | string | Yes | Lobby containing the active game |
-| `cardId` | string | Yes | Exact ID of a card in the authenticated player's hand |
+| Field       | Type   | Required | Description                                           |
+| ----------- | ------ | -------: | ----------------------------------------------------- |
+| `lobbyCode` | string |      Yes | Lobby containing the active game                      |
+| `cardId`    | string |      Yes | Exact ID of a card in the authenticated player's hand |
 
 **Requirements**
 
