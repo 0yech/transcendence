@@ -151,6 +151,53 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
 
   /**
    *
+   * @brief handle the playing of the four cards (must all be ONO99)
+   *
+   * @async @returns create the new Promise<boolean> for the return or a throw if fails
+   *
+   */
+  function playFour(): Promise<boolean> {
+    return new Promise((resolve) => {
+      if (!wsRef.current || !codeLink.current)
+        throw new Error('No active game. cannot play a card');
+      wsRef.current.timeout(2000).emit(
+        'game:discard-four-ono99',
+        {
+          lobbyCode: codeLink.current,
+        },
+        () => {
+          console.log('played all 4 ONO');
+          return resolve(true);
+        },
+      );
+    });
+  }
+
+  /**
+   *
+   * @brief handle declaring forfeit
+   *
+   * @async @returns create the new Promise<boolean> for the return or a throw if fails
+   *
+   */
+  function unable(): Promise<boolean> {
+    return new Promise((resolve) => {
+      if (!wsRef.current || !codeLink.current)
+        throw new Error('No active game. cannot play a card');
+      wsRef.current.timeout(2000).emit(
+        'game:unable',
+        {
+          lobbyCode: codeLink.current,
+        },
+        () => {
+          console.log('declared forfeit');
+          return resolve(true);
+        },
+      );
+    });
+  }
+  /**
+   *
    * @brief handle the emitting of the start of the game
    *
    * @async @returns create the new Promise<boolean> for the return or a throw if fails
@@ -216,6 +263,8 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
         disconnect: disconnect,
         startGame: gameStart,
         playSlot: playCard,
+        playFour: playFour,
+        unable: unable,
         isConnected: isConnected,
         gameStarted: gameStarted,
         userId: userId,
