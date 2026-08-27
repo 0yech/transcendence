@@ -29,41 +29,53 @@ export default function PlayGame() {
 
   return (
     <>
-      <li>
-        <button onClick={() => navigate('/')}>home</button>
-      </li>
-      <li>pendingPlays: {gameState?.pendingPlays}</li>
-      <li>DeckCount: {gameState?.deckCount}</li>
-      <li>total: {gameState?.total}</li>
-      {gameState && gameState.winnerId ? (
-        <li>Winner: {gameState.winnerId}</li>
-      ) : (
-        <></>
-      )}
-      {gameState &&
-      gameState.discardPile &&
-      gameState.discardPile.length > 0 ? (
-        <li>
-          LastCardPlayed:{' '}
-          {gameState.discardPile[gameState.discardPile.length - 1].id}
-        </li>
-      ) : (
-        <></>
-      )}
-
-      {Array.isArray(myCards) ? (
-        <>
-          {myCards.map((card, index) => (
-            <li key={card.id}>
-              <button onClick={() => playSlot(index + 1)}>
-                play {index + 1} - {card.id}
-              </button>
+      <div className="w-full h-dvh flex flex-col justify-center items-center gap-4">
+        <div className="w-fit h-fit flex flex-col gap-4">
+          <li>
+            <button
+              className="rounded-full w-fit px-5 bg-blue-500 hover:bg-blue-700"
+              onClick={() => navigate('/')}
+            >
+              home
+            </button>
+          </li>
+          <li>pendingPlays: {gameState?.pendingPlays}</li>
+          <li>DeckCount: {gameState?.deckCount}</li>
+          <li>total: {gameState?.total}</li>
+          {gameState && gameState.winnerId ? (
+            <li>Winner: {gameState.winnerId}</li>
+          ) : (
+            <></>
+          )}
+          {gameState &&
+          gameState.discardPile &&
+          gameState.discardPile.length > 0 ? (
+            <li>
+              LastCardPlayed:{' '}
+              {gameState.discardPile[gameState.discardPile.length - 1].id}
             </li>
-          ))}
-        </>
-      ) : (
-        <>not waa :(</>
-      )}
+          ) : (
+            <></>
+          )}
+
+          {Array.isArray(myCards) ? (
+            <>
+              {myCards.map((card, index) => (
+                <li key={card.id}>
+                  <button
+                    className="rounded-full w-fit px-5 bg-pink-400 hover:bg-pink-600"
+                    onClick={() => playSlot(index + 1)}
+                  >
+                    play {index + 1} - {card.id}
+                  </button>
+                </li>
+              ))}
+            </>
+          ) : (
+            <>not waa :(</>
+          )}
+        </div>
+      </div>
     </>
   );
 }

@@ -5,7 +5,12 @@ export function LogoutButton() {
     <>
       <Form method="post" action="/logout">
         <div>
-          <button type="submit">Logout</button>
+          <button
+            className="rounded-full w-fit px-5 bg-red-500 hover:bg-red-700"
+            type="submit"
+          >
+            Logout
+          </button>
         </div>
       </Form>
     </>

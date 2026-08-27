@@ -12,7 +12,9 @@ export async function clientLoader() {
 
 export default function Profile({ loaderData }: Route.ComponentProps) {
   const { id, username, email, guildId, avatarUrl } = loaderData;
-  UseWebSocket().setUserId(id);
+  const { setUserId, userId } = UseWebSocket();
+  setUserId(id);
+  console.log(userId());
   return (
     <>
       <title>{username}'s Profile</title>
