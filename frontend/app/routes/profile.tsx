@@ -4,6 +4,7 @@ import { RemoveAccountButton } from '~/pages/auth/remove-account';
 import type { Route } from './+types/profile';
 import { HomeButton } from './home';
 import { UseWebSocket } from '~/context/UseWebSocket';
+import { GuildDetails } from '~/components/guilds/GuildDetails';
 
 export async function clientLoader() {
   const data = await apiFetch('/api/auth/me');
@@ -11,7 +12,7 @@ export async function clientLoader() {
 }
 
 export default function Profile({ loaderData }: Route.ComponentProps) {
-  const { id, username, email, guildId, avatarUrl } = loaderData;
+  const { id, username, email, guild, avatarUrl } = loaderData;
   const { setUserId, userId } = UseWebSocket();
   setUserId(id);
   console.log(userId());
@@ -29,7 +30,7 @@ export default function Profile({ loaderData }: Route.ComponentProps) {
       <div>{email}</div>
 
       <h2 className="text-2xl font-bold">Current Guild</h2>
-      <div>{guildId || 'No active guild'}</div>
+      <div>{guild?.name || 'No active guild'}</div>
       <RemoveAccountButton />
     </>
   );

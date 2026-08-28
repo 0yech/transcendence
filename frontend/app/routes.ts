@@ -8,6 +8,7 @@ export default [
   route('remove-account', 'routes/remove-account.tsx'),
   route('profile', 'routes/profile.tsx'),
   route('guilds', 'routes/guilds.tsx'),
+  route('guilds/me', 'routes/my-guild.tsx'),
   route('tos', 'routes/tos.tsx'),
   route('privacy', 'routes/privacy.tsx'),
   route('game/:code', 'routes/lobby.tsx'),

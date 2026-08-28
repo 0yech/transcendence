@@ -1,5 +1,5 @@
 import type { Route } from './+types/guilds';
-import { GuildRankingTable } from '../guilds/GuildRankingTable';
+import { GuildRankingTable } from '../components/guilds/GuildRankingTable';
 
 export async function clientLoader() {
   const response = await fetch('/api/guilds');
