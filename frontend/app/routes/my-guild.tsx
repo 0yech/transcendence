@@ -1,10 +1,7 @@
 import { redirect } from 'react-router';
 
 import apiFetch from '~/utils/api-fetch';
-import {
-  GuildDetails,
-  type Guild,
-} from '~/components/guilds/GuildDetails';
+import { GuildDetails, type Guild } from '~/components/guilds/GuildDetails';
 import { GuildCreation } from '~/components/guilds/GuildCreation';
 import type { Route } from './+types/my-guild';
 
@@ -24,9 +21,7 @@ export async function clientLoader(): Promise<Guild | null> {
   return JSON.parse(text) as Guild;
 }
 
-export async function clientAction({
-  request,
-}: Route.ClientActionArgs) {
+export async function clientAction({ request }: Route.ClientActionArgs) {
   const formData = await request.formData();
   const name = formData.get('name');
 

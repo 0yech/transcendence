@@ -28,9 +28,7 @@ interface GuildDetailsProps {
   guild: Guild;
 }
 
-export function GuildDetails({
-  guild,
-}: GuildDetailsProps) {
+export function GuildDetails({ guild }: GuildDetailsProps) {
   return (
     <main>
       <h1>{guild.name}</h1>
@@ -77,9 +75,7 @@ export function GuildDetails({
       </section>
 
       <nav>
-        <Link to="/guilds">
-          View guild rankings
-        </Link>
+        <Link to="/guilds">View guild rankings</Link>
       </nav>
     </main>
   );

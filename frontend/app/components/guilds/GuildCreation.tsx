@@ -4,9 +4,7 @@ interface GuildCreationProps {
   error?: string;
 }
 
-export function GuildCreation({
-  error,
-}: GuildCreationProps) {
+export function GuildCreation({ error }: GuildCreationProps) {
   const navigation = useNavigation();
 
   const isSubmitting = navigation.state === 'submitting';
@@ -19,9 +17,7 @@ export function GuildCreation({
         <h2>Create a guild</h2>
         <Form method="post">
           <div>
-            <label htmlFor="guild-name">
-              Guild name
-            </label>
+            <label htmlFor="guild-name">Guild name</label>
 
             <input
               id="guild-name"
@@ -32,13 +28,8 @@ export function GuildCreation({
             />
           </div>
 
-          <button
-            type="submit"
-            disabled={isSubmitting}
-          >
-            {isSubmitting
-              ? 'Creating...'
-              : 'Create guild'}
+          <button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Creating...' : 'Create guild'}
           </button>
         </Form>
 
@@ -46,9 +37,7 @@ export function GuildCreation({
       </section>
 
       <nav>
-        <Link to="/guilds">
-          View guild rankings
-        </Link>
+        <Link to="/guilds">View guild rankings</Link>
       </nav>
     </main>
   );

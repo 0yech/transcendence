@@ -4,7 +4,6 @@ import { RemoveAccountButton } from '~/pages/auth/remove-account';
 import type { Route } from './+types/profile';
 import { HomeButton } from './home';
 import { UseWebSocket } from '~/context/UseWebSocket';
-import { GuildDetails } from '~/components/guilds/GuildDetails';
 
 export async function clientLoader() {
   const data = await apiFetch('/api/auth/me');
