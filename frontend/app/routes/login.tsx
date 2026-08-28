@@ -52,11 +52,19 @@ export default function Login() {
   return (
     <>
       <title>Transcendence</title>
-      <button onClick={() => (window.location.href = '/')}>
+      <button
+        className="rounded-full w-fit px-5 bg-blue-500 hover:bg-blue-700"
+        onClick={() => (window.location.href = '/')}
+      >
         <h1 className="text-3xl font-bold">Login to Transcendence</h1>
       </button>
       <LoginForm />
-      <Link to="/register">Don't have an account yet?</Link>
+      <Link
+        className="underline decoration-indigo-500 hover:text-indigo-500"
+        to="/register"
+      >
+        Don't have an account yet?
+      </Link>
 
       <OauthLoginOptions />
 

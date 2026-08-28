@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import apiFetch, { handleJoinLobby, handleLeaveLobby } from './api-fetch';
 import { UseWebSocket } from '~/context/UseWebSocket';
 
-interface UserInterface {
+export interface UserInterface {
   id: string;
   username: string;
   email: string;
@@ -37,20 +37,26 @@ interface LobbyInterface {
  *
  * @returns the jsx for the list of users in a <li>
  */
-export function DisplayUsers(usersObject: { users: UserInterface[] }) {
+export function DisplayUsers(usersObject: { users: UserInterface[] | null }) {
   const { users } = usersObject;
   return (
     <ul>
-      {users.map((user) => (
-        <li key={user.id}>
-          <div>
-            <p>
-              {user.username} | {user.email}
-            </p>
-            {user.avatarUrl && <img src={user.avatarUrl} alt={user.username} />}
-          </div>
-        </li>
-      ))}
+      {users ? (
+        users.map((user) => (
+          <li key={user.id}>
+            <div>
+              <p>
+                {user.username} | {user.email}
+              </p>
+              {user.avatarUrl && (
+                <img src={user.avatarUrl} alt={user.username} />
+              )}
+            </div>
+          </li>
+        ))
+      ) : (
+        <></>
+      )}
     </ul>
   );
 }
@@ -73,11 +79,17 @@ export function GoToActiveLobby() {
       {isConnectedToWs ? (
         <li>
           {activeLobby ? (
-            <button onClick={() => navigate(`/game/${isConnectedToWs}/play`)}>
+            <button
+              className="rounded-full w-fit px-5 bg-blue-500 hover:bg-blue-700"
+              onClick={() => navigate(`/game/${isConnectedToWs}/play`)}
+            >
               Go to active game
             </button>
           ) : (
-            <button onClick={() => navigate(`/game/${isConnectedToWs}`)}>
+            <button
+              className="rounded-full w-fit px-5 bg-blue-500 hover:bg-blue-700"
+              onClick={() => navigate(`/game/${isConnectedToWs}`)}
+            >
               Go to active lobby
             </button>
           )}
@@ -117,7 +129,12 @@ export function CreateNewLobby() {
   }
   return (
     <h2>
-      <button onClick={() => handleClick()}>Create lobby</button>
+      <button
+        className="rounded-full w-fit px-5 bg-blue-500 hover:bg-blue-700"
+        onClick={() => handleClick()}
+      >
+        Create lobby
+      </button>
     </h2>
   );
 }
@@ -139,7 +156,14 @@ export function JoinLobby({ code }: { code: string }) {
       console.error(e);
     }
   }
-  return <button onClick={() => handleClickJoin(code)}>Join this Lobby</button>;
+  return (
+    <button
+      className="rounded-full w-fit px-5 bg-green-500 hover:bg-green-700"
+      onClick={() => handleClickJoin(code)}
+    >
+      Join this Lobby
+    </button>
+  );
 }
 
 /**
@@ -157,7 +181,14 @@ export function LeaveLobby() {
       console.error(e);
     }
   }
-  return <button onClick={() => handleClickLeave()}>Leave This Lobby</button>;
+  return (
+    <button
+      className="rounded-full w-fit px-5 bg-red-500 hover:bg-red-700"
+      onClick={() => handleClickLeave()}
+    >
+      Leave This Lobby
+    </button>
+  );
 }
 
 /**
@@ -206,7 +237,10 @@ export default function DisplayLobbies() {
         <ul>
           {lobbies.map((item: LobbyInterface) => (
             <li key={item.code}>
-              <button onClick={() => navigate(`/game/${item.code}`)}>
+              <button
+                className="rounded-full w-fit px-5 bg-blue-500 hover:bg-blue-700"
+                onClick={() => navigate(`/game/${item.code}`)}
+              >
                 Join Lobby: {item.code}
               </button>
             </li>

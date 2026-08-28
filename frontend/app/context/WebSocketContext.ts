@@ -49,6 +49,8 @@ interface InterfaceWSConnection {
   disconnect: () => void;
   startGame: () => Promise<boolean>;
   playSlot: (slot: number) => Promise<boolean>;
+  playFour: () => Promise<boolean>;
+  unable: () => Promise<boolean>;
   isConnected: () => string | null;
   gameStarted: () => boolean;
   userId: () => string | null;
