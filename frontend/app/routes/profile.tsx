@@ -1,8 +1,9 @@
 import apiFetch from '~/utils/api-fetch';
-import { LogoutButton } from '~/auth/logout';
-import { RemoveAccountButton } from '~/auth/remove-account';
+import { LogoutButton } from '~/pages/auth/logout';
+import { RemoveAccountButton } from '~/pages/auth/remove-account';
 import type { Route } from './+types/profile';
 import { HomeButton } from './home';
+import { UseWebSocket } from '~/context/UseWebSocket';
 
 export async function clientLoader() {
   const data = await apiFetch('/api/auth/me');
@@ -10,7 +11,10 @@ export async function clientLoader() {
 }
 
 export default function Profile({ loaderData }: Route.ComponentProps) {
-  const { username, email, guildId, avatarUrl } = loaderData;
+  const { id, username, email, guildId, avatarUrl } = loaderData;
+  const { setUserId, userId } = UseWebSocket();
+  setUserId(id);
+  console.log(userId());
   return (
     <>
       <title>{username}'s Profile</title>
@@ -18,7 +22,6 @@ export default function Profile({ loaderData }: Route.ComponentProps) {
       <img src={avatarUrl} />
 
       <LogoutButton />
-      <RemoveAccountButton />
 
       <HomeButton />
 
@@ -27,6 +30,7 @@ export default function Profile({ loaderData }: Route.ComponentProps) {
 
       <h2 className="text-2xl font-bold">Current Guild</h2>
       <div>{guildId || 'No active guild'}</div>
+      <RemoveAccountButton />
     </>
   );
 }

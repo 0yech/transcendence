@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router';
+import apiFetch, { handleJoinLobby, handleLeaveLobby } from './api-fetch';
+import { UseWebSocket } from '~/context/UseWebSocket';
 
-interface UserInterface {
+export interface UserInterface {
   id: string;
   username: string;
   email: string;
@@ -30,27 +33,161 @@ interface LobbyInterface {
 }
 
 /**
+ * @brief Component that allows users to be displayed
+ *
+ * @returns the jsx for the list of users in a <li>
+ */
+export function DisplayUsers(usersObject: { users: UserInterface[] | null }) {
+  const { users } = usersObject;
+  return (
+    <ul>
+      {users ? (
+        users.map((user) => (
+          <li key={user.id}>
+            <div>
+              <p>
+                {user.username} | {user.email}
+              </p>
+              {user.avatarUrl && (
+                <img src={user.avatarUrl} alt={user.username} />
+              )}
+            </div>
+          </li>
+        ))
+      ) : (
+        <></>
+      )}
+    </ul>
+  );
+}
+
+/**
+ * @brief Component that handle the conditions as stated below
+ * @brief handle the "go to game" if a lobby is active
+ * @brief handle the "go to lobby" if a lobby is active
+ * @brief handle the "create lobby" if no lobby is active
+ *
+ * @returns the JSX necessary of stated up
+ */
+export function GoToActiveLobby() {
+  const { isConnected, gameStarted } = UseWebSocket();
+  const isConnectedToWs = isConnected();
+  const activeLobby = gameStarted();
+  const navigate = useNavigate();
+  return (
+    <>
+      {isConnectedToWs ? (
+        <li>
+          {activeLobby ? (
+            <button
+              className="rounded-full w-fit px-5 bg-blue-500 hover:bg-blue-700"
+              onClick={() => navigate(`/game/${isConnectedToWs}/play`)}
+            >
+              Go to active game
+            </button>
+          ) : (
+            <button
+              className="rounded-full w-fit px-5 bg-blue-500 hover:bg-blue-700"
+              onClick={() => navigate(`/game/${isConnectedToWs}`)}
+            >
+              Go to active lobby
+            </button>
+          )}
+        </li>
+      ) : (
+        <li>
+          <CreateNewLobby />
+        </li>
+      )}
+    </>
+  );
+}
+
+/**
  *
  * @brief create a lobby using the api POST /api/lobbies
  *
  */
 export function CreateNewLobby() {
-  const url: string = '/api/lobbies';
+  const { connect } = UseWebSocket();
+  const navigate = useNavigate();
+  async function handleClick() {
+    const rep = await apiFetch('/api/lobbies', {
+      method: 'POST',
+      body: JSON.stringify({
+        private: false,
+      }),
+    });
+    if (!rep.ok) return;
+    apiFetch('/api/lobbies/me')
+      .then((data) => data.json())
+      .then((json) => {
+        connect(json.code)
+          .then(() => navigate(`/game/${json.code}`))
+          .catch((e) => console.error(e));
+      });
+  }
   return (
     <h2>
       <button
-        onClick={() => {
-          fetch(url, {
-            method: 'POST',
-            body: JSON.stringify({
-              private: false,
-            }),
-          });
-        }}
+        className="rounded-full w-fit px-5 bg-blue-500 hover:bg-blue-700"
+        onClick={() => handleClick()}
       >
-        CreateLobby
+        Create lobby
       </button>
     </h2>
+  );
+}
+
+/**
+ *
+ * @brief handle the connection of the user. join the lobby with the request AND the webSocket
+ *
+ */
+export function JoinLobby({ code }: { code: string }) {
+  const { connect } = UseWebSocket();
+  async function handleClickJoin(code: string) {
+    try {
+      const repApi = await handleJoinLobby(code);
+      console.log(repApi);
+      const gameConnect = await connect(code);
+      console.log(gameConnect);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  return (
+    <button
+      className="rounded-full w-fit px-5 bg-green-500 hover:bg-green-700"
+      onClick={() => handleClickJoin(code)}
+    >
+      Join this Lobby
+    </button>
+  );
+}
+
+/**
+ *
+ * @brief handle the disconnection of the user. leave the lobby with the request AND the webSocket
+ *
+ */
+export function LeaveLobby() {
+  const { disconnect } = UseWebSocket();
+  async function handleClickLeave() {
+    try {
+      await handleLeaveLobby();
+      disconnect();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  return (
+    <button
+      className="rounded-full w-fit px-5 bg-red-500 hover:bg-red-700"
+      onClick={() => handleClickLeave()}
+    >
+      Leave This Lobby
+    </button>
   );
 }
 
@@ -61,6 +198,7 @@ export function CreateNewLobby() {
  *
  */
 export default function DisplayLobbies() {
+  const navigate = useNavigate();
   const [lobbies, setLobbies] = useState<LobbyInterface[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -78,36 +216,13 @@ export default function DisplayLobbies() {
     }
   };
 
-  console.log(lobbies);
   useEffect(() => {
     const interval = setInterval(() => {
       fetchLobbies();
-    }, 5000);
+    }, 1000);
 
     return () => clearInterval(interval);
   }, []);
-
-  /**
-   *
-   * @brief Send a POST request to /api/lobbies/xxx/join to join the game when clicking on it
-   *
-   * @param code used to join the lobby
-   */
-  const handleJoinLobby = async (code: string) => {
-    try {
-      const response = await fetch(`/api/lobbies/${code}/join`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      if (!response.ok) {
-        console.error('Failed to join lobby');
-      }
-    } catch (error) {
-      console.error('Error joining lobby:', error);
-    }
-  };
 
   if (loading && lobbies.length === 0) {
     return <h1>Chargement des salons...</h1>;
@@ -122,7 +237,10 @@ export default function DisplayLobbies() {
         <ul>
           {lobbies.map((item: LobbyInterface) => (
             <li key={item.code}>
-              <button onClick={() => handleJoinLobby(item.code)}>
+              <button
+                className="rounded-full w-fit px-5 bg-blue-500 hover:bg-blue-700"
+                onClick={() => navigate(`/game/${item.code}`)}
+              >
                 Join Lobby: {item.code}
               </button>
             </li>

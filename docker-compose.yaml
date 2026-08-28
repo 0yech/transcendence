@@ -23,7 +23,8 @@ services:
       target: production
     restart: unless-stopped
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     command: 'sh -c "npx prisma db push && npx prisma generate && npm run start:prod"'
     environment:
       - FRONTEND_ORIGIN=${FRONTEND_ORIGIN}
@@ -47,6 +48,11 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   database_data:
