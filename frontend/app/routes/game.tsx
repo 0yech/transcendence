@@ -97,7 +97,7 @@ export default function PlayGame() {
                   className="rounded-full w-fit px-5 bg-pink-400 hover:bg-pink-600"
                   onClick={() => unable()}
                 >
-                  declare forfeit
+                  Unable to play
                 </button>
               </li>
             </>
