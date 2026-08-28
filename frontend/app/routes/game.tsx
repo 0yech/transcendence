@@ -1,6 +1,7 @@
 import { UseWebSocket } from '~/context/UseWebSocket';
-import { useNavigate } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import apiFetch from '~/utils/api-fetch';
+import LobbyChat from '~/components/LobbyChat';
 
 /**
  *
@@ -15,6 +16,10 @@ export default function PlayGame() {
   const { playSlot, gameState, userId, playFour, unable, disconnect } =
     UseWebSocket();
   const navigate = useNavigate();
+  const { code } = useParams();
+  if (!code) {
+    return null;
+  }
   let myCards = null;
   console.log(gameState);
   console.log(userId());
@@ -104,6 +109,7 @@ export default function PlayGame() {
           ) : (
             <>not waa :(</>
           )}
+          <LobbyChat code={code} canSend={true} />
         </div>
       </div>
     </>

@@ -25,7 +25,7 @@ export class ChatsService {
    * @return The lobby messages ordered from oldest to newest.
    */
   async findLobbyMessages(lobbyCode: string, userId: string) {
-    const lobby = await this.findLobbyForMember(lobbyCode, userId);
+    const lobby = await this.findLobbyForReader(lobbyCode, userId);
 
     return this.prisma.message.findMany({
       where: {
@@ -82,6 +82,64 @@ export class ChatsService {
     this.chatsGateway.emitMessageCreated(lobby.id, message);
 
     return message;
+  }
+
+  /**
+   * @brief Finds a lobby and checks if the user is allowed to read its chat.
+   * @brief Public lobbies can be read by any authenticated user.
+   * @brief Private lobbies can only be read by lobby members.
+   *
+   * @returns The lobby id and chat id if access is allowed.
+   */
+  private async findLobbyForReader(
+    lobbyCode: string,
+    userId: string,
+  ): Promise<{
+    id: string;
+    chatId: string;
+  }> {
+    const lobby = await this.prisma.lobby.findFirst({
+      where: {
+        code: lobbyCode,
+        active: true,
+      },
+      select: {
+        id: true,
+        private: true,
+        chat: {
+          select: {
+            id: true,
+          },
+        },
+        users: {
+          where: {
+            id: userId,
+          },
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    if (!lobby) {
+      throw new NotFoundException(`Lobby with code ${lobbyCode} not found`);
+    }
+
+    const isMember = lobby.users.length > 0;
+
+    if (lobby.private && !isMember) {
+      throw new ForbiddenException('Private lobby chat');
+    }
+
+    if (!lobby.chat) {
+      throw new NotFoundException(`Chat for lobby ${lobbyCode} not found`);
+    }
+
+    return {
+      id: lobby.id,
+      chatId: lobby.chat.id,
+    };
   }
 
   /**

@@ -31,71 +31,169 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
    * @brief if it's user's turn or first turn everybody get "teported" to the right route '/game/:code/play'
    * @brief start all the listens (game:state, game:error, connect, disconnect)
    *
-   * @returns a promise of if the connect failed or succeded
+   * @returns a promise that resolves if the connection succeeds and rejects if it fails
    */
   const connect = useCallback(
     (code: string): Promise<boolean> => {
       return new Promise((resolve, reject) => {
-        if (wsRef.current?.connected || code == codeLink.current) return true;
-        wsRef.current = io('/games', {
-          reconnection: true,
-        });
-        if (wsRef.current) {
-          disconnect();
-        }
-        const timeout = setTimeout(() => {
-          reject(new Error('game:join timeout after 2s'));
-        }, 2000);
-        codeLink.current = code;
+        const normalizedCode = code.trim().toUpperCase();
 
-        /**
-         *
-         * @brief for now nothing happens here i don't really understand what it does
+        /*
+         * Already connected to this lobby.
          */
-        wsRef.current.on('game:error', (e) => {
-          console.log('listening to game:error');
-          clearTimeout(timeout);
-          console.log(e);
-        });
-        wsRef.current.on('connect', () =>
-          console.log('connected to websocket'),
-        );
-        wsRef.current.on('disconnect', () => console.log('disconnected'));
-
-        /**
-         *
-         * @brief handle the game:join. join the game after every listener
-         *
-         * @async @returns create the new Promise<boolean> for the return or a throw if fails
-         *
-         */
-        if (!wsRef.current) {
-          clearTimeout(timeout);
-          throw new Error('No game joined');
+        if (wsRef.current?.connected && codeLink.current === normalizedCode) {
+          resolve(true);
           return;
         }
-        wsRef.current.emit(
-          'game:join',
-          {
-            lobbyCode: codeLink.current,
-          },
-          (ack: { success: boolean; lobbyCode: string } | null) => {
-            clearTimeout(timeout);
-            console.log('logged in ' + ack);
-            return resolve(true);
-          },
-        );
-        /**
-         *
-         * @brief handle the useState of the game:state. on every new state a new render is forced
+
+        /*
+         * Clean previous game socket BEFORE creating the new one.
          */
-        wsRef.current.on('game:state', (e) => {
-          if (e.turnNumber == 1 || e.currentPlayerId == userIdRef.current) {
-            navigate(`/game/${codeLink.current}/play`);
-            gameStartedRef.current = true;
+        if (wsRef.current) {
+          wsRef.current.removeAllListeners();
+          wsRef.current.disconnect();
+          wsRef.current = null;
+        }
+
+        codeLink.current = normalizedCode;
+        gameStartedRef.current = false;
+        setGameState(null);
+
+        const socket = io('/games', {
+          reconnection: true,
+          withCredentials: true,
+          autoConnect: false,
+        });
+
+        wsRef.current = socket;
+
+        let settled = false;
+
+        const timeout = setTimeout(() => {
+          if (settled) {
+            return;
           }
+
+          settled = true;
+
+          socket.disconnect();
+
+          if (wsRef.current === socket) {
+            wsRef.current = null;
+          }
+
+          reject(new Error('game:join timeout after 5s'));
+        }, 5000);
+
+        const rejectConnection = (message: string) => {
+          if (settled) {
+            return;
+          }
+
+          settled = true;
+          clearTimeout(timeout);
+          reject(new Error(message));
+        };
+
+        /*
+         * register game:state BEFORE game:join because the backend
+         * can emit game:state while handling game:join.
+         */
+        socket.on('game:state', (e) => {
+          console.log('game:state', e);
+
+          if (e.turnNumber === 1 || e.currentPlayerId === userIdRef.current) {
+            gameStartedRef.current = true;
+            navigate(`/game/${normalizedCode}/play`);
+          }
+
           setGameState(e);
         });
+
+        socket.on('game:error', (e) => {
+          console.error('game:error', e);
+
+          const message =
+            typeof e?.message === 'string' ? e.message : 'Game websocket error';
+
+          rejectConnection(message);
+        });
+
+        /*
+         * NestJS WsException can arrive on "exception".
+         * more useful instead of silently waiting for the ACK timeout.
+         */
+        socket.on('exception', (e) => {
+          console.error('game websocket exception', e);
+
+          let message = 'Game websocket exception';
+
+          if (typeof e === 'string') {
+            message = e;
+          } else if (typeof e?.message === 'string') {
+            message = e.message;
+          } else if (typeof e?.error === 'string') {
+            message = e.error;
+          }
+
+          rejectConnection(message);
+        });
+
+        socket.on('connect_error', (error) => {
+          console.error('game websocket connect_error', error);
+
+          rejectConnection(
+            error instanceof Error
+              ? error.message
+              : 'Could not connect to game websocket',
+          );
+        });
+
+        socket.on('disconnect', (reason) => {
+          console.log('game websocket disconnected:', reason);
+        });
+
+        /*
+         * wait until Socket.IO is actually connected before game:join.
+         */
+        socket.on('connect', () => {
+          console.log('connected to /games websocket');
+
+          socket.emit(
+            'game:join',
+            {
+              lobbyCode: normalizedCode,
+            },
+            (
+              ack: {
+                ok?: boolean;
+                success?: boolean;
+                lobbyCode?: string;
+              } | null,
+            ) => {
+              console.log('game:join ack', ack);
+
+              if (settled) {
+                return;
+              }
+
+              if (!ack || (ack.ok !== true && ack.success !== true)) {
+                rejectConnection('game:join rejected');
+                return;
+              }
+
+              settled = true;
+              clearTimeout(timeout);
+
+              resolve(true);
+            },
+          );
+        });
+
+        /*
+         * Start connection only after ALL listeners are registered.
+         */
+        socket.connect();
       });
     },
     [navigate],
@@ -226,13 +324,15 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
    *
    */
   function disconnect() {
-    if (wsRef.current?.connected) {
+    if (wsRef.current) {
+      wsRef.current.removeAllListeners();
       wsRef.current.disconnect();
       wsRef.current = null;
-      codeLink.current = null;
-      gameStartedRef.current = false;
-      setGameState(null);
     }
+
+    codeLink.current = null;
+    gameStartedRef.current = false;
+    setGameState(null);
   }
 
   /**
