@@ -26,7 +26,8 @@ services:
       target: development
     restart: unless-stopped
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     env_file:
       - .env.dev
     ports:
@@ -50,6 +51,11 @@ services:
       - "5432:5432" # No env variable since this is used only once for dev
     volumes:
       - database_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   database_data:
