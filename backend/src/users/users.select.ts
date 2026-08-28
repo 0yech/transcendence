@@ -1,3 +1,8 @@
+export const userIdentitySelect = {
+  id: true,
+  username: true,
+} as const;
+
 export const publicUserSelect = {
   id: true,
   username: true,
