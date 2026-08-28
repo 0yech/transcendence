@@ -22,6 +22,7 @@
         typescript-language-server
         vscode-langservers-extracted
         lazydocker
+        openssl  # for prisma generate
       ];
 
       shellHook = ''
