@@ -21,6 +21,7 @@
         eslint
         typescript-language-server
         vscode-langservers-extracted
+        lazydocker
       ];
 
       shellHook = ''
