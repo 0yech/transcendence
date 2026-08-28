@@ -1,4 +1,5 @@
 import { RegisterForm } from '../pages/auth/register';
+import { ErrorMessage } from '~/pages/auth/errorMessage';
 import type { Route } from './+types/register';
 import { Link, redirect } from 'react-router';
 import { OauthLoginOptions } from '~/pages/auth/oauth';
@@ -15,13 +16,23 @@ export async function clientAction({ request }: Route.ActionArgs) {
 
   if (!response.ok) {
     const body = await response.json();
-    alert(`Error registering: ${body.message}`);
+    if (Array.isArray(body.message)) {
+      // The validation pipe returns an array of potential error messages
+      return { errorMessage: body.message.join(' ') };
+    } else {
+      return { errorMessage: body.message };
+    }
   } else {
     throw redirect('/login');
   }
 }
 
-export default function Register() {
+export default function Register({ actionData }: Route.ComponentProps) {
+  let errorMessage = null;
+  if (actionData) {
+    errorMessage = actionData.errorMessage;
+  }
+
   return (
     <>
       <title>Register to Transcendence</title>
@@ -30,6 +41,8 @@ export default function Register() {
       <Link to="/login">Already have an account?</Link>
 
       <OauthLoginOptions />
+
+      {errorMessage ? <ErrorMessage message={errorMessage} /> : null}
     </>
   );
 }

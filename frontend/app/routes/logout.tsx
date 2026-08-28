@@ -6,7 +6,12 @@ export async function clientAction() {
   });
   if (!response.ok) {
     const body = await response.json();
-    alert(`Error logging out: ${body.message}`);
+    if (Array.isArray(body.message)) {
+      // The validation pipe returns an array of potential error messages
+      return { errorMessage: body.message.join(' ') };
+    } else {
+      return { errorMessage: body.message };
+    }
   }
   throw redirect('/login');
 }
