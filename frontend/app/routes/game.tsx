@@ -1,6 +1,8 @@
 import { UseWebSocket } from '~/context/UseWebSocket';
 import { useNavigate } from 'react-router';
 import apiFetch from '~/utils/api-fetch';
+import { getUserById } from '~/utils/users';
+import { useEffect, useState } from 'react';
 
 /**
  *
@@ -14,10 +16,10 @@ import apiFetch from '~/utils/api-fetch';
 export default function PlayGame() {
   const { playSlot, gameState, userId, playFour, unable, disconnect } =
     UseWebSocket();
+  const [winnerId, setWinnerId] = useState<string | null>(null);
+  const [turnUser, setTurnUser] = useState<string | null>(null);
   const navigate = useNavigate();
   let myCards = null;
-  console.log(gameState);
-  console.log(userId());
   if (gameState) {
     const players = gameState.players.find(
       (element) => element.userId === userId(),
@@ -25,7 +27,6 @@ export default function PlayGame() {
     console.log(players);
     if (players) {
       myCards = players.hand;
-      console.log(myCards);
     }
   }
   if (gameState?.winnerId && gameState?.status == 'FINISHED') {
@@ -37,6 +38,20 @@ export default function PlayGame() {
       navigate('/');
     }, 10000);
   }
+
+  useEffect(() => {
+    if (gameState && gameState.winnerId)
+      getUserById(gameState.winnerId).then((json) =>
+        setWinnerId(json.username),
+      );
+  }, [gameState, gameState?.winnerId]);
+  useEffect(() => {
+    if (gameState && gameState.currentPlayerId)
+      getUserById(gameState.currentPlayerId).then((json) =>
+        setTurnUser(json.username),
+      );
+  }, [gameState, gameState?.currentPlayerId]);
+
   return (
     <>
       <div className="w-full h-dvh flex flex-col justify-center items-center gap-4">
@@ -49,6 +64,7 @@ export default function PlayGame() {
               home
             </button>
           </li>
+          <li>who's turn: {turnUser}</li>
           <li>pendingPlays: {gameState?.pendingPlays}</li>
           <li>turnNumber: {gameState?.turnNumber}</li>
           <li>DeckCount: {gameState?.deckCount}</li>
@@ -56,11 +72,7 @@ export default function PlayGame() {
           <li>
             {gameState?.direction ? <>Left to right</> : <>Right to left</>}
           </li>
-          {gameState && gameState.winnerId ? (
-            <li>Winner: {gameState.winnerId}</li>
-          ) : (
-            <></>
-          )}
+          {winnerId ? <li>Winner: {winnerId}</li> : <></>}
           {gameState &&
           gameState.discardPile &&
           gameState.discardPile.length > 0 ? (
