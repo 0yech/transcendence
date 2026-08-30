@@ -32,6 +32,12 @@ export const publicViewUserSelect = {
   totalPts: true,
   guildId: true,
   guildRole: true,
+  guild: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
   sentGuildInvitations: true,
   createdAt: true,
   deleted: true,
