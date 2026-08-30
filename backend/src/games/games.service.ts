@@ -503,11 +503,26 @@ export class GamesService {
     return this.finishIfNeeded(updated, userId);
   }
 
+  /**
+   *
+   * @param remainingPlayers number of player remaining in the current game (6/5/4/3/2/1)
+   * @param totalPlayers total number of player that joined the game
+   *
+   * @comment 0yech wanted 50 pts won with 6 players
+   * @formula (10 * (n-1)) / 3^(m - 1) = (10 * (6 - 1)) /
+   *
+   * @returns the amount of point won if its superior to 5 else 0
+   */
   calculatePoints(remainingPlayers: number, totalPlayers: number): number {
     const calc = (10 * (totalPlayers - 1)) / 3 ** (remainingPlayers - 1);
     return calc > 5 ? calc : 0;
   }
 
+  /**
+   *
+   * @param playerId id of the player to add points to and its guild
+   * @param addedPts number of point to add to the player and guild
+   */
   async updateUserPoints(playerId: string, addedPts: number) {
     const user = await this.prisma.user.findUnique({
       where: { id: playerId },
@@ -953,6 +968,7 @@ export class GamesService {
    * @param gameId The id of the game to finish.
    * @param winnerId The user id of the winning player.
    * @param viewerId The authenticated user id used to customize the returned public view.
+   * @param addedPts number of point to add to the winner and their guild
    * @return The final public game view.
    */
   private async finishGame(
