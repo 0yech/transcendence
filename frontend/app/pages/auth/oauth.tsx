@@ -1,24 +1,17 @@
+import { ButtonLink } from '../../components/Button';
+
 export function OauthLoginOptions() {
   return (
-    <div>
-      <a
-        className="block rounded-full w-fit px-5 bg-blue-500 hover:bg-green-700"
-        href="/api/auth/google"
-      >
+    <div className="flex flex-col gap-3 w-fit h-fit">
+      <ButtonLink href="/api/auth/google" className="text-3xl w-80">
         Login with Google
-      </a>
-      <a
-        className="block rounded-full w-fit px-5 bg-blue-500 hover:bg-green-700"
-        href="/api/auth/fortytwo"
-      >
+      </ButtonLink>
+      <ButtonLink href="/api/auth/fortytwo" className="text-3xl w-80">
         Login with 42
-      </a>
-      <a
-        className="block rounded-full w-fit px-5 bg-blue-500 hover:bg-green-700"
-        href="/api/auth/github"
-      >
+      </ButtonLink>
+      <ButtonLink href="/api/auth/github" className="text-3xl w-80">
         Login with GitHub
-      </a>
+      </ButtonLink>
     </div>
   );
 }

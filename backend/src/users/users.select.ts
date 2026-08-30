@@ -67,7 +67,12 @@ export const publicUserSelect = {
   totalPts: true,
   guildId: true,
   guildRole: true,
-  sentGuildInvitations: true,
+  guild: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
   createdAt: true,
   updatedAt: true,
   deleted: true,
