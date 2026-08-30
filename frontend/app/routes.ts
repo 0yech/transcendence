@@ -11,4 +11,6 @@ export default [
   route('privacy', 'routes/privacy.tsx'),
   route('game/:code', 'routes/lobby.tsx'),
   route('game/:code/play', 'routes/game.tsx'),
+  route('profile/byId/:id', 'routes/public-by-id.tsx'),
+  route('profile/byUser/:username', 'routes/public-by-username.tsx'),
 ] satisfies RouteConfig;

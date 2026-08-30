@@ -239,4 +239,27 @@ export class UsersService {
 
     return user;
   }
+
+  /**
+   * @brief Find a non-deleted user by ID and return public information front-end safe
+   * identity information.
+   */
+  async findPublicIdentityByUser(username: string) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        username: username,
+      },
+      select: publicViewUserSelect,
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found.');
+    }
+
+    if (user.deleted) {
+      throw new NotFoundException('User has been deleted.');
+    }
+
+    return user;
+  }
 }
