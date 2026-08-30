@@ -503,6 +503,12 @@ export class GamesService {
     return this.finishIfNeeded(updated, userId);
   }
 
+  calculatePoints(remainingPlayers: number, totalPlayers: number): number
+  {
+    const calc = (10 * (totalPlayers - 1)) / (3**(remainingPlayers - 1))
+    return (calc > 5 ? calc : 0);
+  }
+
   /**
    * @brief Declares that the current player cannot play any legal card.
    *
@@ -545,13 +551,32 @@ export class GamesService {
         throw new BadRequestException('You still have a legal move');
       }
 
+      const remainingPlayer = game.players.filter((player) =>
+        player.status === "ACTIVE" || player.status === "WINNER").length;
+
+      console.log(remainingPlayer);
+      const addedPts: number = this.calculatePoints(remainingPlayer, game.players.length);
+      console.log(addedPts);
       await this.prisma.gamePlayer.update({
         where: { id: player.id },
         data: {
           status: 'ELIMINATED',
           eliminatedAt: new Date(),
+          eliminatedPosition: remainingPlayer,
+          pointWon: addedPts,
         },
       });
+
+      console.log("before increment");
+      await this.prisma.user.update({
+        where: { id: player.id },
+        data: {
+          totalPts: {
+            increment: addedPts,
+          },
+        },
+      })
+      console.log("after increment");
 
       await this.prisma.gameAction.create({
         data: {
@@ -574,7 +599,7 @@ export class GamesService {
       );
 
       if (activePlayers.length === 1) {
-        return this.finishGame(gameId, activePlayers[0].userId, userId);
+        return this.finishGame(gameId, activePlayers[0].userId, userId, this.calculatePoints(1, game.players.length));
       }
 
       const nextPlayerId = this.findNextActivePlayerId(
@@ -592,7 +617,23 @@ export class GamesService {
         },
         include: this.gameInclude(),
       });
+      console.log("gmaeUpdate");
 
+      if (remainingPlayer == 2)
+      {
+        const lastPlayerId = game.players.find((player) => player.status !== "ELIMINATED")
+        if (lastPlayerId)
+        {
+          await this.prisma.user.update({
+            where: { id: player.id },
+            data: {
+              totalPts: {
+                increment: this.calculatePoints(remainingPlayer - 1, game.players.length),
+              },
+            },
+          })
+        }
+      }
       return this.finishIfNeeded(updated, userId);
     });
   }
@@ -870,7 +911,7 @@ export class GamesService {
     );
 
     if (active.length === 1) {
-      return this.finishGame(game.id, active[0].userId, viewerId);
+      return this.finishGame(game.id, active[0].userId, viewerId, this.calculatePoints(1, game.players.length));
     }
 
     const nobodyCanPlay = active.every((player: GamePlayerWithUser) => {
@@ -879,7 +920,7 @@ export class GamesService {
     });
 
     if (nobodyCanPlay && game.lastPlayedById) {
-      return this.finishGame(game.id, game.lastPlayedById, viewerId);
+      return this.finishGame(game.id, game.lastPlayedById, viewerId, this.calculatePoints(1, game.players.length));
     }
 
     return this.toPublicGame(game, viewerId);
@@ -896,7 +937,7 @@ export class GamesService {
    * @param viewerId The authenticated user id used to customize the returned public view.
    * @return The final public game view.
    */
-  private async finishGame(gameId: string, winnerId: string, viewerId: string) {
+  private async finishGame(gameId: string, winnerId: string, viewerId: string, addedPts: number) {
     await this.prisma.gamePlayer.updateMany({
       where: {
         gameId,
@@ -904,6 +945,10 @@ export class GamesService {
       },
       data: {
         status: 'WINNER',
+        eliminatedPosition: 0,
+        pointWon: {
+          increment: addedPts,
+        },
       },
     });
 

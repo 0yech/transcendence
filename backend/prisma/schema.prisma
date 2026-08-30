@@ -183,7 +183,6 @@ model Game {
   pendingPlays Int @default(1)
 
   turnNumber Int @default(1)
-  playersRemaining Int @default(0)
 
   reshuffleIndex Int @default(0)
 
