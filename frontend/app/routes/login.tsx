@@ -1,8 +1,9 @@
 import { ErrorMessage } from '~/pages/auth/errorMessage';
 import { LoginForm } from '~/pages/auth/login';
 import type { Route } from './+types/login';
-import { Link, redirect, useSearchParams } from 'react-router';
+import { redirect, useSearchParams } from 'react-router';
 import { OauthLoginOptions } from '~/pages/auth/oauth';
+import { StylisedLink } from '../components/StylisedLink';
 
 export async function clientAction({ request }: Route.ClientActionArgs) {
   const data = await request.formData();
@@ -62,23 +63,19 @@ export default function Login({ actionData }: Route.ComponentProps) {
   return (
     <>
       <title>Transcendence</title>
-      <button
-        className="rounded-full w-fit px-5 bg-blue-500 hover:bg-blue-700"
-        onClick={() => (window.location.href = '/')}
-      >
-        <h1 className="text-3xl font-bold">Login to Transcendence</h1>
-      </button>
-      <LoginForm />
-      <Link
-        className="underline decoration-indigo-500 hover:text-indigo-500"
-        to="/register"
-      >
-        Don't have an account yet?
-      </Link>
-
-      <OauthLoginOptions />
-
-      {errorMessage ? <ErrorMessage message={errorMessage} /> : null}
+      <div className="w-full h-dvh flex justify-center items-center">
+        <div className="w-fit h-fit flex flex-col items-center gap-2">
+          <h1 className="text-2xl">Login to Transcendence</h1>
+          <LoginForm />
+          <h1 className="text-1xl text-center">
+            Don't have an account yet?{' '}
+            <StylisedLink to="/register">Sign up</StylisedLink>
+          </h1>
+          <hr className="w-70 my-2 border-0 h-1 rounded-full bg-mid-dark-blue" />
+          <OauthLoginOptions />
+          {errorMessage ? <ErrorMessage message={errorMessage} /> : null}
+        </div>
+      </div>
     </>
   );
 }
