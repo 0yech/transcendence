@@ -2,10 +2,11 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { publicUserSelect } from './users.select';
+import { publicUserSelect, userIdentitySelect } from './users.select';
 import { OAuthProvider } from 'src/generated/prisma/enums';
 
 @Injectable()
@@ -34,6 +35,46 @@ export class UsersService {
         username: username,
       },
     });
+  }
+
+  /**
+   * @brief Find a non-deleted user by id and return only frontend-safe
+   * identity information.
+   */
+  async findIdentityById(id: string) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        id,
+        deleted: false,
+      },
+      select: userIdentitySelect,
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found.');
+    }
+
+    return user;
+  }
+
+  /**
+   * @brief Find a non-deleted user by username and return only frontend-safe
+   * identity information.
+   */
+  async findIdentityByUsername(username: string) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        username,
+        deleted: false,
+      },
+      select: userIdentitySelect,
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found.');
+    }
+
+    return user;
   }
 
   /**
