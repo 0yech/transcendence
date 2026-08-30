@@ -3,7 +3,6 @@ export const userIdentitySelect = {
   username: true,
 } as const;
 
-
 export const publicViewUserSelect = {
   id: true,
   username: true,
@@ -23,11 +22,11 @@ export const publicViewUserSelect = {
           createdAt: true,
           startedAt: true,
           finishedAt: true,
-        }
+        },
       },
     },
     orderBy: {
-      createdAt: "desc",
+      createdAt: 'desc',
     },
   },
   totalPts: true,
@@ -37,7 +36,6 @@ export const publicViewUserSelect = {
   createdAt: true,
   deleted: true,
 } as const;
-
 
 export const publicUserSelect = {
   id: true,
