@@ -4,6 +4,7 @@ import { RemoveAccountButton } from '~/pages/auth/remove-account';
 import type { Route } from './+types/profile';
 import { HomeButton } from './home';
 import { UseWebSocket } from '~/context/UseWebSocket';
+import { useNavigate } from 'react-router';
 
 export async function clientLoader() {
   const data = await apiFetch('/api/auth/me');
@@ -11,8 +12,9 @@ export async function clientLoader() {
 }
 
 export default function Profile({ loaderData }: Route.ComponentProps) {
-  const { id, username, email, guildId, avatarUrl } = loaderData;
+  const { id, username, email, guild, avatarUrl } = loaderData;
   const { setUserId, userId } = UseWebSocket();
+  const navigate = useNavigate();
   setUserId(id);
   console.log(userId());
   return (
@@ -29,7 +31,11 @@ export default function Profile({ loaderData }: Route.ComponentProps) {
       <div>{email}</div>
 
       <h2 className="text-2xl font-bold">Current Guild</h2>
-      <div>{guildId || 'No active guild'}</div>
+      <li>
+        <button onClick={() => navigate('/guilds/me')}>
+          {guild?.name || 'No active guild'}
+        </button>
+      </li>
       <RemoveAccountButton />
     </>
   );

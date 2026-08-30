@@ -10,6 +10,12 @@ export const publicUserSelect = {
   avatarUrl: true,
   guildId: true,
   guildRole: true,
+  guild: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
   createdAt: true,
   updatedAt: true,
 } as const;
