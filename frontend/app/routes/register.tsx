@@ -1,7 +1,8 @@
 import { RegisterForm } from '../pages/auth/register';
 import { ErrorMessage } from '~/pages/auth/errorMessage';
 import type { Route } from './+types/register';
-import { Link, redirect } from 'react-router';
+import { redirect } from 'react-router';
+import { StylisedLink } from '~/components/StylisedLink';
 import { OauthLoginOptions } from '~/pages/auth/oauth';
 
 export async function clientAction({ request }: Route.ActionArgs) {
@@ -36,13 +37,19 @@ export default function Register({ actionData }: Route.ComponentProps) {
   return (
     <>
       <title>Register to Transcendence</title>
-      <h1 className="text-3xl font-bold">Register to Transcendence</h1>
-      <RegisterForm />
-      <Link to="/login">Already have an account?</Link>
-
-      <OauthLoginOptions />
-
-      {errorMessage ? <ErrorMessage message={errorMessage} /> : null}
+      <div className="w-full h-dvh flex justify-center items-center">
+        <div className="w-fit h-fit flex flex-col items-center gap-2">
+          <h1 className="text-2xl text-center">Register to Transcendence</h1>
+          <RegisterForm />
+          <h1 className="text-1xl text-center">
+            Already have an account?{' '}
+            <StylisedLink to="/login">Sign in</StylisedLink>
+          </h1>
+          <hr className="w-70 my-2 border-0 h-1 rounded-full bg-mid-dark-blue" />
+          <OauthLoginOptions />
+          {errorMessage ? <ErrorMessage message={errorMessage} /> : null}
+        </div>
+      </div>
     </>
   );
 }

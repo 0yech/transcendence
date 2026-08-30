@@ -1,37 +1,34 @@
 import { Form } from 'react-router';
+import { Button } from '../../components/Button';
+import { Input } from '../../components/Input';
 
 export function LoginForm() {
   return (
     <>
-      <Form method="post" action="/login">
-        <div>
-          <label htmlFor="username">Enter your username: </label>
-          <input
-            className="border rounded-10xl"
-            type="text"
-            name="username"
-            id="username"
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="password">Enter your password: </label>
-          <input
-            className="border rounded-10xl"
-            type="password"
-            name="password"
-            id="password"
-            required
-          />
-        </div>
-        <div>
-          <button
-            className="rounded-full w-fit px-5 bg-green-500 hover:bg-green-700"
-            type="submit"
-          >
-            Login
-          </button>
-        </div>
+      <Form className="flex flex-col gap-3" method="post" action="/login">
+        <Input
+          type="text"
+          name="username"
+          id="username"
+          placeholder="Username"
+          autoComplete="username"
+          required
+        >
+          Your username
+        </Input>
+        <Input
+          type="password"
+          name="password"
+          id="password"
+          placeholder="Password"
+          autoComplete="password"
+          required
+        >
+          Your Password
+        </Input>
+        <Button variant="accept" className="text-3xl w-80" type="submit">
+          Login
+        </Button>
       </Form>
     </>
   );
