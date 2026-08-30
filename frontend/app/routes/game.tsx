@@ -21,9 +21,23 @@ export default function PlayGame() {
   const [turnUser, setTurnUser] = useState<string | null>(null);
   const navigate = useNavigate();
   const { code } = useParams();
+
+  useEffect(() => {
+    if (gameState && gameState.winnerId)
+      getUserById(gameState.winnerId).then((json) =>
+        setWinnerId(json.username),
+      );
+  }, [gameState, gameState?.winnerId]);
+  useEffect(() => {
+    if (gameState && gameState.currentPlayerId)
+      getUserById(gameState.currentPlayerId).then((json) =>
+        setTurnUser(json.username),
+      );
+  }, [gameState, gameState?.currentPlayerId]);
   if (!code) {
     return null;
   }
+
   let myCards = null;
   if (gameState) {
     const players = gameState.players.find(
@@ -43,19 +57,6 @@ export default function PlayGame() {
       navigate('/');
     }, 10000);
   }
-
-  useEffect(() => {
-    if (gameState && gameState.winnerId)
-      getUserById(gameState.winnerId).then((json) =>
-        setWinnerId(json.username),
-      );
-  }, [gameState, gameState?.winnerId]);
-  useEffect(() => {
-    if (gameState && gameState.currentPlayerId)
-      getUserById(gameState.currentPlayerId).then((json) =>
-        setTurnUser(json.username),
-      );
-  }, [gameState, gameState?.currentPlayerId]);
 
   return (
     <>
