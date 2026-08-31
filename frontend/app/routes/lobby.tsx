@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router';
 import { UseWebSocket } from '~/context/UseWebSocket';
 import { useState, useEffect } from 'react';
 import type { UserInterface } from '~/utils/lobbies';
+import LobbyChat from '~/components/LobbyChat';
 
 export async function clientLoader({ params }: { params: Params<string> }) {
   const { code } = params;
@@ -28,17 +29,31 @@ export async function clientLoader({ params }: { params: Params<string> }) {
  * @returns the JSX for the lobby information
  */
 export default function PreGame({ loaderData }: Route.ComponentProps) {
-  //console.log(loaderData);
-  const { startGame } = UseWebSocket();
+  const { startGame, userId } = UseWebSocket();
   const [useUsers, setUsers] = useState<UserInterface[] | null>(null);
-  const { id, code, active, leaderId, createdAt, updatedAt } = loaderData;
+
+  const {
+    id,
+    code,
+    active,
+    private: isPrivate,
+    leaderId,
+    createdAt,
+    updatedAt,
+  } = loaderData;
+
   const navigate = useNavigate();
+
   useEffect(() => {
     async function fetchUsers(code: string) {
       const data = await apiFetch(`/api/lobbies/${code}`);
       const json = await data.json();
-      if (json && json.users) setUsers(json.users);
+
+      if (json && json.users) {
+        setUsers(json.users);
+      }
     }
+
     const interval = setInterval(() => {
       fetchUsers(code);
     }, 1000);
@@ -46,14 +61,22 @@ export default function PreGame({ loaderData }: Route.ComponentProps) {
     return () => clearInterval(interval);
   }, [code]);
 
+  const users: UserInterface[] = useUsers ?? loaderData.users ?? [];
+  const currentUserId = userId();
+
+  const isMember =
+    currentUserId !== null && users.some((user) => user.id === currentUserId);
+
   return (
     <>
       <li>
         <JoinLobby code={code} />
       </li>
+
       <li>
         <LeaveLobby />
       </li>
+
       <li>
         <button
           className="rounded-full w-fit px-5 bg-pink-400 hover:bg-pink-600"
@@ -62,6 +85,7 @@ export default function PreGame({ loaderData }: Route.ComponentProps) {
           Start game
         </button>
       </li>
+
       <li>
         <button
           className="rounded-full w-fit px-5 bg-blue-500 hover:bg-blue-700"
@@ -70,15 +94,26 @@ export default function PreGame({ loaderData }: Route.ComponentProps) {
           Home
         </button>
       </li>
+
       <br />
+
       <h2>Id: {id}</h2>
       <h2>Code: {code}</h2>
       <h2>active: {active}</h2>
       <h2>leaderId: {leaderId}</h2>
       <h2>createdAt: {createdAt}</h2>
       <h2>updatedAt: {updatedAt}</h2>
+
       <h2>Users</h2>
-      <DisplayUsers users={useUsers} />
+      <DisplayUsers users={users} />
+
+      <h2>Chat</h2>
+
+      {!isPrivate || isMember ? (
+        <LobbyChat code={code} canSend={isMember} />
+      ) : (
+        <p>This lobby chat is private.</p>
+      )}
     </>
   );
 }

@@ -15,6 +15,7 @@ interface ChatMessage {
 
 interface LobbyChatProps {
   code: string;
+  canSend: boolean;
 }
 
 /**
@@ -50,7 +51,7 @@ function mergeMessages(
  *
  * @returns lobby chat messages and message input
  */
-export default function LobbyChat({ code }: LobbyChatProps) {
+export default function LobbyChat({ code, canSend }: LobbyChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [content, setContent] = useState('');
   const [connected, setConnected] = useState(false);
@@ -137,6 +138,10 @@ export default function LobbyChat({ code }: LobbyChatProps) {
   ) {
     event.preventDefault();
 
+    if (!canSend) {
+      return;
+    }
+
     const messageContent = content.trim();
 
     if (!messageContent) {
@@ -185,18 +190,21 @@ export default function LobbyChat({ code }: LobbyChatProps) {
         ))}
       </ul>
 
-      <form onSubmit={sendMessage}>
-        <input
-          type="text"
-          value={content}
-          maxLength={500}
-          onChange={(event) => setContent(event.target.value)}
-        />
-
-        <button type="submit" disabled={!connected || !content.trim()}>
-          Send
-        </button>
-      </form>
+      {canSend ? (
+        <form onSubmit={sendMessage}>
+          <input
+            type="text"
+            value={content}
+            maxLength={500}
+            onChange={(event) => setContent(event.target.value)}
+          />
+          <button type="submit" disabled={!connected || !content.trim()}>
+            Send
+          </button>
+        </form>
+      ) : (
+        <p>Join the lobby to send messages.</p>
+      )}
     </div>
   );
 }

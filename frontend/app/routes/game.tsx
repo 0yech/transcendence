@@ -1,6 +1,7 @@
 import { UseWebSocket } from '~/context/UseWebSocket';
-import { useNavigate } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import apiFetch from '~/utils/api-fetch';
+import LobbyChat from '~/components/LobbyChat';
 import { getUserById } from '~/utils/users';
 import { useEffect, useState } from 'react';
 
@@ -19,6 +20,24 @@ export default function PlayGame() {
   const [winnerId, setWinnerId] = useState<string | null>(null);
   const [turnUser, setTurnUser] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { code } = useParams();
+
+  useEffect(() => {
+    if (gameState && gameState.winnerId)
+      getUserById(gameState.winnerId).then((json) =>
+        setWinnerId(json.username),
+      );
+  }, [gameState, gameState?.winnerId]);
+  useEffect(() => {
+    if (gameState && gameState.currentPlayerId)
+      getUserById(gameState.currentPlayerId).then((json) =>
+        setTurnUser(json.username),
+      );
+  }, [gameState, gameState?.currentPlayerId]);
+  if (!code) {
+    return null;
+  }
+
   let myCards = null;
   if (gameState) {
     const players = gameState.players.find(
@@ -38,19 +57,6 @@ export default function PlayGame() {
       navigate('/');
     }, 10000);
   }
-
-  useEffect(() => {
-    if (gameState && gameState.winnerId)
-      getUserById(gameState.winnerId).then((json) =>
-        setWinnerId(json.username),
-      );
-  }, [gameState, gameState?.winnerId]);
-  useEffect(() => {
-    if (gameState && gameState.currentPlayerId)
-      getUserById(gameState.currentPlayerId).then((json) =>
-        setTurnUser(json.username),
-      );
-  }, [gameState, gameState?.currentPlayerId]);
 
   return (
     <>
@@ -116,6 +122,7 @@ export default function PlayGame() {
           ) : (
             <>not waa :(</>
           )}
+          <LobbyChat code={code} canSend={true} />
         </div>
       </div>
     </>

@@ -113,34 +113,38 @@ export class ChatsGateway {
       throw new WsException('Unauthorized');
     }
 
-    /*
-     * Verify lobby membership from the database instead of trusting
-     * the lobby code provided by the client.
-     */
     const lobby = await this.prisma.lobby.findFirst({
       where: {
         code: body.code,
         active: true,
-        users: {
-          some: {
-            id: userId,
-          },
-        },
       },
       select: {
         id: true,
         code: true,
+        private: true,
+        users: {
+          where: {
+            id: userId,
+          },
+          select: {
+            id: true,
+          },
+        },
       },
     });
 
     if (!lobby) {
-      throw new WsException('You are not part of this lobby');
+      throw new WsException('Lobby not found');
     }
 
-    /*
-     * A Socket.IO room groups all active socket connections associated
-     * with the same lobby.
-     */
+    const isMember = lobby.users.length > 0;
+
+    // Public lobby: everybody authenticated can read.
+    // Private lobby: members only.
+    if (lobby.private && !isMember) {
+      throw new WsException('Private lobby chat');
+    }
+
     await client.join(this.getLobbyRoom(lobby.id));
 
     return {
