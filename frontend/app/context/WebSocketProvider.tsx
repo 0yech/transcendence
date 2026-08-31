@@ -100,12 +100,12 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
         socket.on('game:state', (e) => {
           console.log('game:state', e);
 
-          if (e.turnNumber === 1 || e.currentPlayerId === userIdRef.current) {
+          setGameState(e);
+
+          if (!gameStartedRef.current && e.turnNumber === 1) {
             gameStartedRef.current = true;
             navigate(`/game/${code}/play`);
           }
-
-          setGameState(e);
         });
 
         socket.on('game:error', (e) => {
