@@ -6,7 +6,11 @@ import {
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { publicUserSelect, userIdentitySelect } from './users.select';
+import {
+  publicUserSelect,
+  userIdentitySelect,
+  publicViewUserSelect,
+} from './users.select';
 import { OAuthProvider } from 'src/generated/prisma/enums';
 
 @Injectable()
@@ -211,5 +215,51 @@ export class UsersService {
     }
 
     return username;
+  }
+
+  /**
+   * @brief Find a non-deleted user by ID and return public information front-end safe
+   * identity information.
+   */
+  async findPublicIdentityById(id: string) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        id: id,
+      },
+      select: publicViewUserSelect,
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found.');
+    }
+
+    if (user.deleted) {
+      throw new NotFoundException('User has been deleted.');
+    }
+
+    return user;
+  }
+
+  /**
+   * @brief Find a non-deleted user by ID and return public information front-end safe
+   * identity information.
+   */
+  async findPublicIdentityByUser(username: string) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        username: username,
+      },
+      select: publicViewUserSelect,
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found.');
+    }
+
+    if (user.deleted) {
+      throw new NotFoundException('User has been deleted.');
+    }
+
+    return user;
   }
 }

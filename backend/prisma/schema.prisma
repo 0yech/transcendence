@@ -59,6 +59,7 @@ model User {
   lobbyId String?
   lobby   Lobby?  @relation("LobbyUsers", fields: [lobbyId], references: [id], onDelete: SetNull)
 
+  totalPts  Int        @default(0)
   guildId   String?
   guild     Guild?     @relation("GuildMembers", fields: [guildId], references: [id], onDelete: SetNull)
   guildRole GuildRole?
@@ -215,7 +216,9 @@ model GamePlayer {
 
   hand Json @default("[]")
 
-  eliminatedAt DateTime?
+  pointWon           Int?
+  eliminatedAt       DateTime?
+  eliminatedPosition Int?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

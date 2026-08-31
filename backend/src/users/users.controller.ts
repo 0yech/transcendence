@@ -16,4 +16,14 @@ export class UsersController {
   findById(@Param('id') id: string) {
     return this.usersService.findIdentityById(id);
   }
+
+  @Get('public/id/:id')
+  findPublicById(@Param('id') id: string) {
+    return this.usersService.findPublicIdentityById(id);
+  }
+
+  @Get('public/username/:username')
+  findPublicByUser(@Param('username') username: string) {
+    return this.usersService.findPublicIdentityByUser(username);
+  }
 }
