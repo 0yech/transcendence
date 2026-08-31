@@ -36,12 +36,11 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
   const connect = useCallback(
     (code: string): Promise<boolean> => {
       return new Promise((resolve, reject) => {
-        const normalizedCode = code.trim().toUpperCase();
 
         /*
          * Already connected to this lobby.
          */
-        if (wsRef.current?.connected && codeLink.current === normalizedCode) {
+        if (wsRef.current?.connected && codeLink.current === code) {
           resolve(true);
           return;
         }
@@ -55,7 +54,7 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
           wsRef.current = null;
         }
 
-        codeLink.current = normalizedCode;
+        codeLink.current = code;
         gameStartedRef.current = false;
         setGameState(null);
 
@@ -104,7 +103,7 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
 
           if (e.turnNumber === 1 || e.currentPlayerId === userIdRef.current) {
             gameStartedRef.current = true;
-            navigate(`/game/${normalizedCode}/play`);
+            navigate(`/game/${code}/play`);
           }
 
           setGameState(e);
@@ -162,7 +161,7 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
           socket.emit(
             'game:join',
             {
-              lobbyCode: normalizedCode,
+              lobbyCode: code,
             },
             (
               ack: {
