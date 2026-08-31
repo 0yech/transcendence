@@ -36,7 +36,6 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
   const connect = useCallback(
     (code: string): Promise<boolean> => {
       return new Promise((resolve, reject) => {
-
         /*
          * Already connected to this lobby.
          */
