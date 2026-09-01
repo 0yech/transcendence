@@ -18,9 +18,9 @@ TODO
 
 ## Project Management
 
-GitHub Issues to know who does what
-
-Communicate via the Discord DM Group
+GitHub Issues were used to delegate individual tasks.
+Most of the project organization happened directly, either in person or through the Discord DMs group.
+Individual contributors talked with the entire group for every decision, ensuring transparent and efficient communications.
 
 ## Technical Stack
 
