@@ -13,6 +13,7 @@ TODO
 - [0yech](https://github.com/0yech) - Product Owner
 - [stellaaash](https://github.com/stellaaash) - Project Manager
 - 0yech - Tech Lead
+- tricaducee - Art Director
 - 0yech, stellaaash, tricaducee, Miniflint - Developers
 
 ## Project Management
