@@ -19,7 +19,7 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
   const wsRef = useRef<Socket | null>(null);
   const codeLink = useRef<string | null>(null);
   const userIdRef = useRef<string | null>(null);
-  const gameStartedRef = useRef<boolean>(false);
+  const gameNavigationDoneRef = useRef<boolean>(false);
   const [useGameState, setGameState] = useState<InterfaceGameState | null>(
     null,
   );
@@ -54,7 +54,7 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
         }
 
         codeLink.current = code;
-        gameStartedRef.current = false;
+        gameNavigationDoneRef.current = false;
         setGameState(null);
 
         const socket = io('/games', {
@@ -102,8 +102,8 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
 
           setGameState(e);
 
-          if (!gameStartedRef.current && e.turnNumber === 1) {
-            gameStartedRef.current = true;
+          if (!gameNavigationDoneRef.current && e.turnNumber === 1) {
+            gameNavigationDoneRef.current = true;
             navigate(`/game/${code}/play`);
           }
         });
@@ -329,7 +329,7 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
     }
 
     codeLink.current = null;
-    gameStartedRef.current = false;
+    gameNavigationDoneRef.current = false;
     setGameState(null);
   }
 
@@ -343,7 +343,7 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
   }
 
   function gameStarted(): boolean {
-    return gameStartedRef.current;
+    return useGameState?.status === 'IN_PROGRESS';
   }
 
   function userId(): string | null {
