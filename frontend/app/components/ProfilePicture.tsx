@@ -2,5 +2,11 @@ export default function ProfilePicture(props: {
   avatarUrl: string;
   username: string;
 }) {
-  return <img src={props.avatarUrl} alt={props.username} />;
+  let avatarUrl = props.avatarUrl;
+
+  if (!props.avatarUrl) {
+    avatarUrl = '/unknown.jpg';
+  }
+
+  return <img src={avatarUrl} alt={props.username} className="w-24" />;
 }
