@@ -10,10 +10,10 @@ TODO
 
 ## Team Information
 
-- [0yech](https://github.com/0yech) - Product Owner
-- [stellaaash](https://github.com/stellaaash) - Project Manager
-- 0yech - Tech Lead
-- [tricaducee](https://github.com/tricaducee) - Art Director
+- [0yech](https://github.com/0yech) - Product Owner - Making sure the project meets the expectations
+- [stellaaash](https://github.com/stellaaash) - Project Manager - Overseeing the day to day decisions of the project
+- 0yech - Tech Lead - Making technical decisions such as tool choice and design decisions
+- [tricaducee](https://github.com/tricaducee) - Art Director - Creating the art used by the project and designing the web pages
 - 0yech, stellaaash, tricaducee, [Miniflint](https://github.com/Miniflint) - Developers
 
 ## Project Management
