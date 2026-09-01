@@ -91,7 +91,10 @@ Total points: 7 (9)
 
 ## Individual Contributions
 
-TODO
+- 0yech handled the database schema, game logic, and took care of managing GitHub issues throughout the project, assigning people according to the project's goals and priorities.
+- stellaaash took care of the auth and OAuth processes, and all of its backend capabilities, while helping 0yech oversee the project and take design decisions.
+- tricaducee worked on the amazing art found all over the project's front-end, and designed the web pages in tandem with Miniflint.
+- Miniflint handled much of the frontend components, and added backend routes and features as the project grew.
 
 ## Resources
 
