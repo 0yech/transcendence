@@ -48,7 +48,6 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
       }
 
       const promise = new Promise<boolean>((resolve, reject) => {
-
         /*
          * Clean previous game socket BEFORE creating the new one.
          */
@@ -197,7 +196,7 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
          * Start connection only after ALL listeners are registered.
          */
         socket.connect();
-          });
+      });
 
       pendingConnectionRef.current = {
         code,
