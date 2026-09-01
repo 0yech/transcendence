@@ -12,12 +12,12 @@ TODO
 
 - [0yech](https://github.com/0yech) - Product Owner
 - [stellaaash](https://github.com/stellaaash) - Project Manager
-- xxx - Tech Lead
-- 0yech, stellaaash, xxx, xxx - Developpers
+- 0yech - Tech Lead
+- 0yech, stellaaash, tricaducee, Miniflint - Developers
 
-## Project Mangement
+## Project Management
 
-Github Issues to know who does what
+GitHub Issues to know who does what
 
 Communicate via the Discord DM Group
 
@@ -29,7 +29,7 @@ Communicate via the Discord DM Group
 - Back-end: NestJS
 - Database: PostgreSQL with Prisma ORM
 - Tailwind CSS for styling
-- TypeScript throughout the code base
+- TypeScript throughout the codebase
   TypeScript was chosen to make learning JavaScript simpler. It's not going to
   make life easy at first, but it will save us a lot of time in the long run,
   and will give us a better understanding of the code we're writing, as well as
@@ -53,7 +53,7 @@ TODO
 Total points: 5
 
 - Use a framework for the backend and the frontend (React for frontend, NestJS for backend) - Major +2
-- Realtime features using WebSockets (real-time chat) - Major +2
+- Real-time features using WebSockets (real-time chat) - Major +2
 - Use an ORM for the db (Prisma) - Minor +1
 
 ### 3. User Management
