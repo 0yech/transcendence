@@ -67,13 +67,12 @@ Total points: 4 (6)
 
 ### 6. Gaming
 
-Total points: 7 (10)
+Total points: 7 (9)
 
 - Complete web-based game (ONO card game) - Major +2
 - Remote players - Major +2
 - More than two players - Major +2
 - (Advanced 3D graphics with Three.js - Major +2)
-- (Tournament system - Minor +1)
 - Spectator mode - Minor +1
 
 ## Individual Contributions
