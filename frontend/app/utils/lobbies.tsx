@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import apiFetch, { handleJoinLobby, handleLeaveLobby } from './api-fetch';
 import { UseWebSocket } from '~/context/UseWebSocket';
+import ProfilePicture from '~/components/ProfilePicture';
 
 export interface UserInterface {
   id: string;
@@ -49,7 +50,10 @@ export function DisplayUsers(usersObject: { users: UserInterface[] | null }) {
                 {user.username} | {user.email}
               </p>
               {user.avatarUrl && (
-                <img src={user.avatarUrl} alt={user.username} />
+                <ProfilePicture
+                  avatarUrl={user.avatarUrl}
+                  username={user.username}
+                />
               )}
             </div>
           </li>
