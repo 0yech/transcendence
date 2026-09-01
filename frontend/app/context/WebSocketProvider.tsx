@@ -20,6 +20,10 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
   const codeLink = useRef<string | null>(null);
   const userIdRef = useRef<string | null>(null);
   const gameNavigationDoneRef = useRef<boolean>(false);
+  const pendingConnectionRef = useRef<{
+    code: string;
+    promise: Promise<boolean>;
+  } | null>(null);
   const [useGameState, setGameState] = useState<InterfaceGameState | null>(
     null,
   );
@@ -35,14 +39,15 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
    */
   const connect = useCallback(
     (code: string): Promise<boolean> => {
-      return new Promise((resolve, reject) => {
-        /*
-         * Already connected to this lobby.
-         */
-        if (wsRef.current?.connected && codeLink.current === code) {
-          resolve(true);
-          return;
-        }
+      if (wsRef.current?.connected && codeLink.current === code) {
+        return Promise.resolve(true);
+      }
+
+      if (pendingConnectionRef.current?.code === code) {
+        return pendingConnectionRef.current.promise;
+      }
+
+      const promise = new Promise<boolean>((resolve, reject) => {
 
         /*
          * Clean previous game socket BEFORE creating the new one.
@@ -192,7 +197,20 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
          * Start connection only after ALL listeners are registered.
          */
         socket.connect();
+          });
+
+      pendingConnectionRef.current = {
+        code,
+        promise,
+      };
+
+      promise.finally(() => {
+        if (pendingConnectionRef.current?.promise === promise) {
+          pendingConnectionRef.current = null;
+        }
       });
+
+      return promise;
     },
     [navigate],
   );
