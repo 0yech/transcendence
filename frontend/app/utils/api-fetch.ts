@@ -33,14 +33,22 @@ export default async function apiFetch(
 }
 
 export async function handleJoinLobby(code: string) {
-  apiFetch(`/api/lobbies/${code}/join`, {
+  const response = await apiFetch(`/api/lobbies/${code}/join`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-  }).catch((e) => {
-    throw new Error('Not logged in: ' + e);
   });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => null);
+
+    throw new Error(
+      error?.message ?? `Failed to join lobby (${response.status})`,
+    );
+  }
+
+  return response;
 }
 
 export async function handleLeaveLobby() {

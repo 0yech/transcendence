@@ -1,79 +1,362 @@
 import { redirect } from 'react-router';
-
 import apiFetch from '~/utils/api-fetch';
-import { GuildDetails, type Guild } from '~/components/guilds/GuildDetails';
+import {
+  GuildDetails,
+  type Guild,
+  type GuildMember,
+} from '~/components/guilds/GuildDetails';
 import { GuildCreation } from '~/components/guilds/GuildCreation';
+import type { GuildInvitation } from '~/components/guilds/GuildInvitations';
 import type { Route } from './+types/my-guild';
 import { NavBar } from '~/components/Navbar';
 
-export async function clientLoader(): Promise<Guild | null> {
-  const response = await apiFetch('/api/guilds/me');
+type GuildActionIntent =
+  | 'create-guild'
+  | 'accept-invitation'
+  | 'decline-invitation'
+  | 'invite-user'
+  | 'kick-member';
 
-  if (!response.ok) {
+interface MyGuildLoaderData {
+  guild: Guild | null;
+  invitations: GuildInvitation[];
+  currentUser: Pick<GuildMember, 'id' | 'guildRole'> | null;
+}
+
+interface ApiErrorBody {
+  message?: string | string[];
+}
+
+/**
+ * @brief Checks whether a form intent belongs to a supported guild action.
+ *
+ * @param intent The value received from the submitted form.
+ * @return True when the intent is a valid guild action.
+ */
+function isGuildActionIntent(
+  intent: FormDataEntryValue | null,
+): intent is GuildActionIntent {
+  return (
+    intent === 'create-guild' ||
+    intent === 'accept-invitation' ||
+    intent === 'decline-invitation' ||
+    intent === 'invite-user' ||
+    intent === 'kick-member'
+  );
+}
+
+/**
+ * @brief Retrieves the error message returned by the backend.
+ *
+ * NestJS can return either a string or an array of validation messages.
+ *
+ * @param response The failed backend response.
+ * @param fallback The fallback message when no backend message is available.
+ * @return The error message to display to the user.
+ */
+async function getApiErrorMessage(
+  response: Response,
+  fallback: string,
+): Promise<string> {
+  const data = (await response.json().catch(() => null)) as ApiErrorBody | null;
+
+  const message = data?.message;
+
+  if (Array.isArray(message)) {
+    return message.join(', ');
+  }
+
+  if (typeof message === 'string') {
+    return message;
+  }
+
+  return fallback;
+}
+
+/**
+ * @brief Loads the data required by the authenticated user's guild page.
+ *
+ * Users without a guild receive their pending invitations.
+ * Users inside a guild receive their id and guild role for permission checks.
+ *
+ * @return The current guild page data.
+ */
+export async function clientLoader(): Promise<MyGuildLoaderData> {
+  const guildResponse = await apiFetch('/api/guilds/me');
+
+  if (!guildResponse.ok) {
     throw new Error('Failed to fetch guild');
   }
 
-  const text = await response.text();
+  const guildText = await guildResponse.text();
 
-  if (!text) {
-    return null;
-  }
+  const guild = guildText ? (JSON.parse(guildText) as Guild) : null;
 
-  return JSON.parse(text) as Guild;
-}
+  /*
+   * A user without a guild only needs their pending invitations.
+   */
+  if (!guild) {
+    const invitationsResponse = await apiFetch('/api/guilds/invitations');
 
-export async function clientAction({ request }: Route.ClientActionArgs) {
-  const formData = await request.formData();
-  const name = formData.get('name');
+    if (!invitationsResponse.ok) {
+      throw new Error('Failed to fetch guild invitations');
+    }
 
-  if (typeof name !== 'string' || !name.trim()) {
+    const invitations = (await invitationsResponse.json()) as GuildInvitation[];
+
     return {
-      error: 'Guild name is required',
+      guild: null,
+      invitations,
+      currentUser: null,
     };
   }
 
-  const response = await apiFetch('/api/guilds', {
+  /*
+   * Guild management actions need the authenticated user's id and role.
+   */
+  const currentUserResponse = await apiFetch('/api/auth/me');
+
+  if (!currentUserResponse.ok) {
+    throw new Error('Failed to fetch current user');
+  }
+
+  const currentUser = (await currentUserResponse.json()) as Pick<
+    GuildMember,
+    'id' | 'guildRole'
+  >;
+
+  return {
+    guild,
+    invitations: [],
+    currentUser,
+  };
+}
+
+/**
+ * @brief Handles every guild action submitted from /guilds/me.
+ *
+ * @param request The request containing the submitted form data.
+ * @return An error object when the action fails, otherwise redirects
+ * to the refreshed guild page.
+ */
+export async function clientAction({ request }: Route.ClientActionArgs) {
+  const formData = await request.formData();
+  const intent = formData.get('_intent');
+
+  if (!isGuildActionIntent(intent)) {
+    return {
+      intent: null,
+      error: 'Unknown guild action',
+    };
+  }
+
+  if (intent === 'create-guild') {
+    const name = formData.get('name');
+
+    if (typeof name !== 'string' || !name.trim()) {
+      return {
+        intent,
+        error: 'Guild name is required',
+      };
+    }
+
+    const response = await apiFetch('/api/guilds', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: name.trim(),
+      }),
+    });
+
+    if (!response.ok) {
+      return {
+        intent,
+        error: await getApiErrorMessage(response, 'Failed to create guild'),
+      };
+    }
+
+    return redirect('/guilds/me');
+  }
+
+  if (intent === 'accept-invitation') {
+    const invitationId = formData.get('invitationId');
+
+    if (typeof invitationId !== 'string' || !invitationId.trim()) {
+      return {
+        intent,
+        error: 'Invitation id is required',
+      };
+    }
+
+    const response = await apiFetch(
+      `/api/guilds/invitations/${invitationId}/accept`,
+      {
+        method: 'POST',
+      },
+    );
+
+    if (!response.ok) {
+      return {
+        intent,
+        error: await getApiErrorMessage(
+          response,
+          'Failed to accept guild invitation',
+        ),
+      };
+    }
+
+    return redirect('/guilds/me');
+  }
+
+  if (intent === 'decline-invitation') {
+    const invitationId = formData.get('invitationId');
+
+    if (typeof invitationId !== 'string' || !invitationId.trim()) {
+      return {
+        intent,
+        error: 'Invitation id is required',
+      };
+    }
+
+    const response = await apiFetch(
+      `/api/guilds/invitations/${invitationId}/decline`,
+      {
+        method: 'POST',
+      },
+    );
+
+    if (!response.ok) {
+      return {
+        intent,
+        error: await getApiErrorMessage(
+          response,
+          'Failed to decline guild invitation',
+        ),
+      };
+    }
+
+    return redirect('/guilds/me');
+  }
+
+  if (intent === 'invite-user') {
+    const username = formData.get('username');
+
+    if (typeof username !== 'string' || !username.trim()) {
+      return {
+        intent,
+        error: 'Username is required',
+      };
+    }
+
+    const response = await apiFetch('/api/guilds/invitations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username: username.trim(),
+      }),
+    });
+
+    if (!response.ok) {
+      return {
+        intent,
+        error: await getApiErrorMessage(response, 'Failed to invite user'),
+      };
+    }
+
+    return {
+      intent,
+      success: 'User has been invited',
+    };
+  }
+
+  const memberId = formData.get('memberId');
+
+  if (typeof memberId !== 'string' || !memberId.trim()) {
+    return {
+      intent,
+      error: 'Member id is required',
+    };
+  }
+
+  const response = await apiFetch(`/api/guilds/members/${memberId}/kick`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      name: name.trim(),
-    }),
   });
 
   if (!response.ok) {
-    const data = await response.json().catch(() => null);
-
     return {
-      error: data?.message ?? 'Failed to create guild',
+      intent,
+      error: await getApiErrorMessage(response, 'Failed to kick guild member'),
     };
   }
 
   return redirect('/guilds/me');
 }
 
+/**
+ * @brief Displays either the user's guild or the no-guild page.
+ *
+ * @param loaderData The data loaded for the current guild state.
+ * @param actionData The result of the last guild action.
+ * @return The authenticated user's guild page.
+ */
 export default function MyGuild({
   loaderData,
   actionData,
 }: Route.ComponentProps) {
-  const guild = loaderData;
+  const { guild, invitations, currentUser } = loaderData;
 
   if (!guild) {
+    const creationError =
+      actionData?.intent === 'create-guild' ? actionData.error : undefined;
+
+    const invitationError =
+      actionData?.intent === 'accept-invitation' ||
+      actionData?.intent === 'decline-invitation'
+        ? actionData.error
+        : undefined;
+
     return (
       <>
-        <title>My Guild</title>
+        <title>Guild</title>
         <NavBar></NavBar>
-        <GuildCreation error={actionData?.error} />
+        <GuildCreation
+          invitations={invitations}
+          creationError={creationError}
+          invitationError={invitationError}
+        />
       </>
     );
   }
+
+  if (!currentUser) {
+    throw new Error('Current user is missing');
+  }
+
+  const inviteError =
+    actionData?.intent === 'invite-user' ? actionData.error : undefined;
+
+  const kickError =
+    actionData?.intent === 'kick-member' ? actionData.error : undefined;
+
+  const inviteSuccess =
+    actionData?.intent === 'invite-user' ? actionData.success : undefined;
 
   return (
     <>
       <title>{guild.name}</title>
       <NavBar></NavBar>
-      <GuildDetails guild={guild} />
+      <GuildDetails
+        guild={guild}
+        currentUserId={currentUser.id}
+        currentUserRole={currentUser.guildRole}
+        inviteError={inviteError}
+        inviteSuccess={inviteSuccess}
+        kickError={kickError}
+      />
     </>
   );
 }

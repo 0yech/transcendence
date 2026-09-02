@@ -21,6 +21,11 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
   const userIdRef = useRef<string | null>(null);
   const userRef = useRef<SelfUserInterface | null>(null);
   const gameStartedRef = useRef<boolean>(false);
+  const gameNavigationDoneRef = useRef<boolean>(false);
+  const pendingConnectionRef = useRef<{
+    code: string;
+    promise: Promise<boolean>;
+  } | null>(null);
   const [useGameState, setGameState] = useState<InterfaceGameState | null>(
     null,
   );
@@ -36,15 +41,15 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
    */
   const connect = useCallback(
     (code: string): Promise<boolean> => {
-      return new Promise((resolve, reject) => {
-        /*
-         * Already connected to this lobby.
-         */
-        if (wsRef.current?.connected && codeLink.current === code) {
-          resolve(true);
-          return;
-        }
+      if (wsRef.current?.connected && codeLink.current === code) {
+        return Promise.resolve(true);
+      }
 
+      if (pendingConnectionRef.current?.code === code) {
+        return pendingConnectionRef.current.promise;
+      }
+
+      const promise = new Promise<boolean>((resolve, reject) => {
         /*
          * Clean previous game socket BEFORE creating the new one.
          */
@@ -55,7 +60,7 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
         }
 
         codeLink.current = code;
-        gameStartedRef.current = false;
+        gameNavigationDoneRef.current = false;
         setGameState(null);
 
         const socket = io('/games', {
@@ -101,12 +106,12 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
         socket.on('game:state', (e) => {
           console.log('game:state', e);
 
-          if (e.turnNumber === 1 || e.currentPlayerId === userIdRef.current) {
-            gameStartedRef.current = true;
+          setGameState(e);
+
+          if (!gameNavigationDoneRef.current && e.turnNumber === 1) {
+            gameNavigationDoneRef.current = true;
             navigate(`/game/${code}/play`);
           }
-
-          setGameState(e);
         });
 
         socket.on('game:error', (e) => {
@@ -194,6 +199,19 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
          */
         socket.connect();
       });
+
+      pendingConnectionRef.current = {
+        code,
+        promise,
+      };
+
+      promise.finally(() => {
+        if (pendingConnectionRef.current?.promise === promise) {
+          pendingConnectionRef.current = null;
+        }
+      });
+
+      return promise;
     },
     [navigate],
   );
@@ -331,7 +349,7 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
     }
 
     codeLink.current = null;
-    gameStartedRef.current = false;
+    gameNavigationDoneRef.current = false;
     setGameState(null);
   }
 
@@ -345,7 +363,7 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
   }
 
   function gameStarted(): boolean {
-    return gameStartedRef.current;
+    return useGameState?.status === 'IN_PROGRESS';
   }
 
   function userId(): string | null {
