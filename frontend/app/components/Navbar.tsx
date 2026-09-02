@@ -64,7 +64,7 @@ export function NavBar({ className, variant = 'primary', ...rest }: NavProps) {
           ))}
         {user && (
           <li>
-            <ButtonNavLink to="/lobby">Lobbies</ButtonNavLink>
+            <ButtonNavLink to="/lobbies">Lobbies</ButtonNavLink>
           </li>
         )}
       </ul>
