@@ -20,7 +20,6 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
   const codeLink = useRef<string | null>(null);
   const userIdRef = useRef<string | null>(null);
   const userRef = useRef<SelfUserInterface | null>(null);
-  const gameStartedRef = useRef<boolean>(false);
   const gameNavigationDoneRef = useRef<boolean>(false);
   const pendingConnectionRef = useRef<{
     code: string;
