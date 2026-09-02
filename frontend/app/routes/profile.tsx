@@ -6,6 +6,7 @@ import { HomeButton } from './home';
 import { UseWebSocket } from '~/context/UseWebSocket';
 import { useNavigate } from 'react-router';
 import ProfilePicture from '~/components/ProfilePicture';
+import { NavBar } from '../components/Navbar';
 
 export async function clientLoader() {
   const data = await apiFetch('/api/auth/me');
@@ -33,6 +34,7 @@ export default function Profile({ loaderData }: Route.ComponentProps) {
   return (
     <>
       <title>{username}'s Profile</title>
+      <NavBar></NavBar>
       <h1 className="text-3xl font-bold">{username}'s Profile</h1>
       <ProfilePicture avatarUrl={avatarUrl} username={username} />
 

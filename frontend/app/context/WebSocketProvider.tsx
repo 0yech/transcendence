@@ -4,7 +4,7 @@ import { io, Socket } from 'socket.io-client';
 import { WebsocketContext } from './WebSocketContext';
 import { useNavigate } from 'react-router';
 import apiFetch from '~/utils/api-fetch';
-import type { InterfaceGameState } from './WebSocketContext';
+import type { InterfaceGameState, SelfUserInterface } from './WebSocketContext';
 
 /**
  *
@@ -19,6 +19,7 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
   const wsRef = useRef<Socket | null>(null);
   const codeLink = useRef<string | null>(null);
   const userIdRef = useRef<string | null>(null);
+  const userRef = useRef<SelfUserInterface | null>(null);
   const gameNavigationDoneRef = useRef<boolean>(false);
   const pendingConnectionRef = useRef<{
     code: string;
@@ -220,6 +221,7 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
         const authResponse = await apiFetch('/api/auth/me');
         const user = await authResponse.json();
 
+        userRef.current = user;
         userIdRef.current = user.id;
         const lobbyResponse = await apiFetch('/api/lobbies/me');
         if (!lobbyResponse.ok) {
@@ -238,7 +240,7 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
   }, [connect]);
 
   /**
-   *
+   *user.id
    * @brief handle the playing of card by slot number
    *
    * @async @returns create the new Promise<boolean> for the return or a throw if fails
@@ -371,6 +373,10 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
     userIdRef.current = id;
   }
 
+  function getUser(): SelfUserInterface | null {
+    return userRef.current;
+  }
+
   return (
     <WebsocketContext
       value={{
@@ -385,6 +391,7 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
         userId: userId,
         setUserId: setUserId,
         gameState: useGameState,
+        getUser: getUser,
       }}
     >
       {children}

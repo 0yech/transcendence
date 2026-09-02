@@ -6,7 +6,7 @@ import ProfilePicture from '~/components/ProfilePicture';
 import { Avatar } from '~/components/userProfiles/Avatar';
 import { Link } from 'react-router';
 
-export interface UserInterface {
+export interface UserInterfaceLobby {
   id: string;
   username: string;
   email: string;
@@ -42,7 +42,9 @@ interface LobbyInterface {
  *
  * @returns the jsx for the list of users in a <li>
  */
-export function DisplayUsers(usersObject: { users: UserInterface[] | null }) {
+export function DisplayUsers(usersObject: {
+  users: UserInterfaceLobby[] | null;
+}) {
   const { users } = usersObject;
   return (
     <ul>

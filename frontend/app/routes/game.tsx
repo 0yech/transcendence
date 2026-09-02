@@ -4,6 +4,7 @@ import apiFetch from '~/utils/api-fetch';
 import LobbyChat from '~/components/LobbyChat';
 import { getUserById } from '~/utils/users';
 import { useEffect, useState } from 'react';
+import { NavBar } from '~/components/Navbar';
 
 /**
  *
@@ -60,6 +61,7 @@ export default function PlayGame() {
 
   return (
     <>
+      <NavBar></NavBar>
       <div className="w-full h-dvh flex flex-col justify-center items-center gap-4">
         <div className="w-fit h-fit flex flex-col gap-4">
           <li>

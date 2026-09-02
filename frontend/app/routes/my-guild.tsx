@@ -8,6 +8,7 @@ import {
 import { GuildCreation } from '~/components/guilds/GuildCreation';
 import type { GuildInvitation } from '~/components/guilds/GuildInvitations';
 import type { Route } from './+types/my-guild';
+import { NavBar } from '~/components/Navbar';
 
 type GuildActionIntent =
   | 'create-guild'
@@ -321,7 +322,7 @@ export default function MyGuild({
     return (
       <>
         <title>Guild</title>
-
+        <NavBar></NavBar>
         <GuildCreation
           invitations={invitations}
           creationError={creationError}
@@ -347,7 +348,7 @@ export default function MyGuild({
   return (
     <>
       <title>{guild.name}</title>
-
+      <NavBar></NavBar>
       <GuildDetails
         guild={guild}
         currentUserId={currentUser.id}
