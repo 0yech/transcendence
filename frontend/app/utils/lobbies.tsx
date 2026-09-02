@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import apiFetch, { handleJoinLobby, handleLeaveLobby } from './api-fetch';
 import { UseWebSocket } from '~/context/UseWebSocket';
 import ProfilePicture from '~/components/ProfilePicture';
+import { Avatar } from '~/components/userProfiles/Avatar';
 
 export interface UserInterface {
   id: string;
@@ -195,12 +196,22 @@ export function LeaveLobby() {
   );
 }
 
+
+const buttonStyles = {
+  primary:
+    'bg-linear-to-r from-blue to-pink hover:bg-linear-to-r hover:from-pink hover:to-orange',
+  accept:
+    'bg-linear-to-r from-blue to-accept hover:bg-linear-to-r hover:from-mid-dark-blue hover:to-accept-active',
+  danger: 'bg-danger hover:bg-danger-active',
+} as const;
+
 /**
  *
  * @brief display the list of lobby every 5 seconds. can join by clicking on the lobby list
  * @brief each lobbies displayed are joinable by clicking on them.
  *
  */
+
 export default function DisplayLobbies() {
   const navigate = useNavigate();
   const [lobbies, setLobbies] = useState<LobbyInterface[]>([]);
@@ -227,6 +238,8 @@ export default function DisplayLobbies() {
 
     return () => clearInterval(interval);
   }, []);
+  
+  console.log(lobbies);
 
   if (loading && lobbies.length === 0) {
     return <h1>Chargement des salons...</h1>;
@@ -240,13 +253,13 @@ export default function DisplayLobbies() {
       ) : (
         <ul>
           {lobbies.map((item: LobbyInterface) => (
-            <li key={item.code}>
-              <button
-                className="rounded-full w-fit px-5 bg-blue-500 hover:bg-blue-700"
-                onClick={() => navigate(`/game/${item.code}`)}
-              >
-                Join Lobby: {item.code}
-              </button>
+            <li key={item.code} className='flex flex-row gap-2 bg-linear-to-r from-blue to-pink hover:bg-linear-to-r hover:from-pink hover:to-orange h-23 w-150 mb-8 rounded-full transition-all duration-10000'>
+              {item.users.map((user, index) => (
+                <div>
+                    <Avatar src={user.avatarUrl} sizes='16px'/>
+
+                </div>
+              ))}
             </li>
           ))}
         </ul>
