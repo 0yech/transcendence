@@ -5,6 +5,7 @@ import { UseWebSocket } from '~/context/UseWebSocket';
 import ProfilePicture from '~/components/ProfilePicture';
 import { Avatar } from '~/components/userProfiles/Avatar';
 import { Link } from 'react-router';
+import { NavBar } from '~/components/Navbar';
 
 export interface UserInterfaceLobby {
   id: string;
@@ -234,8 +235,6 @@ export default function DisplayLobbies() {
     return () => clearInterval(interval);
   }, []);
 
-  console.log(lobbies);
-
   if (loading && lobbies.length === 0) {
     return <h1>Chargement des salons...</h1>;
   }
@@ -246,7 +245,7 @@ export default function DisplayLobbies() {
         @keyframes fadeIn {
           from {
             opacity: 0;
-            transform: translateY(10px);
+            transform: translateY(15px);
           }
           to {
             opacity: 1;
@@ -254,19 +253,25 @@ export default function DisplayLobbies() {
           }
         }
         .animate-fadeIn {
-          animation: fadeIn 0.5s ease-in;
+          animation: fadeIn 0.4s ease-in both;
+          animation-delay: var(--delay, 0ms);
         }
       `}</style>
+      <NavBar></NavBar>
       <h1>Lobbies: {lobbies.length}</h1>
       {lobbies.length === 0 ? (
         <h1>No active lobbies</h1>
       ) : (
         <ul className="ml-4">
-          {lobbies.map((item: LobbyInterface) => (
-            <li key={item.code}>
+          {lobbies.map((item: LobbyInterface, index) => (
+            <li
+              key={item.code}
+              className={`animate-fadeIn`}
+              style={{ '--delay': `${index * 150}ms` } as React.CSSProperties}
+            >
               <Link
                 to={`/game/${item.code}`}
-                className="animate-fadeIn flex flex-row items-center gap-1 p-1.5 justify-between bg-linear-to-r from-blue to-pink hover:bg-linear-to-r hover:from-pink hover:to-orange h-23 w-100 rounded-[17px] group"
+                className={`flex flex-row items-center gap-1 p-1.5 mt-5 justify-between bg-linear-to-r from-blue to-pink hover:bg-linear-to-r hover:from-pink hover:to-orange h-23 w-100 rounded-[17px] group`}
               >
                 <div className="flex flex-col ml-1">
                   <ul className="flex h-1/2 -space-x-5 overflow-hidden p-1">
@@ -275,7 +280,7 @@ export default function DisplayLobbies() {
                         <Avatar
                           key={user.id}
                           src={user.avatarUrl}
-                          className="w-10 h-10 rounded-full ring-2 ring-black shadow-md hover:scale-110 transition-all duration-450"
+                          className="w-10 h-10 rounded-full ring-2 ring-black shadow-md hover:scale-110 transition-all duration-300"
                         />
                       </li>
                     ))}

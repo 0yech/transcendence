@@ -40,11 +40,15 @@ export function NavBar({ className, variant = 'primary', ...rest }: NavProps) {
           <ButtonNavLink to="/">Home</ButtonNavLink>
         </li>
         <li>
-          <ButtonNavLink to="/guilds">Guilds</ButtonNavLink>
+          <ButtonNavLink to="/guilds" end>
+            Guilds
+          </ButtonNavLink>
         </li>
         {user && user.guild && (
           <li>
-            <ButtonNavLink to="/guilds/me">My Guild</ButtonNavLink>
+            <ButtonNavLink to="/guilds/me" end>
+              My Guild
+            </ButtonNavLink>
           </li>
         )}
         {user &&
