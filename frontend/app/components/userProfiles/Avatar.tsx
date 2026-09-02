@@ -1,13 +1,13 @@
-import { twMerge } from 'tailwind-merge'
-import type { ImgHTMLAttributes } from 'react'
+import { twMerge } from 'tailwind-merge';
+import type { ImgHTMLAttributes } from 'react';
 
 const AvatarStyles = {
-  primary: "w-15 h-15 rounded-full",
+  primary: 'w-15 h-15 rounded-full',
 } as const;
 
-const srcEmpty = "/unknown.jpg";
+const srcEmpty = '/unknown.jpg';
 
-type AvatarProps = Omit<ImgHTMLAttributes<HTMLImageElement>, "src"> & {
+type AvatarProps = Omit<ImgHTMLAttributes<HTMLImageElement>, 'src'> & {
   variant?: keyof typeof AvatarStyles;
   src?: string | null;
 };
@@ -15,7 +15,7 @@ type AvatarProps = Omit<ImgHTMLAttributes<HTMLImageElement>, "src"> & {
 export function Avatar({
   className,
   src,
-  variant = "primary",
+  variant = 'primary',
   ...rest
 }: AvatarProps) {
   return (

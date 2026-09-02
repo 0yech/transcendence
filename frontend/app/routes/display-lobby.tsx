@@ -1,6 +1,5 @@
-import Lobbies from "~/utils/lobbies";
+import Lobbies from '~/utils/lobbies';
 
-export default function LobbiesPage()
-{
-    return (<Lobbies />);
+export default function LobbiesPage() {
+  return <Lobbies />;
 }

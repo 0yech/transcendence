@@ -4,6 +4,7 @@ import apiFetch, { handleJoinLobby, handleLeaveLobby } from './api-fetch';
 import { UseWebSocket } from '~/context/UseWebSocket';
 import ProfilePicture from '~/components/ProfilePicture';
 import { Avatar } from '~/components/userProfiles/Avatar';
+import { Link } from 'react-router';
 
 export interface UserInterface {
   id: string;
@@ -198,15 +199,6 @@ export function LeaveLobby() {
   );
 }
 
-
-const buttonStyles = {
-  primary:
-    'bg-linear-to-r from-blue to-pink hover:bg-linear-to-r hover:from-pink hover:to-orange',
-  accept:
-    'bg-linear-to-r from-blue to-accept hover:bg-linear-to-r hover:from-mid-dark-blue hover:to-accept-active',
-  danger: 'bg-danger hover:bg-danger-active',
-} as const;
-
 /**
  *
  * @brief display the list of lobby every 5 seconds. can join by clicking on the lobby list
@@ -215,7 +207,6 @@ const buttonStyles = {
  */
 
 export default function DisplayLobbies() {
-  const navigate = useNavigate();
   const [lobbies, setLobbies] = useState<LobbyInterface[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -240,7 +231,7 @@ export default function DisplayLobbies() {
 
     return () => clearInterval(interval);
   }, []);
-  
+
   console.log(lobbies);
 
   if (loading && lobbies.length === 0) {
@@ -249,40 +240,61 @@ export default function DisplayLobbies() {
 
   return (
     <>
+      <style>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.5s ease-in;
+        }
+      `}</style>
       <h1>Lobbies: {lobbies.length}</h1>
       {lobbies.length === 0 ? (
         <h1>No active lobbies</h1>
       ) : (
-          <ul>
-            {lobbies.map((item: LobbyInterface) => (
-              <li key={item.code} className='flex flex-row gap-2 p-1.5 ml-4 justify-between bg-linear-to-r from-blue to-pink hover:bg-linear-to-r hover:from-pink hover:to-orange h-23 w-150 mb-8 rounded-[17px] group'>
-                <div className='flex flex-col'>
-                  <ul className="flex h-1/2">
+        <ul className="ml-4">
+          {lobbies.map((item: LobbyInterface) => (
+            <li key={item.code}>
+              <Link
+                to={`/game/${item.code}`}
+                className="animate-fadeIn flex flex-row items-center gap-1 p-1.5 justify-between bg-linear-to-r from-blue to-pink hover:bg-linear-to-r hover:from-pink hover:to-orange h-23 w-100 rounded-[17px] group"
+              >
+                <div className="flex flex-col ml-1">
+                  <ul className="flex h-1/2 -space-x-5 overflow-hidden p-1">
                     {item.users.map((user) => (
-                      <li><Avatar
-                        key={user.id}
-                        src={user.avatarUrl}
-                        className='w-10 h-10 rounded-full ml-2 mr-2'
-                      /></li>
+                      <li className="relative">
+                        <Avatar
+                          key={user.id}
+                          src={user.avatarUrl}
+                          className="w-10 h-10 rounded-full ring-2 ring-black shadow-md hover:scale-110 transition-all duration-450"
+                        />
+                      </li>
                     ))}
                   </ul>
-                  <h1 className='flex ml-2 h-full items-center'>
-                    {item.code}
-                  </h1>
+                  <h1 className="flex ml-1 h-full items-center">{item.code}</h1>
                 </div>
-                <ul className='grid grid-rows-3 grid-cols-2'>
+                <ul className="grid grid-rows-3 grid-cols-2 m-1">
                   {item.users.map((user) => {
                     return (
-                    <>
-                    <li key={user.username} className={`transition-all duration-700 text-sm ${user.id === item.leaderId ? "font-extrabold text-black" : "text-light-yellow"}`}>
-                      {user.username}
-                    </li>
-                    <p className="text-green-500 text-sm">{user.totalPts}</p>
-                    </>
-                  )})}
+                      <li
+                        key={user.username}
+                        className={`ml-1 mr-1 text-sm ${user.id === item.leaderId ? 'font-extrabold text-black' : 'text-light-yellow'}`}
+                      >
+                        {user.username}
+                      </li>
+                    );
+                  })}
                 </ul>
-              </li>
-            ))}
+              </Link>
+            </li>
+          ))}
         </ul>
       )}
     </>
