@@ -83,3 +83,10 @@ export const publicUserSelect = {
   updatedAt: true,
   deleted: true,
 } as const;
+
+export const lobbyUserSelect = {
+  id: true,
+  username: true,
+  avatarUrl: true,
+  totalPts: true,
+};

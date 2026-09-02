@@ -1,4 +1,4 @@
-import { publicUserSelect } from 'src/users/users.select';
+import { lobbyUserSelect } from 'src/users/users.select';
 
 export const publicChatSelect = {
   id: true,
@@ -18,7 +18,7 @@ export const publicLobbySelect = {
   updatedAt: true,
 
   users: {
-    select: publicUserSelect,
+    select: lobbyUserSelect,
   },
 
   chat: {
