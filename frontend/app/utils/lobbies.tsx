@@ -14,6 +14,7 @@ export interface UserInterface {
   guildRole: string | null;
   createdAt: string;
   updatedAt: string;
+  totalPts: number | null;
 }
 
 interface ChatInterface {
@@ -30,6 +31,7 @@ interface LobbyInterface {
   private: boolean;
   createdAt: string;
   updatedAt: string;
+  leaderId: string;
   users: UserInterface[];
   chat: ChatInterface;
 }
@@ -251,17 +253,36 @@ export default function DisplayLobbies() {
       {lobbies.length === 0 ? (
         <h1>No active lobbies</h1>
       ) : (
-        <ul>
-          {lobbies.map((item: LobbyInterface) => (
-            <li key={item.code} className='flex flex-row gap-2 bg-linear-to-r from-blue to-pink hover:bg-linear-to-r hover:from-pink hover:to-orange h-23 w-150 mb-8 rounded-full transition-all duration-10000'>
-              {item.users.map((user, index) => (
-                <div>
-                    <Avatar src={user.avatarUrl} sizes='16px'/>
-
+          <ul>
+            {lobbies.map((item: LobbyInterface) => (
+              <li key={item.code} className='flex flex-row gap-2 p-1.5 ml-4 justify-between bg-linear-to-r from-blue to-pink hover:bg-linear-to-r hover:from-pink hover:to-orange h-23 w-150 mb-8 rounded-[17px] group'>
+                <div className='flex flex-col'>
+                  <ul className="flex h-1/2">
+                    {item.users.map((user) => (
+                      <li><Avatar
+                        key={user.id}
+                        src={user.avatarUrl}
+                        className='w-10 h-10 rounded-full ml-2 mr-2'
+                      /></li>
+                    ))}
+                  </ul>
+                  <h1 className='flex ml-2 h-full items-center'>
+                    {item.code}
+                  </h1>
                 </div>
-              ))}
-            </li>
-          ))}
+                <ul className='grid grid-rows-3 grid-cols-2'>
+                  {item.users.map((user) => {
+                    return (
+                    <>
+                    <li key={user.username} className={`transition-all duration-700 text-sm ${user.id === item.leaderId ? "font-extrabold text-black" : "text-light-yellow"}`}>
+                      {user.username}
+                    </li>
+                    <p className="text-green-500 text-sm">{user.totalPts}</p>
+                    </>
+                  )})}
+                </ul>
+              </li>
+            ))}
         </ul>
       )}
     </>
