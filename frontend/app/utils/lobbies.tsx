@@ -34,7 +34,7 @@ interface LobbyInterface {
   createdAt: string;
   updatedAt: string;
   leaderId: string;
-  users: UserInterface[];
+  users: UserInterfaceLobby[];
   chat: ChatInterface;
 }
 
