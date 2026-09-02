@@ -19,7 +19,7 @@ export interface InterfaceUserGameState {
   seat: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   status: string;
   handCount: 4;
-  hand: Array<InterfaceCardsGameState> | number;
+  hand: InterfaceCardsGameState[] | number;
 }
 
 export interface InterfaceGameState {
@@ -35,8 +35,44 @@ export interface InterfaceGameState {
   pendingPlays: number;
   turnNumber: number;
   deckCount: number;
-  discardPile: Array<InterfaceCardsGameState>;
-  players: Array<InterfaceUserGameState>;
+  discardPile: InterfaceCardsGameState[];
+  players: InterfaceUserGameState[];
+}
+
+export interface SelfGame {
+  id: string;
+  status: string;
+  winnerId: string | null;
+  createdAt: string;
+  startedAt: string;
+  finishedAt: string;
+}
+
+interface SelfMatchHistory {
+  id: string;
+  eliminatedAt: string | null;
+  eliminatedPosition: number | null;
+  pointWon: number | null;
+  game: SelfGame;
+}
+
+export interface SelfUserInterface {
+  id: string;
+  username: string;
+  email: string;
+  avatarUrl: string | null;
+  lobbyId: string | null;
+  gamePlayers: SelfMatchHistory[];
+  totalPts: 0;
+  guildId: string | null;
+  guildRole: 'LEADER' | 'OFFICER' | 'MEMBER' | null;
+  guild: {
+    id: string;
+    name: string;
+  } | null;
+  createdAt: string;
+  updatedAt: string;
+  deleted: boolean;
 }
 
 /**
@@ -55,6 +91,7 @@ interface InterfaceWSConnection {
   gameStarted: () => boolean;
   userId: () => string | null;
   setUserId: (id: string) => void;
+  getUser: () => SelfUserInterface | null;
   gameState: InterfaceGameState | null;
 }
 

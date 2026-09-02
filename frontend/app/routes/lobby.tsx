@@ -5,8 +5,9 @@ import { DisplayUsers, JoinLobby, LeaveLobby } from '~/utils/lobbies';
 import { useNavigate } from 'react-router';
 import { UseWebSocket } from '~/context/UseWebSocket';
 import { useState, useEffect } from 'react';
-import type { UserInterface } from '~/utils/lobbies';
+import type { UserInterfaceLobby } from '~/utils/lobbies';
 import LobbyChat from '~/components/LobbyChat';
+import { NavBar } from '~/components/Navbar';
 
 export async function clientLoader({ params }: { params: Params<string> }) {
   const { code } = params;
@@ -30,7 +31,7 @@ export async function clientLoader({ params }: { params: Params<string> }) {
  */
 export default function PreGame({ loaderData }: Route.ComponentProps) {
   const { startGame, userId } = UseWebSocket();
-  const [useUsers, setUsers] = useState<UserInterface[] | null>(null);
+  const [useUsers, setUsers] = useState<UserInterfaceLobby[] | null>(null);
 
   const {
     id,
@@ -61,7 +62,7 @@ export default function PreGame({ loaderData }: Route.ComponentProps) {
     return () => clearInterval(interval);
   }, [code]);
 
-  const users: UserInterface[] = useUsers ?? loaderData.users ?? [];
+  const users: UserInterfaceLobby[] = useUsers ?? loaderData.users ?? [];
   const currentUserId = userId();
 
   const isMember =
@@ -69,6 +70,7 @@ export default function PreGame({ loaderData }: Route.ComponentProps) {
 
   return (
     <>
+      <NavBar></NavBar>
       <li>
         <JoinLobby code={code} />
       </li>

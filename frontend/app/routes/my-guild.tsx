@@ -4,6 +4,7 @@ import apiFetch from '~/utils/api-fetch';
 import { GuildDetails, type Guild } from '~/components/guilds/GuildDetails';
 import { GuildCreation } from '~/components/guilds/GuildCreation';
 import type { Route } from './+types/my-guild';
+import { NavBar } from '~/components/Navbar';
 
 export async function clientLoader(): Promise<Guild | null> {
   const response = await apiFetch('/api/guilds/me');
@@ -62,7 +63,7 @@ export default function MyGuild({
     return (
       <>
         <title>My Guild</title>
-
+        <NavBar></NavBar>
         <GuildCreation error={actionData?.error} />
       </>
     );
@@ -71,7 +72,7 @@ export default function MyGuild({
   return (
     <>
       <title>{guild.name}</title>
-
+      <NavBar></NavBar>
       <GuildDetails guild={guild} />
     </>
   );

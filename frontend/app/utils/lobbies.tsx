@@ -4,7 +4,7 @@ import apiFetch, { handleJoinLobby, handleLeaveLobby } from './api-fetch';
 import { UseWebSocket } from '~/context/UseWebSocket';
 import ProfilePicture from '~/components/ProfilePicture';
 
-export interface UserInterface {
+export interface UserInterfaceLobby {
   id: string;
   username: string;
   email: string;
@@ -29,7 +29,7 @@ interface LobbyInterface {
   private: boolean;
   createdAt: string;
   updatedAt: string;
-  users: UserInterface[];
+  users: UserInterfaceLobby[];
   chat: ChatInterface;
 }
 
@@ -38,7 +38,9 @@ interface LobbyInterface {
  *
  * @returns the jsx for the list of users in a <li>
  */
-export function DisplayUsers(usersObject: { users: UserInterface[] | null }) {
+export function DisplayUsers(usersObject: {
+  users: UserInterfaceLobby[] | null;
+}) {
   const { users } = usersObject;
   return (
     <ul>

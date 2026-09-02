@@ -4,6 +4,7 @@ import type { Route } from './+types/login';
 import { redirect, useSearchParams } from 'react-router';
 import { OauthLoginOptions } from '~/pages/auth/oauth';
 import { StylisedLink } from '../components/StylisedLink';
+import { NavBar } from '~/components/Navbar';
 
 export async function clientAction({ request }: Route.ClientActionArgs) {
   const data = await request.formData();
@@ -63,17 +64,18 @@ export default function Login({ actionData }: Route.ComponentProps) {
   return (
     <>
       <title>Transcendence</title>
+      <NavBar></NavBar>
       <div className="w-full h-dvh flex justify-center items-center">
-        <div className="w-fit h-fit flex flex-col items-center gap-2">
+        <div className="w-fit p-5 rounded-4xl bg-dark-blue/10 shadow-xl shadow-dark-blue/20 h-fit flex flex-col items-center gap-2">
           <h1 className="text-2xl">Login to Transcendence</h1>
           <LoginForm />
+          {errorMessage ? <ErrorMessage message={errorMessage} /> : null}
           <h1 className="text-1xl text-center">
             Don't have an account yet?{' '}
             <StylisedLink to="/register">Sign up</StylisedLink>
           </h1>
           <hr className="w-70 my-2 border-0 h-1 rounded-full bg-mid-dark-blue" />
           <OauthLoginOptions />
-          {errorMessage ? <ErrorMessage message={errorMessage} /> : null}
         </div>
       </div>
     </>
