@@ -74,6 +74,10 @@ export function NavBar({ className, variant = 'primary', ...rest }: NavProps) {
       </ul>
       <div>
         <Avatar
+          className={twMerge(
+            menuVisibility ? 'shadow-xl shadow-pink' : 'shadow-none',
+            'h-12 w-12 transition-all duration-500 ease-in-out',
+          )}
           onClick={() => {
             setMenuVisibility(!menuVisibility);
           }}
@@ -101,12 +105,14 @@ export function NavBar({ className, variant = 'primary', ...rest }: NavProps) {
             </li>
           )}
           {user && user.id ? (
-            <li className="flex justify-center">
+            <li className="rounded-2xl flex justify-center">
               <LogoutButton />
             </li>
           ) : (
             <li>
-              <ButtonNavLink to="/login">Sign in</ButtonNavLink>
+              <ButtonNavLink className="rounded-2xl" to="/login">
+                Sign in
+              </ButtonNavLink>
             </li>
           )}
         </ul>
