@@ -64,9 +64,9 @@ export default function Login({ actionData }: Route.ComponentProps) {
   return (
     <>
       <title>Transcendence</title>
-      <NavBar></NavBar>
+      <NavBar className="fixed"></NavBar>
       <div className="w-full h-dvh flex justify-center items-center">
-        <div className="w-fit p-5 rounded-4xl bg-dark-blue/10 shadow-xl shadow-dark-blue/20 h-fit flex flex-col items-center gap-2">
+        <div className="w-fit p-5 rounded-4xl bg-dark-blue/20 shadow-xl shadow-dark-blue/30 h-fit flex flex-col items-center gap-2">
           <h1 className="text-2xl">Login to Transcendence</h1>
           <LoginForm />
           {errorMessage ? <ErrorMessage message={errorMessage} /> : null}

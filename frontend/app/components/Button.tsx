@@ -13,6 +13,7 @@ const buttonStyles = {
     'bg-linear-to-r from-blue to-accept hover:bg-linear-to-r hover:from-mid-dark-blue hover:to-accept-active hover:shadow-lg hover:shadow-green',
   danger:
     'bg-linear-to-r from-mid-dark-orange to-danger hover:bg-linear-to-r hover:from-dark-orange hover:to-danger-active hover:shadow-lg hover:shadow-orange',
+  oauth: 'justify-start hover:shadow-lg hover:shadow-mid-light-pink',
 } as const;
 
 const baseStyle =

@@ -38,9 +38,9 @@ export default function Register({ actionData }: Route.ComponentProps) {
   return (
     <>
       <title>Register to Transcendence</title>
-      <NavBar></NavBar>
+      <NavBar className="fixed"></NavBar>
       <div className="w-full h-dvh flex justify-center items-center">
-        <div className="p-5 rounded-4xl bg-dark-blue/10 shadow-xl shadow-dark-blue/20 w-fit h-fit flex flex-col items-center gap-2">
+        <div className="p-5 rounded-4xl bg-dark-blue/20 shadow-xl shadow-dark-blue/30 w-fit h-fit flex flex-col items-center gap-2">
           <h1 className="text-2xl text-center">Register to Transcendence</h1>
           <RegisterForm />
           {errorMessage ? <ErrorMessage message={errorMessage} /> : null}
