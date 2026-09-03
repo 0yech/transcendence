@@ -2,7 +2,7 @@ export default function TermsOfService() {
   return (
     <main className="mx-auto max-w-2xl space-y-4 p-6">
       <h1 className="text-3xl font-semibold">Terms of Service</h1>
-      <p className="text-sm">Last updated: 10.08.2026</p>
+      <p className="text-sm">Last updated: 02.09.2026</p>
 
       <p>
         These terms govern your use of NONO99, an online multiplayer card game.
@@ -133,11 +133,16 @@ export default function TermsOfService() {
 
       <h2 className="pt-4 text-xl font-semibold">Ending things</h2>
       <p>
-        You can leave at any time. Email us at{' '}
+        You can leave at any time. The <strong>Delete account</strong> button on
+        your profile deactivates your account, but it does not erase what we
+        hold about you: our privacy policy sets out exactly what stays.
+      </p>
+      <p>
+        If you want that erased too, email us at{' '}
         <a className="underline" href="mailto:aisling.fontaine@pm.me">
           aisling.fontaine@pm.me
         </a>{' '}
-        and we will remove your account and the data attached to it.
+        and we will delete it by hand.
       </p>
       <p>
         We may suspend or terminate your account if you break these terms, if
