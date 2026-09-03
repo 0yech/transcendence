@@ -55,6 +55,7 @@ model User {
   hashedPassword String?
   oauthProvider  OAuthProvider?
   avatarUrl      String?
+  avatar         Avatar?
 
   lobbyId String?
   lobby   Lobby?  @relation("LobbyUsers", fields: [lobbyId], references: [id], onDelete: SetNull)
@@ -79,6 +80,23 @@ model User {
   deleted Boolean @default(false)
 
   @@index([guildId])
+}
+
+/// An uploaded profile picture. One row per user, replaced on every upload, so
+/// the row id is stable and `updatedAt` is what versions the URL that serves it.
+model Avatar {
+  id String @id @default(cuid())
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Raw image data. Always one of the formats in `allowedAvatarMimeTypes`.
+  bytes    Bytes
+  /// Sniffed from the magic bytes on upload, never taken from the client.
+  mimeType String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Guild {
