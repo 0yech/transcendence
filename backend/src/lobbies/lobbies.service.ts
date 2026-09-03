@@ -104,12 +104,11 @@ export class LobbiesService {
    * @brief Creates a new lobby and adds the user in it.
    *
    * @param user The user's JWT payload.
-   * @param body Parameters for private/password
    * @return The newly created lobby.
    */
   async createLobby(
     userId: string,
-    data?: { private?: boolean; password?: string },
+    data?: { private?: boolean },
   ) {
     return this.prisma.$transaction(async (tx) => {
       const user = await tx.user.findUnique({
@@ -131,7 +130,6 @@ export class LobbiesService {
         data: {
           code,
           private: data?.private ?? false,
-          password: data?.password,
           leaderId: userId,
           chat: {
             create: {},
@@ -160,6 +158,7 @@ export class LobbiesService {
     return this.prisma.lobby.findMany({
       where: {
         active: true,
+        private: false,
       },
       select: publicLobbySelect,
       orderBy: {
@@ -218,10 +217,9 @@ export class LobbiesService {
    *
    * @param user The user's JWT payload.
    * @param code The code of the lobby to join.
-   * @param body Password if private
    * @return The lobby joined by the authenticated user.
    */
-  async joinLobby(lobbyCode: string, userId: string, password?: string) {
+  async joinLobby(lobbyCode: string, userId: string) {
     return this.prisma.$transaction(async (tx) => {
       const lobby = await tx.lobby.findFirst({
         where: {
@@ -232,16 +230,11 @@ export class LobbiesService {
           id: true,
           code: true,
           private: true,
-          password: true,
         },
       });
 
       if (!lobby) {
         throw new NotFoundException(`Lobby with code ${lobbyCode} not found`);
-      }
-
-      if (lobby.private && lobby.password !== password) {
-        throw new ForbiddenException('Invalid lobby password');
       }
 
       const user = await tx.user.findUnique({

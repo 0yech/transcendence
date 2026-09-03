@@ -8,6 +8,9 @@ import { Link } from 'react-router';
 import { NavBar } from '~/components/Navbar';
 import { twMerge } from 'tailwind-merge';
 import { UserPopUp } from '~/components/userProfiles/userProfile';
+import { Input } from '~/components/Input';
+import { Form } from "react-router"
+import { Button } from '~/components/Button';
 
 export interface UserInterfaceLobby {
   id: string;
@@ -72,63 +75,25 @@ export function DisplayUsers(usersObject: {
 }
 
 /**
- * @brief Component that handle the conditions as stated below
- * @brief handle the "go to game" if a lobby is active
- * @brief handle the "go to lobby" if a lobby is active
- * @brief handle the "create lobby" if no lobby is active
- *
- * @returns the JSX necessary of stated up
- */
-export function GoToActiveLobby() {
-  const { isConnected, gameStarted } = UseWebSocket();
-  const isConnectedToWs = isConnected();
-  const activeLobby = gameStarted();
-  const navigate = useNavigate();
-  return (
-    <>
-      {isConnectedToWs ? (
-        <li>
-          {activeLobby ? (
-            <button
-              className="rounded-full w-fit px-5 bg-blue-500 hover:bg-blue-700"
-              onClick={() => navigate(`/game/${isConnectedToWs}/play`)}
-            >
-              Go to active game
-            </button>
-          ) : (
-            <button
-              className="rounded-full w-fit px-5 bg-blue-500 hover:bg-blue-700"
-              onClick={() => navigate(`/game/${isConnectedToWs}`)}
-            >
-              Go to active lobby
-            </button>
-          )}
-        </li>
-      ) : (
-        <li>
-          <CreateNewLobby />
-        </li>
-      )}
-    </>
-  );
-}
-
-/**
  *
  * @brief create a lobby using the api POST /api/lobbies
  *
  */
-export function CreateNewLobby() {
+export function CreateNewLobbies() {
   const { connect } = UseWebSocket();
   const navigate = useNavigate();
-  async function handleClick() {
+  async function handleClick(isLobbPrivate: boolean) {
     const rep = await apiFetch('/api/lobbies', {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
-        private: false,
+        private: isLobbPrivate,
       }),
     });
-    if (!rep.ok) return;
+    if (!rep.ok)
+      return;
     apiFetch('/api/lobbies/me')
       .then((data) => data.json())
       .then((json) => {
@@ -137,16 +102,12 @@ export function CreateNewLobby() {
           .catch((e) => console.error(e));
       });
   }
-  return (
-    <h2>
-      <button
-        className="rounded-full w-fit px-5 bg-blue-500 hover:bg-blue-700"
-        onClick={() => handleClick()}
-      >
-        Create lobby
-      </button>
-    </h2>
-  );
+  return (<>
+    <div className="flex flex-col gap-5 w-80">
+      <Button className="w-full h-15" variant="accept" onClick={() => {handleClick(false)}}>Create Lobby</Button>
+      <Button className="w-full h-15" variant="danger" onClick={() => {handleClick(true)}}>Create Private Lobby</Button>
+    </div>
+</>);
 }
 
 /**
@@ -276,12 +237,18 @@ export default function DisplayLobbies() {
         }
       `}</style>
       <NavBar></NavBar>
-      <CreateNewLobby></CreateNewLobby>
-      <h1>Lobbies: {lobbies.length}</h1>
+      <div className="flex justify-around items-center">
+          <Form className="flex flex-col gap-5 w-80">
+            <Input className="w-full h-15" type='text' name="code" id="code" placeholder='Code' autoComplete='code' required>
+            </Input>
+            <Button className="w-full h-15" variant="accept">Join lobby by code</Button>
+          </Form>
+          <CreateNewLobbies />
+      </div>
       {lobbies.length === 0 ? (
         <h1>No active lobbies</h1>
       ) : (
-        <ul className="ml-4">
+        <ul className="ml-4 flex flex-col gap-5 mt-5 items-center">
           {lobbies.map((item: LobbyInterface, index) => (
             <li
               key={item.code}
@@ -290,7 +257,7 @@ export default function DisplayLobbies() {
             >
               <Link
                 to={`/game/${item.code}`}
-                className={`flex flex-row items-center gap-1 p-1.5 mt-5 justify-between bg-linear-to-r from-blue to-pink hover:bg-linear-to-r hover:from-pink hover:to-orange h-23 w-100 rounded-[17px] group`}
+                className={`flex items-center gap-1 p-1.5 justify-between bg-linear-to-r from-blue to-pink hover:bg-linear-to-r hover:from-pink hover:to-orange h-23 w-100 rounded-[17px] group`}
               >
                 <div className="flex flex-col ml-1">
                   <ul className="flex h-1/2 -space-x-5 overflow-hidden p-1">

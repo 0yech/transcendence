@@ -409,14 +409,12 @@ Creates a lobby owned by the authenticated user.
 ```json
 {
   "private": true,
-  "password": "optional-password"
 }
 ```
 
 | Field      | Type    | Required | Description                              |
 | ---------- | ------- | -------: | ---------------------------------------- |
 | `private`  | boolean |       No | Whether the lobby is private             |
-| `password` | string  |       No | Password used for protected lobby access |
 
 **Success response:** Created lobby object.
 
@@ -433,16 +431,6 @@ Adds the authenticated user to a lobby.
 | Parameter | Type   | Description |
 | --------- | ------ | ----------- |
 | `code`    | string | Lobby code  |
-
-**Request body**
-
-```json
-{
-  "password": "optional-password"
-}
-```
-
-The `password` field is optional and is used for protected lobbies.
 
 **Success response:** Updated/joined lobby state.
 

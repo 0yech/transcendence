@@ -32,31 +32,34 @@ async function getFetch(apiPath: string) {
  *
  */
 export default function Home() {
-  const { gameStarted, getCode } = UseWebSocket();
-  const [user, setUser] = useState<SelfUserInterface | null>(null);
+  const { gameStarted, getCode, setUser, getUser } = UseWebSocket();
+  const [userCurr, setUserCurr] = useState<SelfUserInterface | null>(null);
   useEffect(() => {
     async function fetchUser() {
       const data = await getFetch('/api/auth/me');
       if (data && data.username) {
-        setUser(data);
+        setUserCurr(data);
       }
     }
-
     fetchUser();
   }, []);
+  if (userCurr)
+    setUser(userCurr);
+  console.log("user: ");
+  console.log(getUser());
   return (
     <>
       <title>Transcendence</title>
       <NavBar className="fixed"></NavBar>
       <div className="h-dvh w-full bg-[url(/miku.png)] bg-size-[auto_150%] bg-no-repeat bg-position-[50%_-30%]">
         <div className="h-full w-full flex flex-col justify-end items-center bg-linear-to-t from-black via-dark-blue/0 to-dark-blue/0">
-          {user?.id ? (
+          {userCurr?.id ? (
             <div className="flex gap-6 mb-30">
               {/* <ButtonLinkIn className='text-5xl font-black p-6' to="/lobbies">Join Lobby</ButtonLinkIn> */}
               <ButtonLinkIn
                 className="text-5xl font-black p-6"
                 to={
-                  user.lobbyId
+                  userCurr.lobbyId
                     ? gameStarted()
                       ? `/game/${getCode()}/play`
                       : `/game/${getCode()}`
