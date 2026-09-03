@@ -28,7 +28,7 @@ export function NavBar({ className, variant = 'primary', ...rest }: NavProps) {
       .then((data) => data.json())
       .then((json) => setUser(json))
       .catch((e) => console.log(e));
-  }, [user]);
+  }, []);
 
   return (
     <nav
