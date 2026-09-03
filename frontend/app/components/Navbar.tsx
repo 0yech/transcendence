@@ -44,14 +44,14 @@ export function NavBar({ className, variant = 'primary', ...rest }: NavProps) {
             Guilds
           </ButtonNavLink>
         </li>
-        {user && user.guild && (
+        {user?.id && (
           <li>
             <ButtonNavLink to="/guilds/me" end>
-              My Guild
+              {user.guild ? 'My Guild' : 'Create Guild'}
             </ButtonNavLink>
           </li>
         )}
-        {user &&
+        {user?.id &&
           user.lobbyId &&
           (gameStarted() ? (
             <li>
@@ -66,7 +66,7 @@ export function NavBar({ className, variant = 'primary', ...rest }: NavProps) {
               </ButtonNavLink>
             </li>
           ))}
-        {user && (
+        {user?.id && (
           <li>
             <ButtonNavLink to="/lobbies">Lobbies</ButtonNavLink>
           </li>
@@ -91,7 +91,7 @@ export function NavBar({ className, variant = 'primary', ...rest }: NavProps) {
               : 'pointer-events-none opacity-0 -translate-y-3',
           )}
         >
-          {user && user.id ? (
+          {user?.id ? (
             <li>
               <ButtonNavLink className="rounded-2xl" to="/profile">
                 Profile
@@ -104,7 +104,7 @@ export function NavBar({ className, variant = 'primary', ...rest }: NavProps) {
               </ButtonNavLink>
             </li>
           )}
-          {user && user.id ? (
+          {user?.id ? (
             <li className="rounded-2xl flex justify-center">
               <LogoutButton />
             </li>
