@@ -92,6 +92,7 @@ interface InterfaceWSConnection {
   userId: () => string | null;
   setUserId: (id: string) => void;
   getUser: () => SelfUserInterface | null;
+  getCode: () => string | null;
   gameState: InterfaceGameState | null;
 }
 
