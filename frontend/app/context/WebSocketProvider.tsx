@@ -377,6 +377,10 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
     return userRef.current;
   }
 
+  function getCode(): string | null {
+    return codeLink.current;
+  }
+
   return (
     <WebsocketContext
       value={{
@@ -392,6 +396,7 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
         setUserId: setUserId,
         gameState: useGameState,
         getUser: getUser,
+        getCode: getCode,
       }}
     >
       {children}
