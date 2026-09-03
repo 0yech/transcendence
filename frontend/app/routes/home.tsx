@@ -1,7 +1,10 @@
-import { Welcome } from '../pages/welcome';
+// import { Welcome } from '../pages/welcome';
 import { useNavigate } from 'react-router';
 import { useState, useEffect } from 'react';
 import { NavBar } from '~/components/Navbar';
+import type { SelfUserInterface } from '~/context/WebSocketContext';
+import { ButtonLinkIn } from '~/components/Button';
+import { UseWebSocket } from '~/context/UseWebSocket';
 
 export function HomeButton() {
   const navigate = useNavigate();
@@ -29,18 +32,13 @@ async function getFetch(apiPath: string) {
  *
  */
 export default function Home() {
-  const [user, setUser] = useState({
-    username: 'Login',
-    avatarUrl: 'Chargement...',
-  });
+  const { gameStarted, getCode } = UseWebSocket();
+  const [user, setUser] = useState<SelfUserInterface | null>(null);
   useEffect(() => {
     async function fetchUser() {
       const data = await getFetch('/api/auth/me');
       if (data && data.username) {
-        setUser({
-          username: data.username || 'Login',
-          avatarUrl: data.avatarUrl || '',
-        });
+        setUser(data);
       }
     }
 
@@ -49,8 +47,37 @@ export default function Home() {
   return (
     <>
       <title>Transcendence</title>
-      <NavBar></NavBar>
-      <Welcome data={user} />
+      <NavBar className="fixed"></NavBar>
+      <div className="h-dvh w-full bg-[url(/miku.png)] bg-size-[auto_150%] bg-no-repeat bg-position-[50%_-30%]">
+        <div className="h-full w-full flex flex-col justify-end items-center bg-linear-to-t from-black via-dark-blue/0 to-dark-blue/0">
+          {user?.id ? (
+            <div className="flex gap-6 mb-30">
+              {/* <ButtonLinkIn className='text-5xl font-black p-6' to="/lobbies">Join Lobby</ButtonLinkIn> */}
+              <ButtonLinkIn
+                className="text-5xl font-black p-6"
+                to={
+                  user.lobbyId
+                    ? gameStarted()
+                      ? `/game/${getCode()}/play`
+                      : `/game/${getCode()}`
+                    : '/lobbies'
+                }
+              >
+                Play Now
+              </ButtonLinkIn>
+            </div>
+          ) : (
+            <div className="flex gap-6 mb-30">
+              <ButtonLinkIn className="text-5xl font-black p-6" to="/login">
+                Sign In
+              </ButtonLinkIn>
+              <ButtonLinkIn className="text-5xl font-black p-6" to="/register">
+                Sign Up
+              </ButtonLinkIn>
+            </div>
+          )}
+        </div>
+      </div>
     </>
   );
 }
