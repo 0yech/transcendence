@@ -89,4 +89,10 @@ export const lobbyUserSelect = {
   username: true,
   avatarUrl: true,
   totalPts: true,
+  guildRole: true,
+  guild: {
+    select: {
+      name: true,
+    },
+  },
 };

@@ -1,21 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import apiFetch, { handleJoinLobby, handleLeaveLobby } from './api-fetch';
 import { UseWebSocket } from '~/context/UseWebSocket';
 import ProfilePicture from '~/components/ProfilePicture';
-import { Avatar } from '~/components/userProfiles/Avatar';
+import { Avatar } from '~/components/Avatar';
 import { Link } from 'react-router';
 import { NavBar } from '~/components/Navbar';
+import { twMerge } from 'tailwind-merge';
+import { UserPopUp } from '~/components/userProfiles/userProfile';
 
 export interface UserInterfaceLobby {
   id: string;
   username: string;
-  email: string;
   avatarUrl: string | null;
-  guildId: string | null;
   guildRole: string | null;
-  createdAt: string;
-  updatedAt: string;
+  guild: {
+    name: string;
+  } | null;
   totalPts: number | null;
 }
 
@@ -53,9 +54,7 @@ export function DisplayUsers(usersObject: {
         users.map((user) => (
           <li key={user.id}>
             <div>
-              <p>
-                {user.username} | {user.email}
-              </p>
+              <p>{user.username}</p>
               {user.avatarUrl && (
                 <ProfilePicture
                   avatarUrl={user.avatarUrl}
@@ -212,6 +211,24 @@ export function LeaveLobby() {
 export default function DisplayLobbies() {
   const [lobbies, setLobbies] = useState<LobbyInterface[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [hoveredUserId, setHoveredUserId] = useState<string | null>(null);
+  const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const HOVER_DELAY = 150;
+  const handleUsernameEnter = (userId: string) => {
+    hoverTimeout.current = setTimeout(() => {
+      setHoveredUserId(userId);
+    }, HOVER_DELAY);
+  };
+
+  const handleUsernameLeave = () => {
+    if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
+    setHoveredUserId(null);
+  };
+
+  useEffect(() => {
+    console.log(hoveredUserId);
+  }, [hoveredUserId]);
 
   const fetchLobbies = async () => {
     try {
@@ -239,6 +256,7 @@ export default function DisplayLobbies() {
     return <h1>Chargement des salons...</h1>;
   }
 
+  console.log(lobbies);
   return (
     <>
       <style>{`
@@ -258,6 +276,7 @@ export default function DisplayLobbies() {
         }
       `}</style>
       <NavBar></NavBar>
+      <CreateNewLobby></CreateNewLobby>
       <h1>Lobbies: {lobbies.length}</h1>
       {lobbies.length === 0 ? (
         <h1>No active lobbies</h1>
@@ -276,9 +295,28 @@ export default function DisplayLobbies() {
                 <div className="flex flex-col ml-1">
                   <ul className="flex h-1/2 -space-x-5 overflow-hidden p-1">
                     {item.users.map((user) => (
-                      <li className="relative">
+                      <li
+                        key={user.id}
+                        className=""
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          console.log(user.username);
+                        }}
+                        onMouseEnter={() => handleUsernameEnter(user.id)}
+                        onMouseLeave={handleUsernameLeave}
+                      >
+                        <div
+                          className={twMerge(
+                            hoveredUserId === user.id
+                              ? 'opacity-100'
+                              : 'opacity-0',
+                            'bg-white/10 text-shadow-lg transittion-all duration-400 ease-out rounded-2xl backdrop-blur-xs shadow-lg absolute ml-0.5 mt-10 h-18 z-20',
+                          )}
+                        >
+                          <UserPopUp user={user} />
+                        </div>
                         <Avatar
-                          key={user.id}
                           src={user.avatarUrl}
                           className="w-10 h-10 rounded-full ring-2 ring-black shadow-md hover:scale-110 transition-all duration-300"
                         />
