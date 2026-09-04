@@ -64,6 +64,17 @@ export default tseslint.config(
           format: null,
           filter: { regex: '^(OR|AND|NOT)$', match: true },
         },
+        // Prisma compound keys: the members of an `@@unique` / `@@id` joined
+        // by `_` (e.g. oauthProvider_oauthProviderId). Prisma generates these
+        // names from the schema, so we can't rename them.
+        {
+          selector: 'objectLiteralProperty',
+          format: null,
+          filter: {
+            regex: '^[a-z][a-zA-Z0-9]*(_[a-z][a-zA-Z0-9]*)+$',
+            match: true,
+          },
+        },
       ],
     },
   },
