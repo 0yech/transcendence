@@ -81,6 +81,7 @@ model User {
   deleted Boolean @default(false)
 
   @@index([guildId])
+  @@unique([oauthProvider, oauthProviderId])
 }
 
 /// An uploaded profile picture. One row per user, replaced on every upload, so
