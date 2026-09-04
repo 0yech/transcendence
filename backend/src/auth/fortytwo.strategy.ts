@@ -52,7 +52,8 @@ export class FortytwoStrategy extends PassportStrategy(
       !emails[0].value ||
       !photos ||
       !photos[0] ||
-      !photos[0].value
+      !photos[0].value ||
+      !profile.id
     ) {
       throw new OAuthException(OAuthError.MISSING_DATA);
     }

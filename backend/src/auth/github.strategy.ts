@@ -32,7 +32,8 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
       !emails[0].value ||
       !photos ||
       !photos[0] ||
-      !photos[0].value
+      !photos[0].value ||
+      !profile.id
     ) {
       throw new OAuthException(OAuthError.MISSING_DATA);
     }
