@@ -54,6 +54,7 @@ model User {
   email          String         @unique
   hashedPassword String?
   oauthProvider  OAuthProvider?
+  oauthProviderId String?
   avatarUrl      String?
   avatar         Avatar?
 
