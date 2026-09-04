@@ -273,6 +273,8 @@ export class UsersService {
           username: 'deleted_user_' + id,
           email: 'deleted_user_' + id,
           hashedPassword: null,
+          oauthProvider: null,
+          oauthProviderId: null,
           avatarUrl: null,
         },
       }),
