@@ -102,7 +102,7 @@ export class AuthService {
     userData: OauthPayload,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     let username = userData.username;
-    const { email, pictureUrl } = userData;
+    const { email, pictureUrl, providerId } = userData;
 
     // Find user by email, regardless of provider
     let user = await this.usersService.findOneEmail(email);
@@ -117,6 +117,7 @@ export class AuthService {
         email,
         undefined,
         provider,
+        providerId,
       );
 
       if (pictureUrl) {
