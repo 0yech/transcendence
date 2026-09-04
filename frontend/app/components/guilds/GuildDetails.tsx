@@ -31,6 +31,7 @@ interface GuildDetailsProps {
   inviteError?: string;
   inviteSuccess?: string;
   kickError?: string;
+  guildActionError?: string;
 }
 
 /**
@@ -77,10 +78,16 @@ export function GuildDetails({
   inviteError,
   inviteSuccess,
   kickError,
+  guildActionError,
 }: GuildDetailsProps) {
   const navigation = useNavigation();
 
   const isSubmitting = navigation.state === 'submitting';
+  const submittingIntent = navigation.formData?.get('_intent');
+
+  const isLeavingGuild = isSubmitting && submittingIntent === 'leave-guild';
+  const isDeletingGuild = isSubmitting && submittingIntent === 'delete-guild';
+
   const canManageGuild =
     currentUserRole === 'LEADER' || currentUserRole === 'OFFICER';
 
@@ -192,7 +199,58 @@ export function GuildDetails({
 
         {kickError && <p>{kickError}</p>}
       </section>
+      {/* Shows guild deletion when leader, quitting guild when member/officier
+          Might want to change the alert confirm method
+      */}
+      <section>
+        <h2>Guild actions</h2>
 
+        {currentUserRole === 'LEADER' ? (
+          <Form
+            method="post"
+            onSubmit={(event) => {
+              const confirmed = window.confirm(
+                `Are you sure you want to delete "${guild.name}"? This action cannot be undone.`,
+              );
+
+              if (!confirmed) {
+                event.preventDefault();
+              }
+            }}
+          >
+            <input type="hidden" name="_intent" value="delete-guild" />
+
+            <button type="submit" disabled={isSubmitting}>
+              {isDeletingGuild ? 'Deleting...' : 'Delete guild'}
+            </button>
+          </Form>
+        ) : (
+          (currentUserRole === 'OFFICER' || currentUserRole === 'MEMBER') && (
+            <Form
+              method="post"
+              onSubmit={(event) => {
+                const confirmed = window.confirm(
+                  `Are you sure you want to leave "${guild.name}"?`,
+                );
+
+                if (!confirmed) {
+                  event.preventDefault();
+                }
+              }}
+            >
+              <input type="hidden" name="_intent" value="leave-guild" />
+
+              <button type="submit" disabled={isSubmitting}>
+                {isLeavingGuild ? 'Leaving...' : 'Leave guild'}
+              </button>
+            </Form>
+          )
+        )}
+
+        {guildActionError && (
+          <p className="text-red-500 font-bold">{guildActionError}</p>
+        )}
+      </section>
       <nav>
         <Link to="/guilds">View guild rankings</Link>
       </nav>

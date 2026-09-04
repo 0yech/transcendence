@@ -15,7 +15,9 @@ type GuildActionIntent =
   | 'accept-invitation'
   | 'decline-invitation'
   | 'invite-user'
-  | 'kick-member';
+  | 'kick-member'
+  | 'leave-guild'
+  | 'delete-guild';
 
 interface MyGuildLoaderData {
   guild: Guild | null;
@@ -41,7 +43,9 @@ function isGuildActionIntent(
     intent === 'accept-invitation' ||
     intent === 'decline-invitation' ||
     intent === 'invite-user' ||
-    intent === 'kick-member'
+    intent === 'kick-member' ||
+    intent === 'leave-guild' ||
+    intent === 'delete-guild'
   );
 }
 
@@ -174,6 +178,36 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
       return {
         intent,
         error: await getApiErrorMessage(response, 'Failed to create guild'),
+      };
+    }
+
+    return redirect('/guilds/me');
+  }
+
+  if (intent === 'leave-guild') {
+    const response = await apiFetch('/api/guilds/leave', {
+      method: 'POST',
+    });
+
+    if (!response.ok) {
+      return {
+        intent,
+        error: await getApiErrorMessage(response, 'Failed to leave guild'),
+      };
+    }
+
+    return redirect('/guilds/me');
+  }
+
+  if (intent === 'delete-guild') {
+    const response = await apiFetch('/api/guilds', {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      return {
+        intent,
+        error: await getApiErrorMessage(response, 'Failed to delete guild'),
       };
     }
 
@@ -342,6 +376,12 @@ export default function MyGuild({
   const kickError =
     actionData?.intent === 'kick-member' ? actionData.error : undefined;
 
+  const guildActionError =
+    actionData?.intent === 'leave-guild' ||
+    actionData?.intent === 'delete-guild'
+      ? actionData.error
+      : undefined;
+
   const inviteSuccess =
     actionData?.intent === 'invite-user' ? actionData.success : undefined;
 
@@ -356,6 +396,7 @@ export default function MyGuild({
         inviteError={inviteError}
         inviteSuccess={inviteSuccess}
         kickError={kickError}
+        guildActionError={guildActionError}
       />
     </>
   );
