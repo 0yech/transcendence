@@ -49,12 +49,13 @@ enum GameActionType {
 }
 
 model User {
-  id             String         @id @default(cuid())
-  username       String         @unique
-  email          String         @unique
-  hashedPassword String?
-  oauthProvider  OAuthProvider?
-  avatarUrl      String?
+  id              String         @id @default(cuid())
+  username        String         @unique
+  email           String         @unique
+  hashedPassword  String?
+  oauthProvider   OAuthProvider?
+  oauthProviderId String?
+  avatarUrl       String?
 
   lobbyId String?
   lobby   Lobby?  @relation("LobbyUsers", fields: [lobbyId], references: [id], onDelete: SetNull)
@@ -79,6 +80,7 @@ model User {
   deleted Boolean @default(false)
 
   @@index([guildId])
+  @@unique([oauthProvider, oauthProviderId])
 }
 
 model Guild {

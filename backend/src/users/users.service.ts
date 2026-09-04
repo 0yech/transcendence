@@ -62,6 +62,21 @@ export class UsersService {
   }
 
   /**
+   * Finds a user based on an OAuth-provided id string, and the actual provider.
+   */
+  async findOneOauth(id: string, provider: OAuthProvider) {
+    return this.prisma.user.findUnique({
+      where: {
+        deleted: false,
+        oauthProvider_oauthProviderId: {
+          oauthProvider: provider,
+          oauthProviderId: id,
+        },
+      },
+    });
+  }
+
+  /**
    * @brief Find a non-deleted user by username and return only frontend-safe
    * identity information.
    */
@@ -116,6 +131,7 @@ export class UsersService {
     email: string,
     password?: string,
     oauthProvider?: OAuthProvider,
+    oauthProviderId?: string,
   ) {
     const existingUser = await this.prisma.user.findFirst({
       where: { OR: [{ username }, { email }] },
@@ -137,8 +153,10 @@ export class UsersService {
         email: email,
         hashedPassword: hash,
         oauthProvider: oauthProvider,
+        oauthProviderId: oauthProviderId,
       },
     });
+
     return user;
   }
 
