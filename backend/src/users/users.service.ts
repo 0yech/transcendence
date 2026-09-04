@@ -116,6 +116,7 @@ export class UsersService {
     email: string,
     password?: string,
     oauthProvider?: OAuthProvider,
+    oauthProviderId?: string,
   ) {
     const existingUser = await this.prisma.user.findFirst({
       where: { OR: [{ username }, { email }] },
@@ -137,8 +138,10 @@ export class UsersService {
         email: email,
         hashedPassword: hash,
         oauthProvider: oauthProvider,
+        oauthProviderId: oauthProviderId,
       },
     });
+
     return user;
   }
 
