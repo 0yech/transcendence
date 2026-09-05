@@ -161,14 +161,18 @@ export function JoinLobby({ code }: { code: string }) {
  */
 export function LeaveLobby() {
   const { disconnect } = UseWebSocket();
+  const navigate = useNavigate();
+  
   async function handleClickLeave() {
     try {
       await handleLeaveLobby();
       disconnect();
+      navigate("/lobbies");
     } catch (e) {
       console.error(e);
     }
   }
+
   return (
     <button
       className="rounded-full w-fit px-5 bg-red-500 hover:bg-red-700"
