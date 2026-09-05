@@ -238,7 +238,7 @@ export default function DisplayLobbies() {
       `}</style>
       <NavBar></NavBar>
       <div className="flex justify-around items-center">
-          <Form className="flex flex-col gap-5 w-80">
+          <Form className="flex flex-col gap-5 w-80" method="post" action={`/lobbies/${code}/join`}>
             <Input className="w-full h-15" type='text' name="code" id="code" placeholder='Code' autoComplete='code' required>
             </Input>
             <Button className="w-full h-15" variant="accept">Join lobby by code</Button>
