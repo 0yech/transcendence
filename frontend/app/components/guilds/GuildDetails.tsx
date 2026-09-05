@@ -30,7 +30,8 @@ interface GuildDetailsProps {
   currentUserRole: GuildMember['guildRole'];
   inviteError?: string;
   inviteSuccess?: string;
-  kickError?: string;
+  memberActionError?: string;
+  guildActionError?: string;
 }
 
 /**
@@ -76,13 +77,47 @@ export function GuildDetails({
   currentUserRole,
   inviteError,
   inviteSuccess,
-  kickError,
+  memberActionError,
+  guildActionError,
 }: GuildDetailsProps) {
   const navigation = useNavigation();
 
   const isSubmitting = navigation.state === 'submitting';
+  const submittingIntent = navigation.formData?.get('_intent');
+
+  const isLeavingGuild = isSubmitting && submittingIntent === 'leave-guild';
+  const isDeletingGuild = isSubmitting && submittingIntent === 'delete-guild';
+
   const canManageGuild =
     currentUserRole === 'LEADER' || currentUserRole === 'OFFICER';
+
+  /**
+   * Returns the display priority of a guild role.
+   * Lower values are displayed first in the members list.
+   */
+  function getRolePriority(role: GuildMember['guildRole']) {
+    switch (role) {
+      case 'LEADER':
+        return 0;
+      case 'OFFICER':
+        return 1;
+      case 'MEMBER':
+        return 2;
+      default:
+        return 3;
+    }
+  }
+
+  const sortedMembers = [...guild.members].sort((a, b) => {
+    const roleDifference =
+      getRolePriority(a.guildRole) - getRolePriority(b.guildRole);
+
+    if (roleDifference !== 0) {
+      return roleDifference;
+    }
+
+    return a.username.localeCompare(b.username);
+  });
 
   return (
     <main>
@@ -152,11 +187,15 @@ export function GuildDetails({
             </thead>
 
             <tbody>
-              {guild.members.map((member) => {
+              {sortedMembers.map((member) => {
+                const isCurrentUser = member.id === currentUserId;
+                const isLeader = currentUserRole === 'LEADER';
                 const canKick =
-                  member.id !== currentUserId &&
+                  !isCurrentUser &&
                   canKickMember(currentUserRole, member.guildRole);
-
+                const canPromote = isLeader && member.guildRole === 'MEMBER';
+                const canDemote = isLeader && member.guildRole === 'OFFICER';
+                const canTransfer = isLeader && !isCurrentUser;
                 return (
                   <tr key={member.id}>
                     <td>{member.username}</td>
@@ -181,6 +220,65 @@ export function GuildDetails({
                             </button>
                           </Form>
                         )}
+                        {canPromote && (
+                          <Form method="post">
+                            <input
+                              type="hidden"
+                              name="_intent"
+                              value="promote-member"
+                            />
+
+                            <input
+                              type="hidden"
+                              name="memberId"
+                              value={member.id}
+                            />
+
+                            <button type="submit" disabled={isSubmitting}>
+                              Promote
+                            </button>
+                          </Form>
+                        )}
+
+                        {canDemote && (
+                          <Form method="post">
+                            <input
+                              type="hidden"
+                              name="_intent"
+                              value="demote-member"
+                            />
+
+                            <input
+                              type="hidden"
+                              name="memberId"
+                              value={member.id}
+                            />
+
+                            <button type="submit" disabled={isSubmitting}>
+                              Demote
+                            </button>
+                          </Form>
+                        )}
+
+                        {canTransfer && (
+                          <Form method="post">
+                            <input
+                              type="hidden"
+                              name="_intent"
+                              value="transfer-guild"
+                            />
+
+                            <input
+                              type="hidden"
+                              name="memberId"
+                              value={member.id}
+                            />
+
+                            <button type="submit" disabled={isSubmitting}>
+                              Transfer
+                            </button>
+                          </Form>
+                        )}
                       </td>
                     )}
                   </tr>
@@ -189,10 +287,62 @@ export function GuildDetails({
             </tbody>
           </table>
         )}
-
-        {kickError && <p>{kickError}</p>}
+        {memberActionError && (
+          <p className="text-red-500 font-bold">{memberActionError}</p>
+        )}
       </section>
+      {/* Shows guild deletion when leader, quitting guild when member/officier
+          Might want to change the alert confirm method
+      */}
+      <section>
+        <h2>Guild actions</h2>
 
+        {currentUserRole === 'LEADER' ? (
+          <Form
+            method="post"
+            onSubmit={(event) => {
+              const confirmed = window.confirm(
+                `Are you sure you want to delete "${guild.name}"? This action cannot be undone.`,
+              );
+
+              if (!confirmed) {
+                event.preventDefault();
+              }
+            }}
+          >
+            <input type="hidden" name="_intent" value="delete-guild" />
+
+            <button type="submit" disabled={isSubmitting}>
+              {isDeletingGuild ? 'Deleting...' : 'Delete guild'}
+            </button>
+          </Form>
+        ) : (
+          (currentUserRole === 'OFFICER' || currentUserRole === 'MEMBER') && (
+            <Form
+              method="post"
+              onSubmit={(event) => {
+                const confirmed = window.confirm(
+                  `Are you sure you want to leave "${guild.name}"?`,
+                );
+
+                if (!confirmed) {
+                  event.preventDefault();
+                }
+              }}
+            >
+              <input type="hidden" name="_intent" value="leave-guild" />
+
+              <button type="submit" disabled={isSubmitting}>
+                {isLeavingGuild ? 'Leaving...' : 'Leave guild'}
+              </button>
+            </Form>
+          )
+        )}
+
+        {guildActionError && (
+          <p className="text-red-500 font-bold">{guildActionError}</p>
+        )}
+      </section>
       <nav>
         <Link to="/guilds">View guild rankings</Link>
       </nav>
