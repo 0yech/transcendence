@@ -17,7 +17,10 @@ type GuildActionIntent =
   | 'invite-user'
   | 'kick-member'
   | 'leave-guild'
-  | 'delete-guild';
+  | 'delete-guild'
+  | 'promote-member'
+  | 'demote-member'
+  | 'transfer-guild';
 
 interface MyGuildLoaderData {
   guild: Guild | null;
@@ -45,7 +48,10 @@ function isGuildActionIntent(
     intent === 'invite-user' ||
     intent === 'kick-member' ||
     intent === 'leave-guild' ||
-    intent === 'delete-guild'
+    intent === 'delete-guild' ||
+    intent === 'promote-member' ||
+    intent === 'demote-member' ||
+    intent === 'transfer-guild'
   );
 }
 
@@ -307,6 +313,15 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
     };
   }
 
+  /*
+   * Member management actions all target a guild member and use
+   * the same API route pattern:
+   *
+   * POST /api/guilds/members/:memberId/:action
+   *
+   * Leave/delete are handled earlier because they do not target
+   * an individual guild member.
+   */
   const memberId = formData.get('memberId');
 
   if (typeof memberId !== 'string' || !memberId.trim()) {
@@ -316,14 +331,36 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
     };
   }
 
-  const response = await apiFetch(`/api/guilds/members/${memberId}/kick`, {
+  let action: string;
+  let fallbackError: string;
+
+  if (intent === 'kick-member') {
+    action = 'kick';
+    fallbackError = 'Failed to kick guild member';
+  } else if (intent === 'promote-member') {
+    action = 'promote';
+    fallbackError = 'Failed to promote guild member';
+  } else if (intent === 'demote-member') {
+    action = 'demote';
+    fallbackError = 'Failed to demote guild member';
+  } else if (intent === 'transfer-guild') {
+    action = 'transfer';
+    fallbackError = 'Failed to transfer guild ownership';
+  } else {
+    return {
+      intent,
+      error: 'Unknown member action',
+    };
+  }
+
+  const response = await apiFetch(`/api/guilds/members/${memberId}/${action}`, {
     method: 'POST',
   });
 
   if (!response.ok) {
     return {
       intent,
-      error: await getApiErrorMessage(response, 'Failed to kick guild member'),
+      error: await getApiErrorMessage(response, fallbackError),
     };
   }
 
@@ -373,8 +410,13 @@ export default function MyGuild({
   const inviteError =
     actionData?.intent === 'invite-user' ? actionData.error : undefined;
 
-  const kickError =
-    actionData?.intent === 'kick-member' ? actionData.error : undefined;
+  const memberActionError =
+    actionData?.intent === 'kick-member' ||
+    actionData?.intent === 'promote-member' ||
+    actionData?.intent === 'demote-member' ||
+    actionData?.intent === 'transfer-guild'
+      ? actionData.error
+      : undefined;
 
   const guildActionError =
     actionData?.intent === 'leave-guild' ||
@@ -395,7 +437,7 @@ export default function MyGuild({
         currentUserRole={currentUser.guildRole}
         inviteError={inviteError}
         inviteSuccess={inviteSuccess}
-        kickError={kickError}
+        memberActionError={memberActionError}
         guildActionError={guildActionError}
       />
     </>

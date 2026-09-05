@@ -781,7 +781,29 @@ export class GuildsService {
         );
       }
 
-      const updatedLeader = await tx.user.updateMany({
+      const promotedMember = await tx.user.updateMany({
+        where: {
+          id: memberId,
+          guildId: actor.guildId,
+          guildRole: {
+            in: [GuildRole.MEMBER, GuildRole.OFFICER],
+          },
+        },
+        data: {
+          guildRole: GuildRole.LEADER,
+        },
+      });
+
+      if (promotedMember.count !== 1) {
+        throw new BadRequestException(
+          'Member can no longer receive guild ownership',
+        );
+      }
+
+      /*
+       * Demote the current leader only if they are still leader.
+       */
+      const demotedLeader = await tx.user.updateMany({
         where: {
           id: actorId,
           guildId: actor.guildId,
@@ -792,8 +814,7 @@ export class GuildsService {
         },
       });
 
-      // Enhanced security/Prevent race conditions
-      if (updatedLeader.count !== 1) {
+      if (demotedLeader.count !== 1) {
         throw new ForbiddenException('You are no longer the guild leader');
       }
 

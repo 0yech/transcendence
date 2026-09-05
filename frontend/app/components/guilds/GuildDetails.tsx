@@ -30,7 +30,7 @@ interface GuildDetailsProps {
   currentUserRole: GuildMember['guildRole'];
   inviteError?: string;
   inviteSuccess?: string;
-  kickError?: string;
+  memberActionError?: string;
   guildActionError?: string;
 }
 
@@ -77,7 +77,7 @@ export function GuildDetails({
   currentUserRole,
   inviteError,
   inviteSuccess,
-  kickError,
+  memberActionError,
   guildActionError,
 }: GuildDetailsProps) {
   const navigation = useNavigation();
@@ -90,6 +90,20 @@ export function GuildDetails({
 
   const canManageGuild =
     currentUserRole === 'LEADER' || currentUserRole === 'OFFICER';
+
+  // Guild members are displayed from highest to lowest rank.
+  const rolePriority: Record<NonNullable<GuildMember['guildRole']>, number> = {
+    LEADER: 0,
+    OFFICER: 1,
+    MEMBER: 2,
+  };
+
+  const sortedMembers = [...guild.members].sort((a, b) => {
+    if (!a.guildRole) return 1;
+    if (!b.guildRole) return -1;
+
+    return rolePriority[a.guildRole] - rolePriority[b.guildRole];
+  });
 
   return (
     <main>
@@ -159,11 +173,15 @@ export function GuildDetails({
             </thead>
 
             <tbody>
-              {guild.members.map((member) => {
+              {sortedMembers.map((member) => {
+                const isCurrentUser = member.id === currentUserId;
+                const isLeader = currentUserRole === 'LEADER';
                 const canKick =
-                  member.id !== currentUserId &&
+                  !isCurrentUser &&
                   canKickMember(currentUserRole, member.guildRole);
-
+                const canPromote = isLeader && member.guildRole === 'MEMBER';
+                const canDemote = isLeader && member.guildRole === 'OFFICER';
+                const canTransfer = isLeader && !isCurrentUser;
                 return (
                   <tr key={member.id}>
                     <td>{member.username}</td>
@@ -188,6 +206,65 @@ export function GuildDetails({
                             </button>
                           </Form>
                         )}
+                        {canPromote && (
+                          <Form method="post">
+                            <input
+                              type="hidden"
+                              name="_intent"
+                              value="promote-member"
+                            />
+
+                            <input
+                              type="hidden"
+                              name="memberId"
+                              value={member.id}
+                            />
+
+                            <button type="submit" disabled={isSubmitting}>
+                              Promote
+                            </button>
+                          </Form>
+                        )}
+
+                        {canDemote && (
+                          <Form method="post">
+                            <input
+                              type="hidden"
+                              name="_intent"
+                              value="demote-member"
+                            />
+
+                            <input
+                              type="hidden"
+                              name="memberId"
+                              value={member.id}
+                            />
+
+                            <button type="submit" disabled={isSubmitting}>
+                              Demote
+                            </button>
+                          </Form>
+                        )}
+
+                        {canTransfer && (
+                          <Form method="post">
+                            <input
+                              type="hidden"
+                              name="_intent"
+                              value="transfer-guild"
+                            />
+
+                            <input
+                              type="hidden"
+                              name="memberId"
+                              value={member.id}
+                            />
+
+                            <button type="submit" disabled={isSubmitting}>
+                              Transfer
+                            </button>
+                          </Form>
+                        )}
                       </td>
                     )}
                   </tr>
@@ -196,8 +273,9 @@ export function GuildDetails({
             </tbody>
           </table>
         )}
-
-        {kickError && <p>{kickError}</p>}
+        {memberActionError && (
+          <p className="text-red-500 font-bold">{memberActionError}</p>
+        )}
       </section>
       {/* Shows guild deletion when leader, quitting guild when member/officier
           Might want to change the alert confirm method
