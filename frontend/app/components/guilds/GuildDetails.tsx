@@ -91,18 +91,32 @@ export function GuildDetails({
   const canManageGuild =
     currentUserRole === 'LEADER' || currentUserRole === 'OFFICER';
 
-  // Guild members are displayed from highest to lowest rank.
-  const rolePriority: Record<NonNullable<GuildMember['guildRole']>, number> = {
-    LEADER: 0,
-    OFFICER: 1,
-    MEMBER: 2,
-  };
+  /**
+   * Returns the display priority of a guild role.
+   * Lower values are displayed first in the members list.
+   */
+  function getRolePriority(role: GuildMember['guildRole']) {
+    switch (role) {
+      case 'LEADER':
+        return 0;
+      case 'OFFICER':
+        return 1;
+      case 'MEMBER':
+        return 2;
+      default:
+        return 3;
+    }
+  }
 
   const sortedMembers = [...guild.members].sort((a, b) => {
-    if (!a.guildRole) return 1;
-    if (!b.guildRole) return -1;
+    const roleDifference =
+      getRolePriority(a.guildRole) - getRolePriority(b.guildRole);
 
-    return rolePriority[a.guildRole] - rolePriority[b.guildRole];
+    if (roleDifference !== 0) {
+      return roleDifference;
+    }
+
+    return a.username.localeCompare(b.username);
   });
 
   return (
