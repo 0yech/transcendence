@@ -31,6 +31,11 @@ http {
         location /api/ {
             proxy_pass http://backend:${BACKEND_PORT};
 
+            # Avatar uploads are capped at 2M by the backend, which answers with
+            # a JSON error. This has to be a little larger so nginx isn't the one
+            # rejecting them: it replies with an HTML page no API client can read.
+            client_max_body_size 3m;
+
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

@@ -10,8 +10,10 @@ import {
   Req,
   Res,
   UnauthorizedException,
+  UploadedFile,
   UseFilters,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './auth.guard';
@@ -29,6 +31,8 @@ import { OAuthProvider } from 'src/generated/prisma/enums';
 import { OauthCallbackFilter } from './oauth-callback.filter';
 import { OAuthError } from './oauth-error.enum';
 import { OAuthException } from './oauth.exception';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { isPossiblyAnAvatar, MAX_AVATAR_BYTES } from 'src/users/avatar.util';
 
 const cookieOptions: CookieOptions = {
   httpOnly: true,
@@ -196,19 +200,48 @@ export class AuthController {
 
   @HttpCode(HttpStatus.OK)
   @Post('update')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: MAX_AVATAR_BYTES, files: 1 },
+      // Only a pre-filter: this runs on the part header, before any bytes
+      // exist, so it can do no better than believe the client. The real check
+      // is on the buffer in UsersService. Reject with an error rather than
+      // `callback(null, false)`, which drops the file and still returns 200.
+      fileFilter: (_request, file, callback) => {
+        if (!isPossiblyAnAvatar(file.mimetype)) {
+          callback(
+            new BadRequestException(
+              'Your avatar must be a PNG, JPEG, WebP, or GIF image.',
+            ),
+            false,
+          );
+          return;
+        }
+        callback(null, true);
+      },
+    }),
+  )
   @UseGuards(JwtAuthGuard)
   async updateAccount(
     @CurrentUser() currentUser: JwtPayload,
-    @Body() updateDto: UpdateDto,
+    @UploadedFile() picture: Express.Multer.File | undefined,
+    @Body()
+    updateDto: UpdateDto,
   ) {
-    const hashedPassword = await bcrypt.hash(updateDto.password, 10);
+    let passwordHash = undefined;
+    if (updateDto.password) {
+      passwordHash = await bcrypt.hash(updateDto.password, 10);
+    }
 
-    await this.usersService.updateOne(currentUser.sub, {
+    const avatarUrl = await this.usersService.updateOne(currentUser.sub, {
       username: updateDto.username,
       email: updateDto.email,
+      passwordHash: passwordHash,
       pictureUrl: updateDto.pictureUrl,
-      passwordHash: hashedPassword,
+      pictureFile: picture,
     });
+
+    return { avatarUrl };
   }
 
   @HttpCode(HttpStatus.OK)
