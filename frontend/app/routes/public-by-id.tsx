@@ -14,9 +14,9 @@ export async function clientLoader({ params }: { params: Params<string> }) {
 export default function PublicProfileById({
   loaderData,
 }: Route.ComponentProps) {
-  const user:SelfUserInterface = loaderData;
+  const user: SelfUserInterface = loaderData;
 
   console.log(user);
 
-  return (<UserProfile user={user}/>);
+  return <UserProfile user={user} />;
 }

@@ -11,6 +11,7 @@ import { UserPopUp } from '~/components/userProfiles/userProfile';
 import { Input } from '~/components/Input';
 import { Form } from 'react-router';
 import { Button } from '~/components/Button';
+import { StylisedLink } from '~/components/StylisedLink';
 
 export interface UserInterfaceLobby {
   id: string;
@@ -237,6 +238,7 @@ export default function DisplayLobbies() {
   const [loading, setLoading] = useState<boolean>(true);
   const [hoveredUserId, setHoveredUserId] = useState<string | null>(null);
   const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const navigate = useNavigate();
 
   const HOVER_DELAY = 150;
   const handleUsernameEnter = (userId: string) => {
@@ -332,7 +334,7 @@ export default function DisplayLobbies() {
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          console.log(user.username);
+                          navigate(`/profile/byUser/${user.username}`);
                         }}
                         onMouseEnter={() => handleUsernameEnter(user.id)}
                         onMouseLeave={handleUsernameLeave}
@@ -358,6 +360,7 @@ export default function DisplayLobbies() {
                 </div>
                 <ul className="grid grid-rows-3 grid-cols-2 m-1">
                   {item.users.map((user) => {
+                    // todo: make username clickable to go to user public page
                     return (
                       <li
                         key={user.username}
