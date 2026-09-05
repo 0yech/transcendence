@@ -80,36 +80,38 @@ NestJS global validation is enabled.
 
 # Route summary
 
-| Method   | Route                                           |           Auth | Purpose                                                        |
-| -------- | ----------------------------------------------- | -------------: | -------------------------------------------------------------- |
-| `GET`    | `/api`                                          |             No | Backend health/basic response                                  |
-| `POST`   | `/api/auth/register`                            |             No | Register a user                                                |
-| `POST`   | `/api/auth/login`                               |             No | Log in and set auth cookies                                    |
-| `GET`    | `/api/auth/:provider`                           |             No | Start OAuth login (`google`, `github`, `fortytwo`)             |
-| `GET`    | `/api/auth/:provider/callback`                  |             No | Complete OAuth login and redirect to the frontend              |
-| `POST`   | `/api/auth/logout`                              | Refresh cookie | End the current session and clear cookies                      |
-| `POST`   | `/api/auth/remove-account`                      |            Yes | Anonymize the authenticated user's account and end the session |
-| `POST`   | `/api/auth/refresh`                             | Refresh cookie | Issue a new access-token cookie                                |
-| `GET`    | `/api/auth/me`                                  |            Yes | Return the authenticated user's public profile                 |
-| `GET`    | `/api/lobbies`                                  |             No | List active lobbies                                            |
-| `GET`    | `/api/lobbies/:code`                            |             No | Get a lobby by code                                            |
-| `POST`   | `/api/lobbies`                                  |            Yes | Create a lobby                                                 |
-| `POST`   | `/api/lobbies/:code/join`                       |            Yes | Join a lobby                                                   |
-| `POST`   | `/api/lobbies/leave`                            |            Yes | Leave the user's current lobby                                 |
-| `GET`    | `/api/games/:gameId/replay`                     |            Yes | Get a game replay                                              |
-| `GET`    | `/api/guilds`                                   |             No | List guilds                                                    |
-| `GET`    | `/api/guilds/me`                                |            Yes | Get the authenticated user's guild                             |
-| `POST`   | `/api/guilds`                                   |            Yes | Create a guild                                                 |
-| `POST`   | `/api/guilds/leave`                             |            Yes | Leave the current guild                                        |
-| `DELETE` | `/api/guilds`                                   |            Yes | Delete the current guild                                       |
-| `POST`   | `/api/guilds/invitations`                       |            Yes | Invite a user to the guild                                     |
-| `GET`    | `/api/guilds/invitations`                       |            Yes | List the user's guild invitations                              |
-| `POST`   | `/api/guilds/invitations/:invitationId/accept`  |            Yes | Accept a guild invitation                                      |
-| `POST`   | `/api/guilds/invitations/:invitationId/decline` |            Yes | Decline a guild invitation                                     |
-| `POST`   | `/api/guilds/members/:memberId/kick`            |            Yes | Remove a member from the guild                                 |
-| `POST`   | `/api/guilds/members/:memberId/promote`         |            Yes | Promote a member to officer                                    |
-| `POST`   | `/api/guilds/members/:memberId/demote`          |            Yes | Demote an officer to member                                    |
-| `POST`   | `/api/guilds/members/:memberId/transfer`        |            Yes | Transfer guild ownership                                       |
+| Method   | Route                                           |           Auth | Purpose                                                         |
+| -------- | ----------------------------------------------- | -------------: | --------------------------------------------------------------- |
+| `GET`    | `/api`                                          |             No | Backend health/basic response                                   |
+| `POST`   | `/api/auth/register`                            |             No | Register a user                                                 |
+| `POST`   | `/api/auth/login`                               |             No | Log in and set auth cookies                                     |
+| `GET`    | `/api/auth/:provider`                           |             No | Start OAuth login (`google`, `github`, `fortytwo`)              |
+| `GET`    | `/api/auth/:provider/callback`                  |             No | Complete OAuth login and redirect to the frontend               |
+| `POST`   | `/api/auth/logout`                              | Refresh cookie | End the current session and clear cookies                       |
+| `POST`   | `/api/auth/update`                              |            Yes | Update the authenticated user's account, including their avatar |
+| `POST`   | `/api/auth/remove-account`                      |            Yes | Anonymize the authenticated user's account and end the session  |
+| `POST`   | `/api/auth/refresh`                             | Refresh cookie | Issue a new access-token cookie                                 |
+| `GET`    | `/api/auth/me`                                  |            Yes | Return the authenticated user's public profile                  |
+| `GET`    | `/api/users/public/avatar/:id`                  |            Yes | Serve a user's uploaded profile picture                         |
+| `GET`    | `/api/lobbies`                                  |             No | List active lobbies                                             |
+| `GET`    | `/api/lobbies/:code`                            |             No | Get a lobby by code                                             |
+| `POST`   | `/api/lobbies`                                  |            Yes | Create a lobby                                                  |
+| `POST`   | `/api/lobbies/:code/join`                       |            Yes | Join a lobby                                                    |
+| `POST`   | `/api/lobbies/leave`                            |            Yes | Leave the user's current lobby                                  |
+| `GET`    | `/api/games/:gameId/replay`                     |            Yes | Get a game replay                                               |
+| `GET`    | `/api/guilds`                                   |             No | List guilds                                                     |
+| `GET`    | `/api/guilds/me`                                |            Yes | Get the authenticated user's guild                              |
+| `POST`   | `/api/guilds`                                   |            Yes | Create a guild                                                  |
+| `POST`   | `/api/guilds/leave`                             |            Yes | Leave the current guild                                         |
+| `DELETE` | `/api/guilds`                                   |            Yes | Delete the current guild                                        |
+| `POST`   | `/api/guilds/invitations`                       |            Yes | Invite a user to the guild                                      |
+| `GET`    | `/api/guilds/invitations`                       |            Yes | List the user's guild invitations                               |
+| `POST`   | `/api/guilds/invitations/:invitationId/accept`  |            Yes | Accept a guild invitation                                       |
+| `POST`   | `/api/guilds/invitations/:invitationId/decline` |            Yes | Decline a guild invitation                                      |
+| `POST`   | `/api/guilds/members/:memberId/kick`            |            Yes | Remove a member from the guild                                  |
+| `POST`   | `/api/guilds/members/:memberId/promote`         |            Yes | Promote a member to officer                                     |
+| `POST`   | `/api/guilds/members/:memberId/demote`          |            Yes | Demote an officer to member                                     |
+| `POST`   | `/api/guilds/members/:memberId/transfer`        |            Yes | Transfer guild ownership                                        |
 
 ---
 
@@ -337,6 +339,59 @@ curl -i \
   -X POST http://localhost:3000/api/auth/logout
 ```
 
+## `POST /api/auth/update`
+
+Updates the authenticated user's account. Every field is optional; anything omitted is left alone.
+
+**Authentication:** Required (`access_token` cookie)
+
+**Content type:** `multipart/form-data` (required — the route accepts a file part, so it is not a JSON endpoint)
+
+**Request body**
+
+| Field        | Type   | Rules                                           |
+| ------------ | ------ | ----------------------------------------------- |
+| `email`      | string | Optional, valid email, 4–128 characters         |
+| `username`   | string | Optional, 3–32 characters                       |
+| `password`   | string | Optional, 8–64 characters                       |
+| `pictureUrl` | string | Optional, valid absolute URL                    |
+| `file`       | file   | Optional, at most 2 MB, PNG / JPEG / WebP / GIF |
+
+**Success status:** `200 OK`
+
+**Success body**
+
+```json
+{ "avatarUrl": "/api/users/public/avatar/<id>?v=1756900000000" }
+```
+
+**Side effects**
+
+- Uploading a `file` stores the image and points `avatarUrl` at `/api/users/public/avatar/<id>`, with a `?v=` stamp that changes on every upload. Each user keeps a single stored picture, replaced in place.
+- A `file` **overrides** `pictureUrl` when both are sent.
+- Sending `pictureUrl` without a file deletes any stored picture, since nothing would reference it any more.
+
+**Possible errors**
+
+- `400 Bad Request` — DTO validation failed, or the upload is not one of the four allowed image formats.
+- `401 Unauthorized` — missing, expired, or invalid access token.
+- `404 Not Found` — the token is valid but the account has been deleted.
+- `413 Payload Too Large` — the upload is over 2 MB. Behind nginx this arrives as an HTML error page rather than JSON.
+
+> Omit fields you do not want to change; do **not** send them as empty strings. `multipart/form-data` cannot express `undefined`, and an empty string is a value that fails validation.
+
+> The image format is determined by inspecting the file's magic bytes, so renaming `notes.txt` to `avatar.png` is still refused. The `Content-Type` the client attaches to the part is only used to reject obvious non-images early; `application/octet-stream` is allowed through to the real check, since clients that do not recognise an extension send it for perfectly valid images.
+
+### Example
+
+```bash
+curl -i \
+  -b cookies.txt \
+  -X POST http://localhost:3000/api/auth/update \
+  -F "username=player2" \
+  -F "file=@avatar.png"
+```
+
 ## `POST /api/auth/remove-account`
 
 Anonymizes the authenticated user's account, then ends the session the same way `logout` does. No row is removed from the database.
@@ -352,6 +407,7 @@ Anonymizes the authenticated user's account, then ends the session the same way 
 **Side effects**
 
 - Sets `deleted = true` on the `User` row identified by the access token's `sub` claim, rewrites its `username` and `email` to `deleted_user_<id>`, and clears `hashedPassword`. The row itself is kept, along with the user's games, messages, guild invitations, and their lobby and guild membership.
+- Deletes the user's stored profile picture and clears `avatarUrl`.
 - Rewrites the same values on a repeated call, since the row is found by id, so retrying with an access token issued before deletion is safe.
 - Removes the in-memory session attached to the `refresh_token` cookie. A request with a valid access token but no refresh token still anonymizes the account.
 - Clears the `access_token` and `refresh_token` cookies.
@@ -371,6 +427,61 @@ curl -i \
   -b cookies.txt \
   -c cookies.txt \
   -X POST http://localhost:3000/api/auth/remove-account
+```
+
+---
+
+# Users
+
+## `GET /api/users/public/avatar/:id`
+
+Returns the raw bytes of a user's uploaded profile picture.
+
+**Authentication:** Required (`access_token` cookie)
+
+> Despite the `public/` in the path, this route is behind `JwtAuthGuard` like the rest of the controller, so a logged-out visitor gets a `401` and a broken image. This matches its `public/id/:id` and `public/username/:username` siblings.
+
+### Path parameters
+
+| Parameter | Type   | Description                     |
+| --------- | ------ | ------------------------------- |
+| `id`      | string | The user's id (not a username). |
+
+### Query parameters
+
+| Parameter | Type   | Description                                                          |
+| --------- | ------ | -------------------------------------------------------------------- |
+| `v`       | string | Version stamp. Controls caching only, never which image is returned. |
+
+**Body:** None
+
+**Success status:** `200 OK`
+
+**Success body:** The image bytes.
+
+**Response headers**
+
+| Header                   | Value                                                                                            |
+| ------------------------ | ------------------------------------------------------------------------------------------------ |
+| `Content-Type`           | The image's real type, determined by inspecting its bytes                                        |
+| `Cache-Control`          | `public, max-age=31536000, immutable` when `v` matches the current version, `no-cache` otherwise |
+| `X-Content-Type-Options` | `nosniff`                                                                                        |
+
+**Possible errors**
+
+- `401 Unauthorized` — missing, expired, or invalid access token.
+- `404 Not Found` — the user has no uploaded picture, or the account has been deleted. Both cases look identical so the route does not reveal which accounts exist.
+
+> Always request the URL exactly as it appears in `avatarUrl`, with its `?v=`. That value changes on every upload, so a fresh picture is always a URL the browser has not cached, which is why the bytes can be cached for a year. Requesting the path without a matching `v` still returns the current image, but it will not be cached.
+
+> A user whose `avatarUrl` points at an OAuth provider's CDN has no row here; that URL is absolute and is fetched directly from the provider.
+
+### Example
+
+```bash
+curl -i \
+  -b cookies.txt \
+  "http://localhost:3000/api/users/public/avatar/<id>?v=1756900000000"
 ```
 
 ---
@@ -411,15 +522,13 @@ Creates a lobby owned by the authenticated user.
 
 ```json
 {
-  "private": true,
-  "password": "optional-password"
+  "private": true
 }
 ```
 
-| Field      | Type    | Required | Description                              |
-| ---------- | ------- | -------: | ---------------------------------------- |
-| `private`  | boolean |       No | Whether the lobby is private             |
-| `password` | string  |       No | Password used for protected lobby access |
+| Field     | Type    | Required | Description                  |
+| --------- | ------- | -------: | ---------------------------- |
+| `private` | boolean |       No | Whether the lobby is private |
 
 **Success response:** Created lobby object.
 
@@ -436,16 +545,6 @@ Adds the authenticated user to a lobby.
 | Parameter | Type   | Description |
 | --------- | ------ | ----------- |
 | `code`    | string | Lobby code  |
-
-**Request body**
-
-```json
-{
-  "password": "optional-password"
-}
-```
-
-The `password` field is optional and is used for protected lobbies.
 
 **Success response:** Updated/joined lobby state.
 
