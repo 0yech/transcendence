@@ -190,13 +190,13 @@ export function JoinLobbyWithCodeForm() {
   async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     try {
-      await apiFetch(`/api/lobbies/${code}/join`, {
+      const resp = await fetch(`/api/lobbies/${code}/join`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
       });
-      navigate(`/game/${code}`);
+      if (resp.ok) navigate(`/game/${code}`);
     } catch (err) {
       console.error(err);
     }
