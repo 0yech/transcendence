@@ -25,7 +25,7 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
       return { errorMessage: body.message };
     }
   } else {
-    throw redirect('/profile');
+    throw redirect('/');
   }
 }
 

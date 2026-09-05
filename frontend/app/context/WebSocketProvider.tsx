@@ -373,6 +373,11 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
     userIdRef.current = id;
   }
 
+  function setUser(user: SelfUserInterface): void {
+    userRef.current = user;
+    userIdRef.current = userRef.current.id;
+  }
+
   function getUser(): SelfUserInterface | null {
     return userRef.current;
   }
@@ -394,6 +399,7 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
         gameStarted: gameStarted,
         userId: userId,
         setUserId: setUserId,
+        setUser: setUser,
         gameState: useGameState,
         getUser: getUser,
         getCode: getCode,

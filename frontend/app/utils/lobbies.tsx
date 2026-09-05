@@ -8,6 +8,9 @@ import { Link } from 'react-router';
 import { NavBar } from '~/components/Navbar';
 import { twMerge } from 'tailwind-merge';
 import { UserPopUp } from '~/components/userProfiles/userProfile';
+import { Input } from '~/components/Input';
+import { Form } from 'react-router';
+import { Button } from '~/components/Button';
 
 export interface UserInterfaceLobby {
   id: string;
@@ -72,60 +75,21 @@ export function DisplayUsers(usersObject: {
 }
 
 /**
- * @brief Component that handle the conditions as stated below
- * @brief handle the "go to game" if a lobby is active
- * @brief handle the "go to lobby" if a lobby is active
- * @brief handle the "create lobby" if no lobby is active
- *
- * @returns the JSX necessary of stated up
- */
-export function GoToActiveLobby() {
-  const { isConnected, gameStarted } = UseWebSocket();
-  const isConnectedToWs = isConnected();
-  const activeLobby = gameStarted();
-  const navigate = useNavigate();
-  return (
-    <>
-      {isConnectedToWs ? (
-        <li>
-          {activeLobby ? (
-            <button
-              className="rounded-full w-fit px-5 bg-blue-500 hover:bg-blue-700"
-              onClick={() => navigate(`/game/${isConnectedToWs}/play`)}
-            >
-              Go to active game
-            </button>
-          ) : (
-            <button
-              className="rounded-full w-fit px-5 bg-blue-500 hover:bg-blue-700"
-              onClick={() => navigate(`/game/${isConnectedToWs}`)}
-            >
-              Go to active lobby
-            </button>
-          )}
-        </li>
-      ) : (
-        <li>
-          <CreateNewLobby />
-        </li>
-      )}
-    </>
-  );
-}
-
-/**
  *
  * @brief create a lobby using the api POST /api/lobbies
  *
  */
-export function CreateNewLobby() {
+export function CreateNewLobbies() {
   const { connect } = UseWebSocket();
   const navigate = useNavigate();
-  async function handleClick() {
+  async function handleClick(isLobbPrivate: boolean) {
     const rep = await apiFetch('/api/lobbies', {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
-        private: false,
+        private: isLobbPrivate,
       }),
     });
     if (!rep.ok) return;
@@ -138,14 +102,28 @@ export function CreateNewLobby() {
       });
   }
   return (
-    <h2>
-      <button
-        className="rounded-full w-fit px-5 bg-blue-500 hover:bg-blue-700"
-        onClick={() => handleClick()}
-      >
-        Create lobby
-      </button>
-    </h2>
+    <>
+      <div className="flex flex-col gap-5 w-80">
+        <Button
+          className="w-full h-15"
+          variant="accept"
+          onClick={() => {
+            handleClick(false);
+          }}
+        >
+          Create Lobby
+        </Button>
+        <Button
+          className="w-full h-15"
+          variant="danger"
+          onClick={() => {
+            handleClick(true);
+          }}
+        >
+          Create Private Lobby
+        </Button>
+      </div>
+    </>
   );
 }
 
@@ -183,14 +161,18 @@ export function JoinLobby({ code }: { code: string }) {
  */
 export function LeaveLobby() {
   const { disconnect } = UseWebSocket();
+  const navigate = useNavigate();
+
   async function handleClickLeave() {
     try {
       await handleLeaveLobby();
       disconnect();
+      navigate('/lobbies');
     } catch (e) {
       console.error(e);
     }
   }
+
   return (
     <button
       className="rounded-full w-fit px-5 bg-red-500 hover:bg-red-700"
@@ -201,13 +183,55 @@ export function LeaveLobby() {
   );
 }
 
+export function JoinLobbyWithCodeForm() {
+  const [code, setCode] = useState<string>('');
+  const navigate = useNavigate();
+
+  async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
+    e.preventDefault();
+    try {
+      const resp = await fetch(`/api/lobbies/${code}/join`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (resp.ok) navigate(`/game/${code}`);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  return (
+    <Form
+      className="flex flex-col gap-5 w-80"
+      method="post"
+      onSubmit={handleSubmit}
+    >
+      <Input
+        className="w-full h-15"
+        type="text"
+        name="code"
+        id="code"
+        placeholder="Code"
+        autoComplete="code"
+        value={code}
+        onChange={(e) => setCode(e.target.value)}
+        required
+      />
+      <Button className="w-full h-15" variant="accept" disabled={!code}>
+        Join lobby by code
+      </Button>
+    </Form>
+  );
+}
+
 /**
  *
  * @brief display the list of lobby every 5 seconds. can join by clicking on the lobby list
  * @brief each lobbies displayed are joinable by clicking on them.
  *
  */
-
 export default function DisplayLobbies() {
   const [lobbies, setLobbies] = useState<LobbyInterface[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -253,7 +277,12 @@ export default function DisplayLobbies() {
   }, []);
 
   if (loading && lobbies.length === 0) {
-    return <h1>Chargement des salons...</h1>;
+    return (
+      <>
+        <NavBar />
+        <h1>Loading lobbies...</h1>
+      </>
+    );
   }
 
   console.log(lobbies);
@@ -276,12 +305,14 @@ export default function DisplayLobbies() {
         }
       `}</style>
       <NavBar></NavBar>
-      <CreateNewLobby></CreateNewLobby>
-      <h1>Lobbies: {lobbies.length}</h1>
+      <div className="flex justify-around items-center mt-5">
+        <JoinLobbyWithCodeForm />
+        <CreateNewLobbies />
+      </div>
       {lobbies.length === 0 ? (
         <h1>No active lobbies</h1>
       ) : (
-        <ul className="ml-4">
+        <ul className="ml-4 flex flex-col gap-5 mt-5 items-center">
           {lobbies.map((item: LobbyInterface, index) => (
             <li
               key={item.code}
@@ -290,7 +321,7 @@ export default function DisplayLobbies() {
             >
               <Link
                 to={`/game/${item.code}`}
-                className={`flex flex-row items-center gap-1 p-1.5 mt-5 justify-between bg-linear-to-r from-blue to-pink hover:bg-linear-to-r hover:from-pink hover:to-orange h-23 w-100 rounded-[17px] group`}
+                className={`flex items-center gap-1 p-1.5 justify-between bg-linear-to-r from-blue to-pink hover:bg-linear-to-r hover:from-pink hover:to-orange h-23 w-100 rounded-[17px] group`}
               >
                 <div className="flex flex-col ml-1">
                   <ul className="flex h-1/2 -space-x-5 overflow-hidden p-1">

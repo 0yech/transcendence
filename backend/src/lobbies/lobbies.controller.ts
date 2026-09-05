@@ -12,7 +12,7 @@ export class LobbiesController {
   @Post()
   createLobby(
     @CurrentUser() user: JwtPayload,
-    @Body() body: { private?: boolean; password?: string },
+    @Body() body: { private?: boolean },
   ) {
     return this.lobbiesService.createLobby(user.sub, body);
   }
@@ -35,12 +35,8 @@ export class LobbiesController {
 
   @UseGuards(JwtAuthGuard)
   @Post(':code/join')
-  joinLobby(
-    @CurrentUser() user: JwtPayload,
-    @Param('code') code: string,
-    @Body() body: { password?: string },
-  ) {
-    return this.lobbiesService.joinLobby(code, user.sub, body?.password);
+  joinLobby(@CurrentUser() user: JwtPayload, @Param('code') code: string) {
+    return this.lobbiesService.joinLobby(code, user.sub);
   }
 
   @UseGuards(JwtAuthGuard)
