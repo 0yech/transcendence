@@ -162,12 +162,12 @@ export function JoinLobby({ code }: { code: string }) {
 export function LeaveLobby() {
   const { disconnect } = UseWebSocket();
   const navigate = useNavigate();
-  
+
   async function handleClickLeave() {
     try {
       await handleLeaveLobby();
       disconnect();
-      navigate("/lobbies");
+      navigate('/lobbies');
     } catch (e) {
       console.error(e);
     }
