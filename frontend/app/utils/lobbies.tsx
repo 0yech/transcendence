@@ -11,7 +11,6 @@ import { UserPopUp } from '~/components/userProfiles/userProfile';
 import { Input } from '~/components/Input';
 import { Form } from 'react-router';
 import { Button } from '~/components/Button';
-import { StylisedLink } from '~/components/StylisedLink';
 
 export interface UserInterfaceLobby {
   id: string;
