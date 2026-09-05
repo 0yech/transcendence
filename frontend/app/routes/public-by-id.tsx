@@ -1,6 +1,8 @@
 import apiFetch from '~/utils/api-fetch';
-import type { Route } from './+types/profile';
+import type { Route } from './+types/public-by-id';
 import type { Params } from 'react-router';
+import type { SelfUserInterface } from '~/context/WebSocketContext';
+import { UserProfile } from '~/components/userProfiles/userProfile';
 
 export async function clientLoader({ params }: { params: Params<string> }) {
   const { id } = params;
@@ -12,17 +14,9 @@ export async function clientLoader({ params }: { params: Params<string> }) {
 export default function PublicProfileById({
   loaderData,
 }: Route.ComponentProps) {
-  //const { id,
-  //  username,
-  //  avatarUrl,
-  //  lobbyId,
-  //  gamePlayers,
-  //  totalPts,
-  //  guildId,
-  //  sentGuildInvitations,
-  //  createdAt,
-  //  deleted
-  //} = loaderData;
+  const user: SelfUserInterface = loaderData;
 
-  console.log(loaderData);
+  console.log(user);
+
+  return <UserProfile user={user} />;
 }

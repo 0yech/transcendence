@@ -1,4 +1,4 @@
-import type { Route } from './+types/profile';
+import type { Route } from './+types/lobby';
 import apiFetch from '~/utils/api-fetch';
 import type { Params } from 'react-router';
 import { DisplayUsers, JoinLobby, LeaveLobby } from '~/utils/lobbies';
