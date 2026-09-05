@@ -562,4 +562,245 @@ export class GuildsService {
       });
     });
   }
+
+  /**
+   * @brief Promotes a guild member to officer.
+   *
+   * Only the guild leader can promote members.
+   *
+   * @param actorId The authenticated user's id.
+   * @param memberId The member to promote.
+   * @return The updated guild.
+   */
+  async promoteMember(actorId: string, memberId: string) {
+    if (actorId === memberId) {
+      throw new BadRequestException('You cannot promote yourself');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const actor = await tx.user.findUnique({
+        where: { id: actorId },
+        select: {
+          id: true,
+          guildId: true,
+          guildRole: true,
+        },
+      });
+
+      if (!actor) {
+        throw new NotFoundException(`User with id ${actorId} not found`);
+      }
+
+      if (!actor.guildId) {
+        throw new BadRequestException('User is not in a guild');
+      }
+
+      if (actor.guildRole !== GuildRole.LEADER) {
+        throw new ForbiddenException(
+          'Only the guild leader can promote members',
+        );
+      }
+
+      const member = await tx.user.findUnique({
+        where: { id: memberId },
+        select: {
+          id: true,
+          guildId: true,
+          guildRole: true,
+        },
+      });
+
+      if (!member) {
+        throw new NotFoundException('Member not found');
+      }
+
+      if (member.guildId !== actor.guildId) {
+        throw new BadRequestException('User is not in your guild');
+      }
+
+      if (member.guildRole !== GuildRole.MEMBER) {
+        throw new BadRequestException(
+          'Only guild members can be promoted to officer',
+        );
+      }
+
+      await tx.user.update({
+        where: { id: memberId },
+        data: {
+          guildRole: GuildRole.OFFICER,
+        },
+      });
+
+      return tx.guild.findUniqueOrThrow({
+        where: { id: actor.guildId },
+        select: publicGuildSelect,
+      });
+    });
+  }
+
+  /**
+   * @brief Demotes a guild officer to member.
+   *
+   * Only the guild leader can demote officers.
+   *
+   * @param actorId The authenticated user's id.
+   * @param memberId The officer to demote.
+   * @return The updated guild.
+   */
+  async demoteMember(actorId: string, memberId: string) {
+    if (actorId === memberId) {
+      throw new BadRequestException('You cannot demote yourself');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const actor = await tx.user.findUnique({
+        where: { id: actorId },
+        select: {
+          id: true,
+          guildId: true,
+          guildRole: true,
+        },
+      });
+
+      if (!actor) {
+        throw new NotFoundException(`User with id ${actorId} not found`);
+      }
+
+      if (!actor.guildId) {
+        throw new BadRequestException('User is not in a guild');
+      }
+
+      if (actor.guildRole !== GuildRole.LEADER) {
+        throw new ForbiddenException(
+          'Only the guild leader can demote officers',
+        );
+      }
+
+      const member = await tx.user.findUnique({
+        where: { id: memberId },
+        select: {
+          id: true,
+          guildId: true,
+          guildRole: true,
+        },
+      });
+
+      if (!member) {
+        throw new NotFoundException('Member not found');
+      }
+
+      if (member.guildId !== actor.guildId) {
+        throw new BadRequestException('User is not in your guild');
+      }
+
+      if (member.guildRole !== GuildRole.OFFICER) {
+        throw new BadRequestException(
+          'Only guild officers can be demoted to member',
+        );
+      }
+
+      await tx.user.update({
+        where: { id: memberId },
+        data: {
+          guildRole: GuildRole.MEMBER,
+        },
+      });
+
+      return tx.guild.findUniqueOrThrow({
+        where: { id: actor.guildId },
+        select: publicGuildSelect,
+      });
+    });
+  }
+
+  /**
+   * @brief Transfers guild ownership to another member.
+   *
+   * Only the current guild leader can transfer ownership.
+   * The new leader can be a member or an officer.
+   * The previous leader becomes an officer.
+   *
+   * @param actorId The authenticated leader's id.
+   * @param memberId The member who will become leader.
+   * @return The updated guild.
+   */
+  async transferGuild(actorId: string, memberId: string) {
+    if (actorId === memberId) {
+      throw new BadRequestException(
+        'You cannot transfer guild ownership to yourself',
+      );
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const actor = await tx.user.findUnique({
+        where: { id: actorId },
+        select: {
+          id: true,
+          guildId: true,
+          guildRole: true,
+        },
+      });
+
+      if (!actor) {
+        throw new NotFoundException(`User with id ${actorId} not found`);
+      }
+
+      if (!actor.guildId) {
+        throw new BadRequestException('User is not in a guild');
+      }
+
+      if (actor.guildRole !== GuildRole.LEADER) {
+        throw new ForbiddenException(
+          'Only the guild leader can transfer ownership',
+        );
+      }
+
+      const member = await tx.user.findUnique({
+        where: { id: memberId },
+        select: {
+          id: true,
+          guildId: true,
+          guildRole: true,
+        },
+      });
+
+      if (!member) {
+        throw new NotFoundException('Member not found');
+      }
+
+      if (member.guildId !== actor.guildId) {
+        throw new BadRequestException('User is not in your guild');
+      }
+
+      if (
+        member.guildRole !== GuildRole.MEMBER &&
+        member.guildRole !== GuildRole.OFFICER
+      ) {
+        throw new BadRequestException(
+          'Guild ownership can only be transferred to a member or officer',
+        );
+      }
+
+      const updatedLeader = await tx.user.updateMany({
+        where: {
+          id: actorId,
+          guildId: actor.guildId,
+          guildRole: GuildRole.LEADER,
+        },
+        data: {
+          guildRole: GuildRole.OFFICER,
+        },
+      });
+
+      // Enhanced security/Prevent race conditions
+      if (updatedLeader.count !== 1) {
+        throw new ForbiddenException('You are no longer the guild leader');
+      }
+
+      return tx.guild.findUniqueOrThrow({
+        where: { id: actor.guildId },
+        select: publicGuildSelect,
+      });
+    });
+  }
 }

@@ -86,4 +86,31 @@ export class GuildsController {
   ) {
     return this.guildsService.kickMember(user.sub, memberId);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('members/:memberId/promote')
+  promoteMember(
+    @CurrentUser() user: JwtPayload,
+    @Param('memberId') memberId: string,
+  ) {
+    return this.guildsService.promoteMember(user.sub, memberId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('members/:memberId/demote')
+  demoteMember(
+    @CurrentUser() user: JwtPayload,
+    @Param('memberId') memberId: string,
+  ) {
+    return this.guildsService.demoteMember(user.sub, memberId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('members/:memberId/transfer')
+  transferGuild(
+    @CurrentUser() user: JwtPayload,
+    @Param('memberId') memberId: string,
+  ) {
+    return this.guildsService.transferGuild(user.sub, memberId);
+  }
 }

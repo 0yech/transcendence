@@ -107,6 +107,9 @@ NestJS global validation is enabled.
 | `POST`   | `/api/guilds/invitations/:invitationId/accept`  |            Yes | Accept a guild invitation                                      |
 | `POST`   | `/api/guilds/invitations/:invitationId/decline` |            Yes | Decline a guild invitation                                     |
 | `POST`   | `/api/guilds/members/:memberId/kick`            |            Yes | Remove a member from the guild                                 |
+| `POST`   | `/api/guilds/members/:memberId/promote`         |            Yes | Promote a member to officer                                    |
+| `POST`   | `/api/guilds/members/:memberId/demote`          |            Yes | Demote an officer to member                                    |
+| `POST`   | `/api/guilds/members/:memberId/transfer`        |            Yes | Transfer guild ownership                                       |
 
 ---
 
@@ -621,3 +624,90 @@ Removes a member from the authenticated user's guild.
 **Typical requirement:** The requesting user must have guild-management permission.
 
 **Success response:** Updated guild or removal result.
+
+## `POST /api/guilds/members/:memberId/promote`
+
+Promotes a guild member to officer.
+
+**Authentication:** Required
+
+### Path parameters
+
+| Parameter  | Type   | Description               |
+| ---------- | ------ | ------------------------- |
+| `memberId` | string | User/member ID to promote |
+
+**Body:** None
+
+**Requirements:**
+
+- The authenticated user must be the guild `LEADER`.
+- The target user must belong to the same guild.
+- The target user must currently be a `MEMBER`.
+
+**Success response:** Updated guild object.
+
+**Possible errors:**
+
+- `400 Bad Request` — target is not a member or does not belong to the guild.
+- `403 Forbidden` — authenticated user is not the guild leader.
+- `404 Not Found` — target user was not found.
+
+## `POST /api/guilds/members/:memberId/demote`
+
+Demotes a guild officer to member.
+
+**Authentication:** Required
+
+### Path parameters
+
+| Parameter  | Type   | Description              |
+| ---------- | ------ | ------------------------ |
+| `memberId` | string | User/member ID to demote |
+
+**Body:** None
+
+**Requirements:**
+
+- The authenticated user must be the guild `LEADER`.
+- The target user must belong to the same guild.
+- The target user must currently be an `OFFICER`.
+
+**Success response:** Updated guild object.
+
+**Possible errors:**
+
+- `400 Bad Request` — target is not an officer or does not belong to the guild.
+- `403 Forbidden` — authenticated user is not the guild leader.
+- `404 Not Found` — target user was not found.
+
+## `POST /api/guilds/members/:memberId/transfer`
+
+Transfers guild ownership to another guild member.
+
+The target becomes `LEADER` and the previous leader becomes `OFFICER`.
+
+**Authentication:** Required
+
+### Path parameters
+
+| Parameter  | Type   | Description                            |
+| ---------- | ------ | -------------------------------------- |
+| `memberId` | string | User/member ID that will become leader |
+
+**Body:** None
+
+**Requirements:**
+
+- The authenticated user must be the current guild `LEADER`.
+- The target must belong to the same guild.
+- The target must currently be a `MEMBER` or `OFFICER`.
+- A leader cannot transfer ownership to themselves.
+
+**Success response:** Updated guild object.
+
+**Possible errors:**
+
+- `400 Bad Request` — invalid target or target does not belong to the guild.
+- `403 Forbidden` — authenticated user is not the guild leader.
+- `404 Not Found` — target user was not found.
