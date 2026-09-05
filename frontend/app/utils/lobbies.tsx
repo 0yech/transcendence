@@ -276,7 +276,7 @@ export default function DisplayLobbies() {
     return (
       <>
         <NavBar />
-        <h1>Chargement des salons...</h1>
+        <h1>Loading lobbies...</h1>
       </>
     );
   }
