@@ -9,7 +9,7 @@ import { NavBar } from '~/components/Navbar';
 import { twMerge } from 'tailwind-merge';
 import { UserPopUp } from '~/components/userProfiles/userProfile';
 import { Input } from '~/components/Input';
-import { Form } from "react-router"
+import { Form } from 'react-router';
 import { Button } from '~/components/Button';
 
 export interface UserInterfaceLobby {
@@ -92,8 +92,7 @@ export function CreateNewLobbies() {
         private: isLobbPrivate,
       }),
     });
-    if (!rep.ok)
-      return;
+    if (!rep.ok) return;
     apiFetch('/api/lobbies/me')
       .then((data) => data.json())
       .then((json) => {
@@ -102,12 +101,30 @@ export function CreateNewLobbies() {
           .catch((e) => console.error(e));
       });
   }
-  return (<>
-    <div className="flex flex-col gap-5 w-80">
-      <Button className="w-full h-15" variant="accept" onClick={() => {handleClick(false)}}>Create Lobby</Button>
-      <Button className="w-full h-15" variant="danger" onClick={() => {handleClick(true)}}>Create Private Lobby</Button>
-    </div>
-</>);
+  return (
+    <>
+      <div className="flex flex-col gap-5 w-80">
+        <Button
+          className="w-full h-15"
+          variant="accept"
+          onClick={() => {
+            handleClick(false);
+          }}
+        >
+          Create Lobby
+        </Button>
+        <Button
+          className="w-full h-15"
+          variant="danger"
+          onClick={() => {
+            handleClick(true);
+          }}
+        >
+          Create Private Lobby
+        </Button>
+      </div>
+    </>
+  );
 }
 
 /**
@@ -162,13 +179,55 @@ export function LeaveLobby() {
   );
 }
 
+export function JoinLobbyWithCodeForm() {
+  const [code, setCode] = useState<string>('');
+  const navigate = useNavigate();
+
+  async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
+    e.preventDefault();
+    try {
+      await apiFetch(`/api/lobbies/${code}/join`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      navigate(`/game/${code}`);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  return (
+    <Form
+      className="flex flex-col gap-5 w-80"
+      method="post"
+      onSubmit={handleSubmit}
+    >
+      <Input
+        className="w-full h-15"
+        type="text"
+        name="code"
+        id="code"
+        placeholder="Code"
+        autoComplete="code"
+        value={code}
+        onChange={(e) => setCode(e.target.value)}
+        required
+      />
+      <Button className="w-full h-15" variant="accept" disabled={!code}>
+        Join lobby by code
+      </Button>
+    </Form>
+  );
+}
+
 /**
  *
  * @brief display the list of lobby every 5 seconds. can join by clicking on the lobby list
  * @brief each lobbies displayed are joinable by clicking on them.
  *
  */
-
 export default function DisplayLobbies() {
   const [lobbies, setLobbies] = useState<LobbyInterface[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -214,7 +273,12 @@ export default function DisplayLobbies() {
   }, []);
 
   if (loading && lobbies.length === 0) {
-    return <h1>Chargement des salons...</h1>;
+    return (
+      <>
+        <NavBar />
+        <h1>Chargement des salons...</h1>
+      </>
+    );
   }
 
   console.log(lobbies);
@@ -237,13 +301,9 @@ export default function DisplayLobbies() {
         }
       `}</style>
       <NavBar></NavBar>
-      <div className="flex justify-around items-center">
-          <Form className="flex flex-col gap-5 w-80" method="post" action={`/lobbies/${code}/join`}>
-            <Input className="w-full h-15" type='text' name="code" id="code" placeholder='Code' autoComplete='code' required>
-            </Input>
-            <Button className="w-full h-15" variant="accept">Join lobby by code</Button>
-          </Form>
-          <CreateNewLobbies />
+      <div className="flex justify-around items-center mt-5">
+        <JoinLobbyWithCodeForm />
+        <CreateNewLobbies />
       </div>
       {lobbies.length === 0 ? (
         <h1>No active lobbies</h1>

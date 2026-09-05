@@ -106,10 +106,7 @@ export class LobbiesService {
    * @param user The user's JWT payload.
    * @return The newly created lobby.
    */
-  async createLobby(
-    userId: string,
-    data?: { private?: boolean },
-  ) {
+  async createLobby(userId: string, data?: { private?: boolean }) {
     return this.prisma.$transaction(async (tx) => {
       const user = await tx.user.findUnique({
         where: { id: userId },

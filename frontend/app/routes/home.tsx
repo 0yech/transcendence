@@ -43,9 +43,8 @@ export default function Home() {
     }
     fetchUser();
   }, []);
-  if (userCurr)
-    setUser(userCurr);
-  console.log("user: ");
+  if (userCurr) setUser(userCurr);
+  console.log('user: ');
   console.log(getUser());
   return (
     <>

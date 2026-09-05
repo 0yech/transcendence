@@ -35,10 +35,7 @@ export class LobbiesController {
 
   @UseGuards(JwtAuthGuard)
   @Post(':code/join')
-  joinLobby(
-    @CurrentUser() user: JwtPayload,
-    @Param('code') code: string,
-  ) {
+  joinLobby(@CurrentUser() user: JwtPayload, @Param('code') code: string) {
     return this.lobbiesService.joinLobby(code, user.sub);
   }
 
