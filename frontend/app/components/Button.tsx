@@ -119,6 +119,7 @@ export function ButtonNavLink({
         )
       }
       {...rest}
+      viewTransition
     >
       {children}
     </NavLink>
