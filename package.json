@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "frontend": "file:frontend",
+    "transcendence-backend": "file:backend"
+  }
+}

@@ -1,10 +1,12 @@
 import { ErrorMessage } from '~/pages/auth/errorMessage';
 import { LoginForm } from '~/pages/auth/login';
 import type { Route } from './+types/login';
-import { redirect, useSearchParams } from 'react-router';
+import { redirect, useNavigate, useSearchParams } from 'react-router';
 import { OauthLoginOptions } from '~/pages/auth/oauth';
 import { StylisedLink } from '../components/StylisedLink';
 import { NavBar } from '~/components/Navbar';
+import { UseWebSocket } from '~/context/UseWebSocket';
+import { useEffect } from 'react';
 
 export async function clientAction({ request }: Route.ClientActionArgs) {
   const data = await request.formData();
@@ -19,26 +21,43 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
   if (!response.ok) {
     const body = await response.json();
     if (Array.isArray(body.message)) {
-      // The validation pipe returns an array of potential error messages
       return { errorMessage: body.message.join(' ') };
     } else {
       return { errorMessage: body.message };
     }
-  } else {
-    throw redirect('/');
   }
+
+  const resp = await fetch('/api/auth/me');
+  if (resp.ok) {
+    const json = await resp.json();
+    const lobbyResponse = await fetch('/api/lobbies/me');
+    if (lobbyResponse.ok) {
+      const lobbyJson = await lobbyResponse.json();
+      console.log(lobbyJson);
+      return { user: json, lobbies: lobbyJson };
+    }
+  }
+
+  throw redirect('/');
 }
 
 export default function Login({ actionData }: Route.ComponentProps) {
+  const { setUser, setCode } = UseWebSocket(); // Hook called in component ✓
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
+  useEffect(() => {
+    if (actionData?.user) {
+      setUser(actionData.user);
+      setCode(actionData.lobbies.code);
+      navigate('/');
+    }
+  }, [actionData?.user, setUser, actionData?.lobbies, setCode, navigate]);
+
   let errorMessage = null;
-  if (actionData) {
-    // Normal auth errors, returned by clientActions
+  if (actionData?.errorMessage) {
     errorMessage = actionData.errorMessage;
   } else {
-    // OAuth errors, returned from the callback routes through the query string
-
     const errorType = searchParams.get('error');
 
     if (errorType !== null) {
