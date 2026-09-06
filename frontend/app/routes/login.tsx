@@ -42,7 +42,7 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
 }
 
 export default function Login({ actionData }: Route.ComponentProps) {
-  const { setUser, setCode } = UseWebSocket(); // Hook called in component ✓
+  const { setUser, setCode } = UseWebSocket();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
