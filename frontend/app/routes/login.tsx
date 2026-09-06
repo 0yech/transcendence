@@ -1,7 +1,7 @@
 import { ErrorMessage } from '~/pages/auth/errorMessage';
 import { LoginForm } from '~/pages/auth/login';
 import type { Route } from './+types/login';
-import { redirect, useNavigate, useSearchParams } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { OauthLoginOptions } from '~/pages/auth/oauth';
 import { StylisedLink } from '../components/StylisedLink';
 import { NavBar } from '~/components/Navbar';
