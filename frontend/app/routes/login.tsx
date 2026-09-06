@@ -29,16 +29,17 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
 
   const resp = await fetch('/api/auth/me');
   if (resp.ok) {
-    const json = await resp.json();
+    const userJson = await resp.json();
     const lobbyResponse = await fetch('/api/lobbies/me');
     if (lobbyResponse.ok) {
+      console.log(lobbyResponse);
+      const lobbyText = await lobbyResponse.text();
+      if (!lobbyText) return { user: userJson, lobbies: null };
+
       const lobbyJson = await lobbyResponse.json();
-      console.log(lobbyJson);
-      return { user: json, lobbies: lobbyJson };
+      return { user: userJson, lobbies: lobbyJson };
     }
   }
-
-  throw redirect('/');
 }
 
 export default function Login({ actionData }: Route.ComponentProps) {
@@ -49,7 +50,7 @@ export default function Login({ actionData }: Route.ComponentProps) {
   useEffect(() => {
     if (actionData?.user) {
       setUser(actionData.user);
-      setCode(actionData.lobbies.code);
+      if (actionData.lobbies) setCode(actionData.lobbies.code);
       navigate('/');
     }
   }, [actionData?.user, setUser, actionData?.lobbies, setCode, navigate]);
