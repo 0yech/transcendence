@@ -109,6 +109,8 @@ const WavesPlane = () => {
       amplitude: { value: 2.3, min: 0.0, max: 5.0 },
       speed: { value: 0.9, min: 0.0, max: 5.0 },
       size: { value: 3.0, min: 0.5, max: 6.0 },
+      vertexNumber: { value: 128, min: 1, max: 1024, step: 1 },
+      wireframe: { value: false },
       rotation: folder({
         x: { value: -0.6, min: -Math.PI, max: Math.PI },
         y: { value: 0.0, min: -Math.PI, max: Math.PI },
@@ -190,12 +192,15 @@ const WavesPlane = () => {
       position={[ctl.px, ctl.py, ctl.pz]}
       rotation={[ctl.x, ctl.y, ctl.z]}
     >
-      <planeGeometry args={[ctl.size, ctl.size, 128, 128]} />
+      <planeGeometry
+        args={[ctl.size, ctl.size, ctl.vertexNumber, ctl.vertexNumber]}
+      />
       <shaderMaterial
         ref={mat}
         vertexShader={vertex}
         fragmentShader={fragment}
         uniforms={uniforms}
+        wireframe={ctl.wireframe}
       />
       {/* <EffectComposer>
   	  	<ChromaticAberration offset={new Vector2(0.005, 0.005)} radialModulation modulationOffset={0.015} />
