@@ -36,7 +36,7 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
       const lobbyText = await lobbyResponse.text();
       if (!lobbyText) return { user: userJson, lobbies: null };
 
-      const lobbyJson = await lobbyResponse.json();
+      const lobbyJson = JSON.parse(lobbyText);
       return { user: userJson, lobbies: lobbyJson };
     }
   }
