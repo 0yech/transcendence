@@ -48,7 +48,7 @@ export interface SelfGame {
   finishedAt: string;
 }
 
-interface SelfMatchHistory {
+export interface SelfMatchHistory {
   id: string;
   eliminatedAt: string | null;
   eliminatedPosition: number | null;

@@ -99,23 +99,28 @@ export default function PreGame({ loaderData }: Route.ComponentProps) {
 
       <br />
 
-      <h2>Id: {id}</h2>
-      <h2>Code: {code}</h2>
-      <h2>active: {active}</h2>
-      <h2>leaderId: {leaderId}</h2>
-      <h2>createdAt: {createdAt}</h2>
-      <h2>updatedAt: {updatedAt}</h2>
+      <div className="flex flex-row">
+        <div>
+          <h2>Id: {id}</h2>
+          <h2>Code: {code}</h2>
+          <h2>active: {active}</h2>
+          <h2>is Private: {isPrivate ? 'true' : 'false'}</h2>
+          <h2>leaderId: {leaderId}</h2>
+          <h2>createdAt: {createdAt}</h2>
+          <h2>updatedAt: {updatedAt}</h2>
 
-      <h2>Users</h2>
-      <DisplayUsers users={users} />
+          <h2>Users</h2>
+          <DisplayUsers users={users} />
+        </div>
 
-      <h2>Chat</h2>
-
-      {!isPrivate || isMember ? (
-        <LobbyChat code={code} canSend={isMember} />
-      ) : (
-        <p>This lobby chat is private.</p>
-      )}
+        <div>
+          {!isPrivate || isMember ? (
+            <LobbyChat code={code} canSend={isMember} />
+          ) : (
+            <p>This lobby chat is private.</p>
+          )}
+        </div>
+      </div>
     </>
   );
 }
