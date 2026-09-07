@@ -108,6 +108,16 @@ export class AuthService {
     let user = await this.usersService.findOneOauth(providerId, provider);
 
     if (user === null) {
+      // Is there another user with the same email, but a different provider?
+      const otherUser = await this.usersService.findOneEmail(email);
+      if (otherUser) {
+        if (otherUser.oauthProvider) {
+          throw new OAuthException(OAuthError.DIFFERENT_PROVIDER);
+        } else {
+          throw new OAuthException(OAuthError.BASIC_AUTH);
+        }
+      }
+
       if (!username) {
         username = await this.usersService.createUsername(email);
       }
@@ -125,15 +135,6 @@ export class AuthService {
           pictureUrl: pictureUrl,
         });
       }
-    }
-
-    // If the account was created without OAuth
-    if (user.oauthProvider === null) {
-      throw new OAuthException(OAuthError.BASIC_AUTH);
-    }
-    // If email was the same, but the provider is different
-    if (user.oauthProvider !== provider) {
-      throw new OAuthException(OAuthError.DIFFERENT_PROVIDER);
     }
 
     const accessToken = await this.issueNewAccessToken(user);
