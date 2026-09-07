@@ -1,10 +1,7 @@
-import type {
-  ButtonHTMLAttributes,
-  AnchorHTMLAttributes,
-  ReactNode,
-} from 'react';
+import type { AnchorHTMLAttributes, ReactNode } from 'react';
 import { Link, NavLink, type LinkProps, type NavLinkProps } from 'react-router';
 import { twMerge } from 'tailwind-merge';
+import { motion, type HTMLMotionProps } from 'motion/react';
 
 const buttonStyles = {
   primary:
@@ -19,7 +16,10 @@ const buttonStyles = {
 const baseStyle =
   'text-xl flex justify-center items-center p-2 rounded-full hover:cursor-pointer hover:scale-105 active:scale-95 transition-all duration-500 ease-out';
 
-type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+const motionStyle =
+  'text-xl flex justify-center items-center p-2 rounded-full hover:cursor-pointer transition-colors';
+
+type ButtonProps = HTMLMotionProps<'button'> & {
   children: ReactNode;
   variant?: keyof typeof buttonStyles;
 };
@@ -32,13 +32,16 @@ export function Button({
   ...rest
 }: ButtonProps) {
   return (
-    <button
-      className={twMerge(baseStyle, buttonStyles[variant], className)}
+    <motion.button
+      className={twMerge(motionStyle, buttonStyles[variant], className)}
       onClick={onClick}
       {...rest}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      transition={{ type: 'spring' }}
     >
       {children}
-    </button>
+    </motion.button>
   );
 }
 

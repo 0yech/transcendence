@@ -32,8 +32,10 @@ export const fragment =
 uniform float uFrequency;
 uniform float uTime;
 uniform float uAmplitude;
+uniform float uNoise;
 uniform vec2 uCursor;
 uniform vec4 uColors[5];
+
 varying vec2 vUv;
 
 float remap(float mn, float mx, float value) {
@@ -44,9 +46,9 @@ vec3 mixColor(vec4 colors[5], float d) {
 	vec3 ret = colors[0].rgb;
 	d = clamp(d, 0.0, 1.0);
 	for (int i = 0; i < 4; ++i)
-		ret = mix(ret, colors[i + 1].rgb, remap(colors[i].a, colors[i + 1].a, d));
+		ret = mix(ret, colors[i + 1].rgb, smoothstep(colors[i].a, colors[i + 1].a, d));
 	float grain = fract(sin(dot(floor(gl_FragCoord.xy / 1.5) + fract(uTime), vec2(12.9898, 78.233))) * 43758.5453);
-	ret += (grain - 0.5) * 0.04;
+	ret += (grain - 0.5) * uNoise;
 	return (ret);
 }
 
