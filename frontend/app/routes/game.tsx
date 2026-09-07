@@ -5,6 +5,7 @@ import LobbyChat from '~/components/LobbyChat';
 import { getUserById } from '~/utils/users';
 import { useEffect, useState } from 'react';
 import { NavBar } from '~/components/Navbar';
+import TurnTimer from '~/components/games/TurnTimer';
 
 /**
  *
@@ -73,6 +74,10 @@ export default function PlayGame() {
             </button>
           </li>
           <li>who's turn: {turnUser}</li>
+          <TurnTimer
+            turnNumber={gameState?.turnNumber}
+            isRunning={gameState?.status === 'IN_PROGRESS'}
+          />
           <li>pendingPlays: {gameState?.pendingPlays}</li>
           <li>turnNumber: {gameState?.turnNumber}</li>
           <li>DeckCount: {gameState?.deckCount}</li>

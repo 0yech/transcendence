@@ -53,6 +53,7 @@ type GameWithPlayers = {
   winnerId: string | null;
   pendingPlays: number;
   turnNumber: number;
+  turnDeadline: Date | null;
   reshuffleIndex: number;
   deck: unknown;
   discardPile: unknown;
@@ -72,8 +73,17 @@ type GameWithPlayers = {
 @Injectable()
 export class GamesService {
   private readonly gameLocks = new Map<string, Promise<void>>();
-
+  private readonly TURN_DURATION_MS = 20_000;
   constructor(private readonly prisma: PrismaService) {}
+
+  /**
+   * @brief Creates the authoritative deadline for a new turn.
+   *
+   * @returns Current server time plus the configured turn duration.
+   */
+  private createTurnDeadline(): Date {
+    return new Date(Date.now() + this.TURN_DURATION_MS);
+  }
 
   /**
    * @brief Serializes actions for a single game.
@@ -202,6 +212,7 @@ export class GamesService {
 
         pendingPlays: 1,
         turnNumber: 1,
+        turnDeadline: this.createTurnDeadline(),
 
         deck: dealt.drawPile as Prisma.InputJsonValue,
         discardPile: [],
@@ -402,6 +413,7 @@ export class GamesService {
     this.assertInProgress(game);
     this.assertPlayerInGame(game, userId);
     this.assertCurrentPlayer(game, userId);
+    this.assertTurnNotExpired(game);
 
     const player = game.players.find(
       (p: GamePlayerWithUser) => p.userId === userId,
@@ -467,6 +479,7 @@ export class GamesService {
         pendingPlays: nextTurn.pendingPlays,
         lastPlayedById: userId,
         turnNumber: { increment: 1 },
+        turnDeadline: this.createTurnDeadline(),
         reshuffleIndex: draw.reshuffleIndex,
         deck: draw.deck as Prisma.InputJsonValue,
         discardPile: draw.discardPile as Prisma.InputJsonValue,
@@ -550,6 +563,92 @@ export class GamesService {
     }
   }
 
+  private async eliminateCurrentPlayer(
+    game: GameWithPlayers,
+    userId: string,
+    reason: 'NO_LEGAL_MOVE' | 'TURN_TIMEOUT',
+  ) {
+    const gameId = game.id;
+
+    const player = game.players.find(
+      (p: GamePlayerWithUser) => p.userId === userId,
+    );
+
+    if (!player || player.status !== 'ACTIVE') {
+      throw new ForbiddenException('You are not active in this game');
+    }
+
+    const remainingPlayers = game.players.filter(
+      (p) => p.status === 'ACTIVE' || p.status === 'WINNER',
+    ).length;
+
+    const addedPts = this.calculatePoints(
+      remainingPlayers,
+      game.players.length,
+    );
+
+    await this.prisma.gamePlayer.update({
+      where: { id: player.id },
+      data: {
+        status: 'ELIMINATED',
+        eliminatedAt: new Date(),
+        eliminatedPosition: remainingPlayers,
+        pointWon: addedPts,
+      },
+    });
+
+    await this.updateUserPoints(player.userId, addedPts);
+
+    await this.prisma.gameAction.create({
+      data: {
+        gameId,
+        actorUserId: userId,
+        type: 'PLAYER_ELIMINATED',
+        sequence: await this.nextSequence(gameId),
+        turnNumber: game.turnNumber,
+        payload: {
+          reason,
+          total: game.total,
+        },
+      },
+    });
+
+    const refreshed = await this.getFullGame(gameId);
+
+    const activePlayers = refreshed.players.filter(
+      (p: GamePlayerWithUser) => p.status === 'ACTIVE',
+    );
+
+    if (activePlayers.length === 1) {
+      return this.finishGame(
+        gameId,
+        activePlayers[0].userId,
+        userId,
+        this.calculatePoints(1, game.players.length),
+      );
+    }
+
+    const nextPlayerId = this.findNextActivePlayerId(
+      refreshed,
+      userId,
+      refreshed.direction,
+    );
+
+    const updated = await this.prisma.game.update({
+      where: { id: gameId },
+      data: {
+        currentPlayerId: nextPlayerId,
+        pendingPlays: 1,
+
+        turnNumber: { increment: 1 },
+        turnDeadline: this.createTurnDeadline(),
+      },
+      include: this.gameInclude(),
+    });
+
+    return this.finishIfNeeded(updated, userId);
+  }
+
   /**
    * @brief Declares that the current player cannot play any legal card.
    *
@@ -572,11 +671,11 @@ export class GamesService {
 
     return this.withGameLock(activeGame.id, async () => {
       const game = await this.getFullGame(activeGame.id);
-      const gameId = game.id;
 
       this.assertInProgress(game);
       this.assertPlayerInGame(game, userId);
       this.assertCurrentPlayer(game, userId);
+      this.assertTurnNotExpired(game);
 
       const player = game.players.find(
         (p: GamePlayerWithUser) => p.userId === userId,
@@ -587,77 +686,96 @@ export class GamesService {
       }
 
       const hand = player.hand as Ono99Card[];
-
       if (hasPlayableCard(hand, game.total) || hasFourOno99(hand)) {
         throw new BadRequestException('You still have a legal move');
       }
 
-      const remainingPlayer = game.players.filter(
-        (player) => player.status === 'ACTIVE' || player.status === 'WINNER',
-      ).length;
+      return this.eliminateCurrentPlayer(game, userId, 'NO_LEGAL_MOVE');
+    });
+  }
 
-      const addedPts: number = this.calculatePoints(
-        remainingPlayer,
-        game.players.length,
-      );
-
-      await this.prisma.gamePlayer.update({
-        where: { id: player.id },
-        data: {
-          status: 'ELIMINATED',
-          eliminatedAt: new Date(),
-          eliminatedPosition: remainingPlayer,
-          pointWon: addedPts,
+  /**
+   * @brief Finds game turns whose timer has expired.
+   *
+   * This method does not eliminate players.
+   * It only queries the database for games that are still in progress
+   * and whose current turn deadline has been reached.
+   *
+   * The returned turns are later passed to timeoutTurn(), which performs
+   * the final safety checks before eliminating a player.
+   *
+   * @returns The games whose current turn may have timed out.
+   */
+  async findExpiredTurns() {
+    return this.prisma.game.findMany({
+      where: {
+        status: 'IN_PROGRESS',
+        currentPlayerId: {
+          not: null,
         },
-      });
-
-      await this.updateUserPoints(player.userId, addedPts);
-
-      await this.prisma.gameAction.create({
-        data: {
-          gameId,
-          actorUserId: userId,
-          type: 'PLAYER_ELIMINATED',
-          sequence: await this.nextSequence(gameId),
-          turnNumber: game.turnNumber,
-          payload: {
-            reason: 'NO_LEGAL_MOVE',
-            total: game.total,
+        turnDeadline: {
+          lte: new Date(),
+        },
+      },
+      select: {
+        id: true,
+        currentPlayerId: true,
+        turnNumber: true,
+        lobby: {
+          select: {
+            code: true,
           },
         },
-      });
+      },
+    });
+  }
 
-      const refreshed = await this.getFullGame(gameId);
+  /**
+   * @brief Handles an expired player turn.
+   *
+   * @param gameId The game whose turn may have expired.
+   * @param expectedPlayerId Player that was current when the timeout was found.
+   * @param expectedTurnNumber Turn that was current when the timeout was found.
+   * @returns The updated game after an elimination, or null if the timeout
+   * became obsolete.
+   */
+  async timeoutTurn(
+    gameId: string,
+    expectedPlayerId: string,
+    expectedTurnNumber: number,
+  ) {
+    return this.withGameLock(gameId, async () => {
+      const game = await this.getFullGame(gameId);
 
-      const activePlayers = refreshed.players.filter(
-        (p: GamePlayerWithUser) => p.status === 'ACTIVE',
-      );
-
-      if (activePlayers.length === 1) {
-        return this.finishGame(
-          gameId,
-          activePlayers[0].userId,
-          userId,
-          this.calculatePoints(1, game.players.length),
-        );
+      if (game.status !== 'IN_PROGRESS') {
+        return null;
       }
 
-      const nextPlayerId = this.findNextActivePlayerId(
-        refreshed,
-        userId,
-        refreshed.direction,
+      if (
+        game.currentPlayerId !== expectedPlayerId ||
+        game.turnNumber !== expectedTurnNumber
+      ) {
+        return null;
+      }
+
+      if (!game.turnDeadline || game.turnDeadline.getTime() > Date.now()) {
+        return null;
+      }
+
+      const player = game.players.find(
+        (player: GamePlayerWithUser) =>
+          player.userId === expectedPlayerId && player.status === 'ACTIVE',
       );
 
-      const updated = await this.prisma.game.update({
-        where: { id: gameId },
-        data: {
-          currentPlayerId: nextPlayerId,
-          pendingPlays: 1,
-          turnNumber: { increment: 1 },
-        },
-        include: this.gameInclude(),
-      });
-      return this.finishIfNeeded(updated, userId);
+      if (!player) {
+        return null;
+      }
+
+      return this.eliminateCurrentPlayer(
+        game,
+        expectedPlayerId,
+        'TURN_TIMEOUT',
+      );
     });
   }
 
@@ -687,6 +805,7 @@ export class GamesService {
       this.assertInProgress(game);
       this.assertPlayerInGame(game, userId);
       this.assertCurrentPlayer(game, userId);
+      this.assertTurnNotExpired(game);
 
       const player = game.players.find(
         (p: GamePlayerWithUser) => p.userId === userId,
@@ -736,6 +855,7 @@ export class GamesService {
           currentPlayerId: next.currentPlayerId,
           pendingPlays: next.pendingPlays,
           turnNumber: { increment: 1 },
+          turnDeadline: this.createTurnDeadline(),
           reshuffleIndex: draw.reshuffleIndex,
           deck: draw.deck as Prisma.InputJsonValue,
           discardPile: draw.discardPile as Prisma.InputJsonValue,
@@ -996,6 +1116,7 @@ export class GamesService {
         winnerId,
         currentPlayerId: null,
         pendingPlays: 0,
+        turnDeadline: null,
         finishedAt: new Date(),
         actions: {
           create: {
@@ -1170,6 +1291,18 @@ export class GamesService {
   }
 
   /**
+   * @brief Rejects a game action submitted after the turn deadline.
+   *
+   * @param game Current game state.
+   * @throws ForbiddenException If the turn deadline has expired.
+   */
+  private assertTurnNotExpired(game: GameWithPlayers) {
+    if (!game.turnDeadline || Date.now() >= game.turnDeadline.getTime()) {
+      throw new ForbiddenException('Turn time expired');
+    }
+  }
+
+  /**
    * @brief Converts an internal game state into a safe public game view.
    *
    * The returned object exposes public game information, the discard pile and
@@ -1195,6 +1328,7 @@ export class GamesService {
       winnerId: game.winnerId,
       pendingPlays: game.pendingPlays,
       turnNumber: game.turnNumber,
+      turnDeadline: game.turnDeadline?.toISOString() ?? null,
 
       deckCount: Array.isArray(game.deck) ? game.deck.length : 0,
       discardPile: Array.isArray(game.discardPile) ? game.discardPile : [],

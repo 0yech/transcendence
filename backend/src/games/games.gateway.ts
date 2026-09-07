@@ -1,4 +1,5 @@
 import { HttpException, NotFoundException } from '@nestjs/common';
+import { Interval } from '@nestjs/schedule';
 import { JwtService } from '@nestjs/jwt';
 import {
   ConnectedSocket,
@@ -230,6 +231,41 @@ export class GamesGateway implements OnGatewayConnection {
     return this.runGameAction(client, body.lobbyCode, (lobbyCode, userId) =>
       this.gamesService.discardFourOno99(lobbyCode, userId),
     );
+  }
+
+  /**
+   * @brief Checks for expired player turns.
+   *
+   * The database stores the turn deadline.
+   * After a successful timeout, the new game state is broadcast so every
+   * connected player immediately sees the elimination and the next turn.
+   */
+  @Interval(250)
+  async checkTurnTimeouts() {
+    const expiredTurns = await this.gamesService.findExpiredTurns();
+
+    for (const expired of expiredTurns) {
+      if (!expired.currentPlayerId) {
+        continue;
+      }
+
+      try {
+        const game = await this.gamesService.timeoutTurn(
+          expired.id,
+          expired.currentPlayerId,
+          expired.turnNumber,
+        );
+        if (!game) {
+          continue;
+        }
+        await this.broadcastGameState(expired.lobby.code, game);
+      } catch (error) {
+        console.error(
+          `Failed to process turn timeout for game ${expired.id}`,
+          error,
+        );
+      }
+    }
   }
 
   /**
