@@ -16,4 +16,5 @@ export default [
   route('game/:code/play', 'routes/game.tsx'),
   route('profile/byId/:id', 'routes/public-by-id.tsx'),
   route('profile/byUser/:username', 'routes/public-by-username.tsx'),
+  route('three-test', 'routes/three-test.tsx'),
 ] satisfies RouteConfig;
