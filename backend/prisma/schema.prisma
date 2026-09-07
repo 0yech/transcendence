@@ -27,6 +27,13 @@ enum GuildInvitationStatus {
   CANCELLED
 }
 
+enum FriendInvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  CANCELLED
+}
+
 enum GameStatus {
   IN_PROGRESS
   FINISHED
@@ -57,6 +64,13 @@ model User {
   avatarUrl      String?
   avatar         Avatar?
 
+  friends   FriendRelation[] @relation("FriendOwner")
+  friendOf  FriendRelation[] @relation("Friend")
+
+  sentFriendInvitations FriendInvitation[] @relation("FriendInvitationSender")
+
+  receivedFriendInvitations FriendInvitation[] @relation("FriendInvitationReceiver")
+
   lobbyId String?
   lobby   Lobby?  @relation("LobbyUsers", fields: [lobbyId], references: [id], onDelete: SetNull)
 
@@ -80,6 +94,34 @@ model User {
   deleted Boolean @default(false)
 
   @@index([guildId])
+}
+
+/// Represents a many-to-many relationship between users.
+model FriendRelation {
+  user User @relation("FriendOwner", fields: [userId], references: [id])
+  userId String
+
+  friend User @relation("Friend", fields: [friendId], references: [id])
+  friendId String
+
+  @@id([userId, friendId])
+}
+
+model FriendInvitation {
+  id String @id @default(cuid())
+
+  senderId String
+  sender   User   @relation("FriendInvitationSender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  receiverId String
+  receiver   User   @relation("FriendInvitationReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  status FriendInvitationStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([receiverId, status])
 }
 
 /// An uploaded profile picture. One row per user, replaced on every upload, so
