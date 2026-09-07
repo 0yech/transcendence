@@ -221,16 +221,15 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
         const authResponse = await apiFetch('/api/auth/me');
         if (!authResponse.ok) return;
         const user = await authResponse.json();
-        if (!user.ok) return;
+        if (!user?.id) return;
 
-        userRef.current = user;
-        userIdRef.current = user.id;
+        setUser(user);
         const lobbyResponse = await apiFetch('/api/lobbies/me');
         if (!lobbyResponse.ok) {
           return;
         }
         const lobby = await lobbyResponse.json();
-        if (!lobby.ok) return;
+        if (!lobby?.code) return;
         await connect(lobby.code);
       } catch (error) {
         console.error('Failed to restore websocket connection:', error);
