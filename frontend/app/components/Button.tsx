@@ -86,19 +86,20 @@ export function ButtonLinkIn({
   );
 }
 
+export const navButtonHoverStyle =
+  'hover:text-light-pink hover:drop-shadow-[0_0_8px_rgba(255,145,200,0.7)]';
+
 const buttonNavStyles = {
-  primary:
-    'hover:bg-linear-to-r hover:from-pink hover:to-orange hover:shadow-lg hover:shadow-mid-light-pink',
-  accept:
-    'bg-linear-to-r from-blue to-accept hover:bg-linear-to-r hover:from-mid-dark-blue hover:to-accept-active',
-  danger: 'bg-danger hover:bg-danger-active',
+  primary: navButtonHoverStyle,
+  accept: navButtonHoverStyle,
+  danger: navButtonHoverStyle,
 } as const;
 
-const baseNavStyle =
+export const navButtonBaseStyle =
   'text-4xl font-bold rounded-b-xl text-xl h-full min-w-40 flex justify-center items-center hover:cursor-pointer transition-all duration-500 ease-out' as const;
 
-const activePageStyle =
-  'bg-linear-to-r from-blue to-pink shadow-lg shadow-blue';
+export const navButtonActiveStyle =
+  'bg-clip-text text-transparent bg-linear-to-r from-blue via-pink to-mid-dark-pink drop-shadow-[0_0_10px_rgba(255,145,200,0.8)]';
 
 type ButtonNavLinkProps = NavLinkProps & {
   variant?: keyof typeof buttonNavStyles;
@@ -115,8 +116,8 @@ export function ButtonNavLink({
     <NavLink
       className={({ isActive }) =>
         twMerge(
-          isActive ? activePageStyle : '',
-          baseNavStyle,
+          isActive ? navButtonActiveStyle : '',
+          navButtonBaseStyle,
           buttonNavStyles[variant],
           className,
         )

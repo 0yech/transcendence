@@ -1,4 +1,13 @@
 import { Form, Link, useNavigation } from 'react-router';
+import { Button } from '~/components/Button';
+import {
+  accentLinkClass,
+  eyebrowClass,
+  pageContentClass,
+  pageShellClass,
+  primaryCardClass,
+  textInputClass,
+} from '~/styles/theme';
 
 import { GuildInvitations, type GuildInvitation } from './GuildInvitations';
 
@@ -30,42 +39,56 @@ export function GuildCreation({
     navigation.formData?.get('_intent') === 'create-guild';
 
   return (
-    <main>
-      <h1>My Guild</h1>
+    <main className={pageShellClass}>
+      <div className={pageContentClass}>
+        <section className={primaryCardClass}>
+          <p className={eyebrowClass}>Guild hall</p>
+          <h1 className="mt-1 text-4xl font-black sm:text-6xl">My Guild</h1>
+          <p className="mt-3 opacity-70">You are not currently in a guild.</p>
+        </section>
 
-      <p>You are not currently in a guild.</p>
+        <GuildInvitations invitations={invitations} error={invitationError} />
 
-      <GuildInvitations invitations={invitations} error={invitationError} />
+        <section className={primaryCardClass}>
+          <h2 className="text-3xl font-black sm:text-4xl">Create a guild</h2>
 
-      <section>
-        <h2>Create a guild</h2>
+          <Form
+            method="post"
+            className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-end"
+          >
+            <input type="hidden" name="_intent" value="create-guild" />
 
-        <Form method="post">
-          <input type="hidden" name="_intent" value="create-guild" />
+            <div className="flex flex-1 flex-col gap-2">
+              <label htmlFor="guild-name" className="font-bold text-light-pink">
+                Guild name
+              </label>
 
-          <div>
-            <label htmlFor="guild-name">Guild name</label>
+              <input
+                id="guild-name"
+                name="name"
+                type="text"
+                required
+                disabled={isCreating}
+                className={textInputClass}
+              />
+            </div>
 
-            <input
-              id="guild-name"
-              name="name"
-              type="text"
-              required
-              disabled={isCreating}
-            />
-          </div>
+            <Button type="submit" disabled={isCreating} className="px-6 py-3">
+              {isCreating ? 'Creating...' : 'Create guild'}
+            </Button>
+          </Form>
 
-          <button type="submit" disabled={isCreating}>
-            {isCreating ? 'Creating...' : 'Create guild'}
-          </button>
-        </Form>
+          {creationError && (
+            <p className="mt-4 font-bold text-danger">{creationError}</p>
+          )}
+        </section>
 
-        {creationError && <p>{creationError}</p>}
-      </section>
-
-      <nav>
-        <Link to="/guilds">View guild rankings</Link>
-      </nav>
+        <nav>
+          <Link to="/guilds" className={accentLinkClass}>
+            View guild rankings
+          </Link>
+        </nav>
+      </div>
     </main>
   );
 }

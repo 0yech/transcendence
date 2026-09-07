@@ -1,4 +1,16 @@
 import { Form, Link, useNavigation } from 'react-router';
+import { Button } from '~/components/Button';
+import {
+  accentLinkClass,
+  accentPillClass,
+  eyebrowClass,
+  insetCardClass,
+  pageContentClass,
+  pageShellClass,
+  primaryCardClass,
+  tableContainerClass,
+  textInputClass,
+} from '~/styles/theme';
 
 export interface GuildMember {
   id: string;
@@ -120,209 +132,246 @@ export function GuildDetails({
   });
 
   return (
-    <main>
-      <h1>{guild.name}</h1>
-
-      <section>
-        <h2>Guild information</h2>
-
-        <dl>
-          <dt>Level</dt>
-          <dd>{guild.level}</dd>
-
-          <dt>Points</dt>
-          <dd>{guild.points}</dd>
-
-          <dt>Members</dt>
-          <dd>{guild._count.members}</dd>
-        </dl>
-      </section>
-
-      {canManageGuild && (
-        <section>
-          <h2>Invite a user</h2>
-
-          <Form method="post">
-            <input type="hidden" name="_intent" value="invite-user" />
-
-            <div>
-              <label htmlFor="guild-invite-username">Username</label>
-
-              <input
-                id="guild-invite-username"
-                name="username"
-                type="text"
-                required
-              />
+    <main className={pageShellClass}>
+      <div className={pageContentClass}>
+        <section className={primaryCardClass}>
+          <p className={eyebrowClass}>Guild hall</p>
+          <h1 className="mt-1 break-words text-4xl font-black sm:text-6xl">
+            {guild.name}
+          </h1>
+          <dl className="mt-6 grid grid-cols-3 gap-3">
+            <div className={`${insetCardClass} p-4`}>
+              <dt className="text-xs font-bold uppercase tracking-wider text-light-pink">
+                Level
+              </dt>
+              <dd className="mt-1 text-3xl font-black">{guild.level}</dd>
             </div>
+            <div className={`${insetCardClass} p-4`}>
+              <dt className="text-xs font-bold uppercase tracking-wider text-light-pink">
+                Points
+              </dt>
+              <dd className="mt-1 text-3xl font-black text-pink">
+                {guild.points}
+              </dd>
+            </div>
+            <div className={`${insetCardClass} p-4`}>
+              <dt className="text-xs font-bold uppercase tracking-wider text-light-pink">
+                Members
+              </dt>
+              <dd className="mt-1 text-3xl font-black">
+                {guild._count.members}
+              </dd>
+            </div>
+          </dl>
+        </section>
 
-            <button type="submit" disabled={isSubmitting}>
-              Invite
-            </button>
-          </Form>
+        {canManageGuild && (
+          <section className={primaryCardClass}>
+            <h2 className="text-3xl font-black sm:text-4xl">Invite a user</h2>
 
-          {inviteError && (
-            <p className="text-red-500 font-bold">{inviteError}</p>
+            <Form
+              method="post"
+              className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-end"
+            >
+              <input type="hidden" name="_intent" value="invite-user" />
+
+              <div className="flex flex-1 flex-col gap-2">
+                <label
+                  htmlFor="guild-invite-username"
+                  className="font-bold text-light-pink"
+                >
+                  Username
+                </label>
+
+                <input
+                  id="guild-invite-username"
+                  name="username"
+                  type="text"
+                  required
+                  className={textInputClass}
+                />
+              </div>
+
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="px-6 py-3"
+              >
+                Invite
+              </Button>
+            </Form>
+
+            {inviteError && (
+              <p className="mt-4 font-bold text-danger">{inviteError}</p>
+            )}
+            {inviteSuccess && (
+              <p className="mt-4 font-bold text-accept">{inviteSuccess}</p>
+            )}
+          </section>
+        )}
+
+        <section className={primaryCardClass}>
+          <h2 className="text-3xl font-black sm:text-4xl">Members</h2>
+
+          {guild.members.length === 0 ? (
+            <p className="mt-4 opacity-60">No members.</p>
+          ) : (
+            <div className={`mt-5 ${tableContainerClass}`}>
+              <table className="w-full min-w-175 text-left">
+                <thead className="text-sm uppercase tracking-wider text-light-pink">
+                  <tr>
+                    <th className="px-5 py-4">Username</th>
+                    <th className="px-5 py-4">Role</th>
+
+                    {canManageGuild && <th className="px-5 py-4">Actions</th>}
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {sortedMembers.map((member) => {
+                    const isCurrentUser = member.id === currentUserId;
+                    const isLeader = currentUserRole === 'LEADER';
+                    const canKick =
+                      !isCurrentUser &&
+                      canKickMember(currentUserRole, member.guildRole);
+                    const canPromote =
+                      isLeader && member.guildRole === 'MEMBER';
+                    const canDemote =
+                      isLeader && member.guildRole === 'OFFICER';
+                    const canTransfer = isLeader && !isCurrentUser;
+                    return (
+                      <tr key={member.id} className="hover:bg-pink/10">
+                        <td className="border-t border-light-pink/10 px-5 py-4 text-xl font-bold">
+                          {member.username}
+                        </td>
+                        <td className="border-t border-light-pink/10 px-5 py-4">
+                          <span className={accentPillClass}>
+                            {member.guildRole}
+                          </span>
+                        </td>
+
+                        {canManageGuild && (
+                          <td className="border-t border-light-pink/10 px-5 py-4">
+                            <div className="flex flex-wrap gap-2">
+                              {canKick && (
+                                <Form method="post">
+                                  <input
+                                    type="hidden"
+                                    name="_intent"
+                                    value="kick-member"
+                                  />
+                                  <input
+                                    type="hidden"
+                                    name="memberId"
+                                    value={member.id}
+                                  />
+                                  <Button
+                                    variant="danger"
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className="px-4 text-base"
+                                  >
+                                    Kick
+                                  </Button>
+                                </Form>
+                              )}
+                              {canPromote && (
+                                <Form method="post">
+                                  <input
+                                    type="hidden"
+                                    name="_intent"
+                                    value="promote-member"
+                                  />
+
+                                  <input
+                                    type="hidden"
+                                    name="memberId"
+                                    value={member.id}
+                                  />
+
+                                  <Button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className="px-4 text-base"
+                                  >
+                                    Promote
+                                  </Button>
+                                </Form>
+                              )}
+
+                              {canDemote && (
+                                <Form method="post">
+                                  <input
+                                    type="hidden"
+                                    name="_intent"
+                                    value="demote-member"
+                                  />
+
+                                  <input
+                                    type="hidden"
+                                    name="memberId"
+                                    value={member.id}
+                                  />
+
+                                  <Button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className="px-4 text-base"
+                                  >
+                                    Demote
+                                  </Button>
+                                </Form>
+                              )}
+
+                              {canTransfer && (
+                                <Form method="post">
+                                  <input
+                                    type="hidden"
+                                    name="_intent"
+                                    value="transfer-guild"
+                                  />
+
+                                  <input
+                                    type="hidden"
+                                    name="memberId"
+                                    value={member.id}
+                                  />
+
+                                  <Button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className="px-4 text-base"
+                                  >
+                                    Transfer
+                                  </Button>
+                                </Form>
+                              )}
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           )}
-          {inviteSuccess && (
-            <p className="text-green-500 font-bold">{inviteSuccess}</p>
+          {memberActionError && (
+            <p className="mt-4 font-bold text-danger">{memberActionError}</p>
           )}
         </section>
-      )}
-
-      <section>
-        <h2>Members</h2>
-
-        {guild.members.length === 0 ? (
-          <p>No members.</p>
-        ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Username</th>
-                <th>Role</th>
-
-                {canManageGuild && <th>Actions</th>}
-              </tr>
-            </thead>
-
-            <tbody>
-              {sortedMembers.map((member) => {
-                const isCurrentUser = member.id === currentUserId;
-                const isLeader = currentUserRole === 'LEADER';
-                const canKick =
-                  !isCurrentUser &&
-                  canKickMember(currentUserRole, member.guildRole);
-                const canPromote = isLeader && member.guildRole === 'MEMBER';
-                const canDemote = isLeader && member.guildRole === 'OFFICER';
-                const canTransfer = isLeader && !isCurrentUser;
-                return (
-                  <tr key={member.id}>
-                    <td>{member.username}</td>
-                    <td>{member.guildRole}</td>
-
-                    {canManageGuild && (
-                      <td>
-                        {canKick && (
-                          <Form method="post">
-                            <input
-                              type="hidden"
-                              name="_intent"
-                              value="kick-member"
-                            />
-                            <input
-                              type="hidden"
-                              name="memberId"
-                              value={member.id}
-                            />
-                            <button type="submit" disabled={isSubmitting}>
-                              Kick
-                            </button>
-                          </Form>
-                        )}
-                        {canPromote && (
-                          <Form method="post">
-                            <input
-                              type="hidden"
-                              name="_intent"
-                              value="promote-member"
-                            />
-
-                            <input
-                              type="hidden"
-                              name="memberId"
-                              value={member.id}
-                            />
-
-                            <button type="submit" disabled={isSubmitting}>
-                              Promote
-                            </button>
-                          </Form>
-                        )}
-
-                        {canDemote && (
-                          <Form method="post">
-                            <input
-                              type="hidden"
-                              name="_intent"
-                              value="demote-member"
-                            />
-
-                            <input
-                              type="hidden"
-                              name="memberId"
-                              value={member.id}
-                            />
-
-                            <button type="submit" disabled={isSubmitting}>
-                              Demote
-                            </button>
-                          </Form>
-                        )}
-
-                        {canTransfer && (
-                          <Form method="post">
-                            <input
-                              type="hidden"
-                              name="_intent"
-                              value="transfer-guild"
-                            />
-
-                            <input
-                              type="hidden"
-                              name="memberId"
-                              value={member.id}
-                            />
-
-                            <button type="submit" disabled={isSubmitting}>
-                              Transfer
-                            </button>
-                          </Form>
-                        )}
-                      </td>
-                    )}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-        {memberActionError && (
-          <p className="text-red-500 font-bold">{memberActionError}</p>
-        )}
-      </section>
-      {/* Shows guild deletion when leader, quitting guild when member/officier
+        {/* Shows guild deletion when leader, quitting guild when member/officier
           Might want to change the alert confirm method
       */}
-      <section>
-        <h2>Guild actions</h2>
+        <section className={primaryCardClass}>
+          <h2 className="text-3xl font-black sm:text-4xl">Guild actions</h2>
 
-        {currentUserRole === 'LEADER' ? (
-          <Form
-            method="post"
-            onSubmit={(event) => {
-              const confirmed = window.confirm(
-                `Are you sure you want to delete "${guild.name}"? This action cannot be undone.`,
-              );
-
-              if (!confirmed) {
-                event.preventDefault();
-              }
-            }}
-          >
-            <input type="hidden" name="_intent" value="delete-guild" />
-
-            <button type="submit" disabled={isSubmitting}>
-              {isDeletingGuild ? 'Deleting...' : 'Delete guild'}
-            </button>
-          </Form>
-        ) : (
-          (currentUserRole === 'OFFICER' || currentUserRole === 'MEMBER') && (
+          {currentUserRole === 'LEADER' ? (
             <Form
               method="post"
               onSubmit={(event) => {
                 const confirmed = window.confirm(
-                  `Are you sure you want to leave "${guild.name}"?`,
+                  `Are you sure you want to delete "${guild.name}"? This action cannot be undone.`,
                 );
 
                 if (!confirmed) {
@@ -330,22 +379,55 @@ export function GuildDetails({
                 }
               }}
             >
-              <input type="hidden" name="_intent" value="leave-guild" />
+              <input type="hidden" name="_intent" value="delete-guild" />
 
-              <button type="submit" disabled={isSubmitting}>
-                {isLeavingGuild ? 'Leaving...' : 'Leave guild'}
-              </button>
+              <Button
+                variant="danger"
+                type="submit"
+                disabled={isSubmitting}
+                className="mt-5 px-6 py-3"
+              >
+                {isDeletingGuild ? 'Deleting...' : 'Delete guild'}
+              </Button>
             </Form>
-          )
-        )}
+          ) : (
+            (currentUserRole === 'OFFICER' || currentUserRole === 'MEMBER') && (
+              <Form
+                method="post"
+                onSubmit={(event) => {
+                  const confirmed = window.confirm(
+                    `Are you sure you want to leave "${guild.name}"?`,
+                  );
 
-        {guildActionError && (
-          <p className="text-red-500 font-bold">{guildActionError}</p>
-        )}
-      </section>
-      <nav>
-        <Link to="/guilds">View guild rankings</Link>
-      </nav>
+                  if (!confirmed) {
+                    event.preventDefault();
+                  }
+                }}
+              >
+                <input type="hidden" name="_intent" value="leave-guild" />
+
+                <Button
+                  variant="danger"
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="mt-5 px-6 py-3"
+                >
+                  {isLeavingGuild ? 'Leaving...' : 'Leave guild'}
+                </Button>
+              </Form>
+            )
+          )}
+
+          {guildActionError && (
+            <p className="mt-4 font-bold text-danger">{guildActionError}</p>
+          )}
+        </section>
+        <nav>
+          <Link to="/guilds" className={accentLinkClass}>
+            View guild rankings
+          </Link>
+        </nav>
+      </div>
     </main>
   );
 }
