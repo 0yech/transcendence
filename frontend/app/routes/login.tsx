@@ -53,7 +53,7 @@ export default function Login({ actionData }: Route.ComponentProps) {
           break;
         case 'MISSING_DATA':
           errorMessage =
-            "The OAuth provider didn't send important data. Make sure your account is complete. For example, on Google, make sure your email has been verified.";
+            "The OAuth provider didn't send us important data. Make sure your account is complete. For example, on Google, make sure your email has been verified, and on GitHub, select a public email address.";
           break;
         default:
           errorMessage = 'Unknown error. Try again? Or check the backend logs.';
