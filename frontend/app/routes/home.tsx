@@ -32,7 +32,7 @@ async function getFetch(apiPath: string) {
  *
  */
 export default function Home() {
-  const { gameStarted, getCode, setUser, getUser } = UseWebSocket();
+  const { gameStarted, getCode, setUser } = UseWebSocket();
   const [userCurr, setUserCurr] = useState<SelfUserInterface | null>(null);
   useEffect(() => {
     async function fetchUser() {
@@ -44,8 +44,6 @@ export default function Home() {
     fetchUser();
   }, []);
   if (userCurr) setUser(userCurr);
-  console.log('user: ');
-  console.log(getUser());
   return (
     <>
       <title>Transcendence</title>

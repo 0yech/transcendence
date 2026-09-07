@@ -219,7 +219,9 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
     async function initialize() {
       try {
         const authResponse = await apiFetch('/api/auth/me');
+        if (!authResponse.ok) return;
         const user = await authResponse.json();
+        if (!user.ok) return;
 
         userRef.current = user;
         userIdRef.current = user.id;
@@ -228,9 +230,8 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
           return;
         }
         const lobby = await lobbyResponse.json();
-        if (lobby?.code) {
-          await connect(lobby.code);
-        }
+        if (!lobby.ok) return;
+        await connect(lobby.code);
       } catch (error) {
         console.error('Failed to restore websocket connection:', error);
       }
@@ -386,6 +387,10 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
     return codeLink.current;
   }
 
+  function setCode(code: string) {
+    codeLink.current = code;
+  }
+
   return (
     <WebsocketContext
       value={{
@@ -403,6 +408,7 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
         gameState: useGameState,
         getUser: getUser,
         getCode: getCode,
+        setCode: setCode,
       }}
     >
       {children}

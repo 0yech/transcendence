@@ -5,6 +5,7 @@
  */
 export interface OauthPayload {
   username?: string;
+  providerId: string;
   email: string;
   pictureUrl?: string;
 }
