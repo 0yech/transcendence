@@ -17,9 +17,9 @@ float circle(vec2 uv, vec2 pos, float freq, float speed) {
 void main() {
 	vUv = uv;
     vec3 newPosition = position;
-    float wave = circle(uv, vec2(-1.0,0.23), 1.0, 1.234);
+    float wave = circle(uv, vec2(-1.0,0.23), 0.483, 1.234);
 	wave += circle(uv, vec2(12.0,5.664), 1.0, 0.998);
-	wave += line(uv, vec2(0.5,0.6523), 1.4298, 0.496);
+	wave += circle(vUv, vec2(100,32.6523), 1.4298, 0.496);
 	wave /= 3.0;
 	wave *= uAmplitude;
     newPosition.z = position.z + wave;
@@ -35,6 +35,7 @@ uniform float uAmplitude;
 uniform float uNoise;
 uniform vec2 uCursor;
 uniform vec4 uColors[5];
+uniform vec4 uOndes[4];
 
 varying vec2 vUv;
 
@@ -61,10 +62,10 @@ float circle(vec2 uv, vec2 pos, float freq, float speed) {
 }
 
 void	main() {
-	float d = circle(vUv, vec2(-1.0,0.23), 1.0, 1.234);
-	d += circle(vUv, vec2(12.0,5.664), 1.0, 0.998);
-	d += line(vUv, vec2(0.5,0.6523), 1.4298, 0.496);
-	d /= 3.0;
+	float d = 0.0;
+	for (int i = 0; i < 4; ++i)
+		d += circle(vUv, vec2(uOndes[i].x,uOndes[i].y), uOndes[i].y, uOndes[i].w);
+	d /= 4.0;
 	d *= 0.8;
 	d += pow(smoothstep(0.9, 1.0, clamp((1.0 - length(uCursor - vUv)), 0.0, 1.0)), 1.4) * 0.2;
 	gl_FragColor = vec4(mixColor(uColors, d),1.0);
