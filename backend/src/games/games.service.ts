@@ -73,7 +73,7 @@ type GameWithPlayers = {
 @Injectable()
 export class GamesService {
   private readonly gameLocks = new Map<string, Promise<void>>();
-  private readonly TURN_DURATION_MS = 20_000;
+  private readonly turnDurationMs = 20_000;
   constructor(private readonly prisma: PrismaService) {}
 
   /**
@@ -82,7 +82,7 @@ export class GamesService {
    * @returns Current server time plus the configured turn duration.
    */
   private createTurnDeadline(): Date {
-    return new Date(Date.now() + this.TURN_DURATION_MS);
+    return new Date(Date.now() + this.turnDurationMs);
   }
 
   /**
