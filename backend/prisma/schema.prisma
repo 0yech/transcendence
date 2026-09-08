@@ -203,6 +203,7 @@ model Game {
   pendingPlays Int @default(1)
 
   turnNumber Int @default(1)
+  turnDeadline DateTime?
 
   reshuffleIndex Int @default(0)
 
