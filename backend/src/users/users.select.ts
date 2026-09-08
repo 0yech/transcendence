@@ -28,6 +28,7 @@ export const publicViewUserSelect = {
     orderBy: {
       createdAt: 'desc',
     },
+    take: 20,
   },
   totalPts: true,
   guildId: true,
@@ -69,6 +70,7 @@ export const publicUserSelect = {
     orderBy: {
       createdAt: 'desc',
     },
+    take: 20,
   },
   totalPts: true,
   guildId: true,
