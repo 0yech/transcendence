@@ -1,6 +1,10 @@
 import { Form, useNavigation } from 'react-router';
 import { Button } from '~/components/Button';
-import { buttonCreate, primaryCardClass, tableContainerClass } from '~/styles/theme';
+import {
+  buttonCreate,
+  primaryCardClass,
+  tableContainerClass,
+} from '~/styles/theme';
 
 import type { GuildMember } from './GuildDetails';
 

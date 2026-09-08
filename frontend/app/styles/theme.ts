@@ -41,8 +41,8 @@ export const textInputClass =
 export const accentLinkClass =
   'font-bold text-pink underline decoration-pink/50 underline-offset-4 transition hover:text-light-pink';
 
-export const buttonCreate = 
-  "w-full bg-linear-to-r from-blue to-pink hover:from-pink hover:to-mid-dark-pink hover:shadow-lg hover:shadow-pink"
+export const buttonCreate =
+  'w-full bg-linear-to-r from-blue to-pink hover:from-pink hover:to-mid-dark-pink hover:shadow-lg hover:shadow-pink';
 
-  export const buttonCreatePrivate = 
-  "w-full bg-linear-to-r from-mid-dark-blue to-dark-pink hover:from-dark-pink hover:to-pink hover:shadow-lg hover:shadow-pink"
+export const buttonCreatePrivate =
+  'w-full bg-linear-to-r from-mid-dark-blue to-dark-pink hover:from-dark-pink hover:to-pink hover:shadow-lg hover:shadow-pink';
