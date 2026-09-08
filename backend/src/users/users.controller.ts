@@ -74,7 +74,17 @@ export class UsersController {
     return new StreamableFile(avatar.bytes, { type: avatar.mimeType });
   }
 
-  // TODO implement routes to list friends for a given user
+  @UseGuards(JwtAuthGuard)
+  @Get('friends/me')
+  async getFriends(@CurrentUser() user: JwtPayload) {
+    return await this.usersService.findFriends(user.sub);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('friends/invitations/me')
+  async getInvitations(@CurrentUser() user: JwtPayload) {
+    return await this.usersService.findInvitations(user.sub);
+  }
 
   @UseGuards(JwtAuthGuard)
   @Post('friends/invite/:userId')

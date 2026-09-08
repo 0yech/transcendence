@@ -224,6 +224,32 @@ export class UsersService {
   }
 
   /**
+   * Returns a list of active friends for a user.
+   */
+  async findFriends(userId: string) {
+    return await this.prisma.friendRelation.findMany({
+      where: {
+        userId: userId,
+      },
+      select: {
+        friend: { select: publicViewUserSelect },
+      },
+    });
+  }
+
+  /**
+   * Returns a list of pending invitations for a user.
+   */
+  async findInvitations(userId: string) {
+    return await this.prisma.friendInvitation.findMany({
+      where: {
+        receiverId: userId,
+        status: FriendInvitationStatus.PENDING,
+      },
+    });
+  }
+
+  /**
    * Creates a friend invitation, and returns it.
    */
   async inviteFriend(senderId: string, receiverId: string) {
