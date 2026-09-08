@@ -33,6 +33,7 @@ async function getFetch(apiPath: string) {
  */
 export default function Home() {
   const { gameStarted, getCode, setUser } = UseWebSocket();
+  const lobbyCode = getCode();
   const [userCurr, setUserCurr] = useState<SelfUserInterface | null>(null);
   useEffect(() => {
     async function fetchUser() {
@@ -56,10 +57,10 @@ export default function Home() {
               <ButtonLinkIn
                 className="text-5xl font-black p-6"
                 to={
-                  userCurr.lobbyId
+                  userCurr.lobbyId && lobbyCode
                     ? gameStarted()
-                      ? `/game/${getCode()}/play`
-                      : `/game/${getCode()}`
+                      ? `/game/${lobbyCode}/play`
+                      : `/game/${lobbyCode}`
                     : '/lobbies'
                 }
               >

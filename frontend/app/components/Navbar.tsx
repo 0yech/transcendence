@@ -20,6 +20,7 @@ type NavProps = {
 
 export function NavBar({ className, variant = 'primary', ...rest }: NavProps) {
   const { gameStarted, getCode } = UseWebSocket();
+  const lobbyCode = getCode();
   const [user, setUser] = useState<SelfUserInterface | null>(null);
   const [menuVisibility, setMenuVisibility] = useState<boolean>(false);
 
@@ -53,15 +54,16 @@ export function NavBar({ className, variant = 'primary', ...rest }: NavProps) {
         )}
         {user?.id &&
           user.lobbyId &&
+          lobbyCode &&
           (gameStarted() ? (
             <li>
-              <ButtonNavLink to={`/game/${getCode()}/play`}>
+              <ButtonNavLink to={`/game/${lobbyCode}/play`}>
                 Current Game
               </ButtonNavLink>
             </li>
           ) : (
             <li>
-              <ButtonNavLink to={`/game/${getCode()}`}>
+              <ButtonNavLink to={`/game/${lobbyCode}`}>
                 Current Lobby
               </ButtonNavLink>
             </li>

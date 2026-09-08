@@ -21,6 +21,7 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
   const userIdRef = useRef<string | null>(null);
   const userRef = useRef<SelfUserInterface | null>(null);
   const gameNavigationDoneRef = useRef<boolean>(false);
+  const [lobbyCode, setLobbyCode] = useState<string | null>(null);
   const pendingConnectionRef = useRef<{
     code: string;
     promise: Promise<boolean>;
@@ -44,10 +45,11 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
         return Promise.resolve(true);
       }
 
+      codeLink.current = code;
+      setLobbyCode(code);
       if (pendingConnectionRef.current?.code === code) {
         return pendingConnectionRef.current.promise;
       }
-
       const promise = new Promise<boolean>((resolve, reject) => {
         /*
          * Clean previous game socket BEFORE creating the new one.
@@ -58,7 +60,6 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
           wsRef.current = null;
         }
 
-        codeLink.current = code;
         gameNavigationDoneRef.current = false;
         setGameState(null);
 
@@ -230,6 +231,8 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
         }
         const lobby = await lobbyResponse.json();
         if (!lobby?.code) return;
+        codeLink.current = lobby.code;
+        setLobbyCode(lobby.code);
         await connect(lobby.code);
       } catch (error) {
         console.error('Failed to restore websocket connection:', error);
@@ -348,6 +351,7 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
     }
 
     codeLink.current = null;
+    setLobbyCode(null);
     gameNavigationDoneRef.current = false;
     setGameState(null);
   }
@@ -383,11 +387,12 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
   }
 
   function getCode(): string | null {
-    return codeLink.current;
+    return lobbyCode;
   }
 
   function setCode(code: string) {
     codeLink.current = code;
+    setLobbyCode(code);
   }
 
   return (
