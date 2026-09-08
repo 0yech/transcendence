@@ -75,9 +75,9 @@ export default function PlayGame() {
           </li>
           <li>who's turn: {turnUser}</li>
           {gameState?.status === 'IN_PROGRESS' &&
-          gameState.turnNumber !== undefined && (
-            <TurnTimer key={gameState.turnNumber} />
-          )}
+            gameState.turnNumber !== undefined && (
+              <TurnTimer key={gameState.turnNumber} />
+            )}
           <li>pendingPlays: {gameState?.pendingPlays}</li>
           <li>turnNumber: {gameState?.turnNumber}</li>
           <li>DeckCount: {gameState?.deckCount}</li>
