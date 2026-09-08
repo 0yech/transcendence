@@ -6,7 +6,7 @@ This document describes the HTTP routes currently exposed by the NestJS backend.
 >
 > All backend routes use the global `/api` prefix.
 >
-> This guide reflects the repository state reviewed on 2026-08-19.
+> This guide reflects the repository state reviewed on 2026-09-08.
 
 ## Environments
 
@@ -92,13 +92,27 @@ NestJS global validation is enabled.
 | `POST`   | `/api/auth/remove-account`                      |            Yes | Anonymize the authenticated user's account and end the session  |
 | `POST`   | `/api/auth/refresh`                             | Refresh cookie | Issue a new access-token cookie                                 |
 | `GET`    | `/api/auth/me`                                  |            Yes | Return the authenticated user's public profile                  |
+| `GET`    | `/api/users/:id`                                |            Yes | Get a user's identity by id                                     |
+| `GET`    | `/api/users/username/:username`                 |            Yes | Get a user's identity by username                               |
+| `GET`    | `/api/users/public/id/:id`                      |            Yes | Get a user's public profile by id                               |
+| `GET`    | `/api/users/public/username/:username`          |            Yes | Get a user's public profile by username                         |
 | `GET`    | `/api/users/public/avatar/:id`                  |            Yes | Serve a user's uploaded profile picture                         |
+| `GET`    | `/api/users/friends/me`                         |            Yes | List the authenticated user's friends                           |
+| `GET`    | `/api/users/friends/invitations/me`             |            Yes | List friend invitations awaiting the user                       |
+| `POST`   | `/api/users/friends/invite/:userId`             |            Yes | Send a friend invitation                                        |
+| `POST`   | `/api/users/friends/remove/:userId`             |            Yes | Remove a friend                                                 |
+| `POST`   | `/api/users/friends/invitations/:id/accept`     |            Yes | Accept a received friend invitation                             |
+| `POST`   | `/api/users/friends/invitations/:id/decline`    |            Yes | Decline a received friend invitation                            |
+| `POST`   | `/api/users/friends/invitations/:id/cancel`     |            Yes | Cancel a friend invitation the user sent                        |
 | `GET`    | `/api/lobbies`                                  |             No | List active lobbies                                             |
 | `GET`    | `/api/lobbies/:code`                            |             No | Get a lobby by code                                             |
+| `GET`    | `/api/lobbies/me`                               |            Yes | Get the authenticated user's current lobby                      |
 | `POST`   | `/api/lobbies`                                  |            Yes | Create a lobby                                                  |
 | `POST`   | `/api/lobbies/:code/join`                       |            Yes | Join a lobby                                                    |
 | `POST`   | `/api/lobbies/leave`                            |            Yes | Leave the user's current lobby                                  |
-| `GET`    | `/api/games/:gameId/replay`                     |            Yes | Get a game replay                                               |
+| `GET`    | `/api/lobbies/:code/messages`                   |            Yes | List a lobby's chat history                                     |
+| `POST`   | `/api/lobbies/:code/messages`                   |            Yes | Post a message to a lobby chat                                  |
+| `GET`    | `/api/games/:gameId/replay`                     |             No | Get a game replay                                               |
 | `GET`    | `/api/guilds`                                   |             No | List guilds                                                     |
 | `GET`    | `/api/guilds/me`                                |            Yes | Get the authenticated user's guild                              |
 | `POST`   | `/api/guilds`                                   |            Yes | Create a guild                                                  |
@@ -482,6 +496,264 @@ Returns the raw bytes of a user's uploaded profile picture.
 curl -i \
   -b cookies.txt \
   "http://localhost:3000/api/users/public/avatar/<id>?v=1756900000000"
+```
+
+## `GET /api/users/friends/me`
+
+Returns the authenticated user's friends.
+
+**Authentication:** Required (`access_token` cookie)
+
+**Body:** None
+
+**Success status:** `200 OK`
+
+**Success body:** An array of wrapper objects, each holding the other user's public profile under `friend`.
+
+```json
+[
+  {
+    "friend": {
+      "id": "cmf0x1a2b0000abcd1234efgh",
+      "username": "player2",
+      "avatarUrl": null,
+      "lobbyId": null,
+      "gamePlayers": [],
+      "totalPts": 0,
+      "guildId": null,
+      "guildRole": null,
+      "guild": null,
+      "sentGuildInvitations": [],
+      "createdAt": "2026-09-08T09:11:51.037Z",
+      "deleted": false
+    }
+  }
+]
+```
+
+> Friendship is symmetric and stored as two rows, so each user appears in the other's list. There is no "pending" state here: a user only appears once an invitation has been accepted.
+
+> The array has no defined order. Do not rely on the order being stable between requests.
+
+> A friend who deletes their account stays in the list, anonymised to `deleted_user_<id>` with `deleted: true`. Clients that do not want to render those must filter on `deleted` themselves.
+
+**Possible errors**
+
+- `401 Unauthorized` — missing, expired, or invalid access token.
+
+### Example
+
+```bash
+curl -i \
+  -b cookies.txt \
+  http://localhost:3000/api/users/friends/me
+```
+
+## `GET /api/users/friends/invitations/me`
+
+Returns the pending friend invitations **received** by the authenticated user.
+
+**Authentication:** Required
+
+**Body:** None
+
+**Success status:** `200 OK`
+
+**Success body:** An array of invitation objects.
+
+```json
+[
+  {
+    "id": "cmf0x1a2b0003abcd5678ijkl",
+    "senderId": "cmf0x1a2b0000abcd1234efgh",
+    "receiverId": "cmf0x1a2b0001abcd2345mnop",
+    "status": "PENDING",
+    "createdAt": "2026-09-08T09:11:51.370Z",
+    "updatedAt": "2026-09-08T09:11:51.370Z"
+  }
+]
+```
+
+> Only `PENDING` invitations are returned, and only ones addressed to the caller. Invitations the caller has sent are not exposed by any route, and neither is the history of accepted, declined, or cancelled ones.
+
+> Invitations carry `senderId` but not the sender's username or avatar. Rendering a readable list currently needs a follow-up request per sender, to `GET /api/users/public/id/:id`.
+
+**Possible errors**
+
+- `401 Unauthorized` — missing, expired, or invalid access token.
+
+### Example
+
+```bash
+curl -i \
+  -b cookies.txt \
+  http://localhost:3000/api/users/friends/invitations/me
+```
+
+## `POST /api/users/friends/invite/:userId`
+
+Sends a friend invitation to another user.
+
+**Authentication:** Required
+
+### Path parameters
+
+| Parameter | Type   | Description                          |
+| --------- | ------ | ------------------------------------ |
+| `userId`  | string | Id of the user to invite, not a name |
+
+**Body:** None
+
+**Success status:** `200 OK`
+
+**Success body:** Empty
+
+> If the invited user already has a pending invitation out to the caller, the crossed pair is resolved as an acceptance instead: the existing invitation becomes `ACCEPTED` and the two users become friends immediately, without a second invitation being created. The response is an empty `200` either way, so a client cannot tell the two outcomes apart from the response alone. Re-fetch `/api/users/friends/me` if the distinction matters.
+
+**Possible errors**
+
+- `400 Bad Request` — the caller passed their own id (`"A user can't friend themself!"`).
+- `400 Bad Request` — the two users are already friends (`"Users are already friends."`).
+- `401 Unauthorized` — missing, expired, or invalid access token.
+- `404 Not Found` — no live user has that id. Deleted accounts are treated as absent, so the route does not reveal that an id once existed.
+- `409 Conflict` — the caller already has a pending invitation out to that user (`"An invitation for that user already exists."`).
+
+### Example
+
+```bash
+curl -i \
+  -b cookies.txt \
+  -X POST http://localhost:3000/api/users/friends/invite/<userId>
+```
+
+## `POST /api/users/friends/remove/:userId`
+
+Ends a friendship. Both directions are deleted in one statement, so the friendship never exists one-way.
+
+**Authentication:** Required
+
+### Path parameters
+
+| Parameter | Type   | Description                |
+| --------- | ------ | -------------------------- |
+| `userId`  | string | Id of the friend to remove |
+
+**Body:** None
+
+**Success status:** `200 OK`
+
+**Success body:** Empty
+
+> The route is idempotent and does not report whether anything was deleted: removing a user who is not a friend, or an id belonging to nobody, also answers `200` with an empty body.
+
+> Removal does not touch invitation history. The accepted invitation that created the friendship stays `ACCEPTED`, and either user may send a fresh invitation afterwards.
+
+**Possible errors**
+
+- `401 Unauthorized` — missing, expired, or invalid access token.
+
+### Example
+
+```bash
+curl -i \
+  -b cookies.txt \
+  -X POST http://localhost:3000/api/users/friends/remove/<userId>
+```
+
+## `POST /api/users/friends/invitations/:id/accept`
+
+Accepts an invitation addressed to the authenticated user. This is what creates the friendship: the invitation becomes `ACCEPTED` and both relation rows are written in a single transaction.
+
+**Authentication:** Required
+
+### Path parameters
+
+| Parameter | Type   | Description          |
+| --------- | ------ | -------------------- |
+| `id`      | string | Friend invitation id |
+
+**Body:** None
+
+**Success status:** `200 OK`
+
+**Success body:** Empty
+
+**Possible errors**
+
+- `401 Unauthorized` — missing, expired, or invalid access token.
+- `403 Forbidden` — the invitation exists and is pending, but was addressed to somebody else (`"You can't accept another user's invitation for them."`).
+- `404 Not Found` — no pending invitation has that id, either because the id is unknown or because it has already been accepted, declined, or cancelled (`"Invitation does not exist at that id."`).
+
+### Example
+
+```bash
+curl -i \
+  -b cookies.txt \
+  -X POST http://localhost:3000/api/users/friends/invitations/<id>/accept
+```
+
+## `POST /api/users/friends/invitations/:id/decline`
+
+Declines an invitation addressed to the authenticated user. The invitation becomes `DECLINED`; no friendship is created, and the sender is free to invite again.
+
+**Authentication:** Required
+
+### Path parameters
+
+| Parameter | Type   | Description          |
+| --------- | ------ | -------------------- |
+| `id`      | string | Friend invitation id |
+
+**Body:** None
+
+**Success status:** `200 OK`
+
+**Success body:** Empty
+
+**Possible errors**
+
+- `401 Unauthorized` — missing, expired, or invalid access token.
+- `404 Not Found` — there is no pending invitation with that id addressed to the caller.
+
+> The `404` is deliberately undifferentiated: an unknown id, an invitation that is no longer pending, and an invitation belonging to another user all answer the same way, so the route cannot be used to discover other people's invitations. It is raised by the global Prisma exception filter rather than by the service, so the body is `{"statusCode":404,"message":"Not Found"}` with no `error` field, unlike the errors thrown directly by services.
+
+### Example
+
+```bash
+curl -i \
+  -b cookies.txt \
+  -X POST http://localhost:3000/api/users/friends/invitations/<id>/decline
+```
+
+## `POST /api/users/friends/invitations/:id/cancel`
+
+Withdraws an invitation the authenticated user sent. The invitation becomes `CANCELLED`, and the caller is free to invite the same user again.
+
+**Authentication:** Required
+
+### Path parameters
+
+| Parameter | Type   | Description          |
+| --------- | ------ | -------------------- |
+| `id`      | string | Friend invitation id |
+
+**Body:** None
+
+**Success status:** `200 OK`
+
+**Success body:** Empty
+
+**Possible errors**
+
+- `401 Unauthorized` — missing, expired, or invalid access token.
+- `404 Not Found` — there is no pending invitation with that id sent by the caller. As with `decline`, an unknown id, an already-resolved invitation, and somebody else's invitation are indistinguishable.
+
+### Example
+
+```bash
+curl -i \
+  -b cookies.txt \
+  -X POST http://localhost:3000/api/users/friends/invitations/<id>/cancel
 ```
 
 ---

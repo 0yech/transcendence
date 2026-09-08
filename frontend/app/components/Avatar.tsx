@@ -2,7 +2,7 @@ import { twMerge } from 'tailwind-merge';
 import type { ImgHTMLAttributes } from 'react';
 
 const AvatarStyles = {
-  primary: 'w-15 h-15 rounded-full',
+  primary: 'h-15 w-15 shrink-0 rounded-full object-cover',
 } as const;
 
 const srcEmpty = '/unknown.jpg';
@@ -21,6 +21,7 @@ export function Avatar({
   return (
     <img
       className={twMerge(AvatarStyles[variant], className)}
+      referrerPolicy="no-referrer"
       src={src ?? srcEmpty}
       {...rest}
     />

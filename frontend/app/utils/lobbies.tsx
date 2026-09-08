@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router';
 import { AnimatePresence, motion } from 'motion/react';
 import apiFetch, { handleJoinLobby, handleLeaveLobby } from './api-fetch';
 import { UseWebSocket } from '~/context/UseWebSocket';
-import ProfilePicture from '~/components/ProfilePicture';
 import { Avatar } from '~/components/Avatar';
 import { Link } from 'react-router';
 import { NavBar } from '~/components/Navbar';
@@ -68,12 +67,7 @@ export function DisplayUsers(usersObject: {
           <li key={user.id}>
             <div>
               <p>{user.username}</p>
-              {user.avatarUrl && (
-                <ProfilePicture
-                  avatarUrl={user.avatarUrl}
-                  username={user.username}
-                />
-              )}
+              <Avatar src={user.avatarUrl} alt={user.username} />
             </div>
           </li>
         ))

@@ -32,7 +32,9 @@ export function UserPopUp({ user }: UserPopUpProps) {
   return (
     <div className="flex flex-col m-2 justify-between">
       <div className="flex justify-between flex-row h-1/2 w-full">
-        <div className="flex font-bold">{user.username}</div>
+        <div className="flex font-bold hover:text-pink hover:underline hover:decoration-pink">
+          {user.username}
+        </div>
         <div className="flex ">{user.totalPts}</div>
       </div>
       <div className="flex underline text-light-gray font-extralight italic">
@@ -55,7 +57,7 @@ export function UserProfile({ user }: { user: SelfUserInterface | null }) {
             <p className={eyebrowClass}>Player profile</p>
             <div className="mt-5 flex flex-col gap-7 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex min-w-0 flex-col items-center gap-4 sm:flex-row sm:text-left">
-                <div className="rounded-full bg-linear-to-br from-blue to-pink p-1 shadow-xl shadow-pink/40">
+                <div className="shrink-0 rounded-full bg-linear-to-br from-blue to-pink p-1 shadow-xl shadow-pink/40">
                   <Avatar
                     className="h-36 w-36 sm:h-44 sm:w-44"
                     src={user?.avatarUrl}
@@ -63,7 +65,7 @@ export function UserProfile({ user }: { user: SelfUserInterface | null }) {
                   />
                 </div>
                 <div className="min-w-0 sm:text-left">
-                  <h1 className="text-4xl font-black sm:text-6xl">
+                  <h1 className="wrap-break-word text-4xl font-black sm:text-6xl">
                     {user?.guild
                       ? `${user.guildRole} of ${user.guild.name.toUpperCase()}`
                       : 'No guild'}

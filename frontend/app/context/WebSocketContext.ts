@@ -29,11 +29,12 @@ export interface InterfaceGameState {
   seedHash: string;
   total: number;
   direction: number;
-  currentPlayerId: string;
+  currentPlayerId: string | null;
   lastPlayedById: string;
   winnerId: string | null;
   pendingPlays: number;
   turnNumber: number;
+  turnDeadline: string | null;
   deckCount: number;
   discardPile: InterfaceCardsGameState[];
   players: InterfaceUserGameState[];
