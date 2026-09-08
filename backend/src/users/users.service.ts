@@ -314,7 +314,7 @@ export class UsersService {
     });
 
     if (!invitation) {
-      throw new BadRequestException('Invitation does not exist at that id.');
+      throw new NotFoundException('Invitation does not exist at that id.');
     }
     if (invitation.receiverId !== issuerId) {
       throw new ForbiddenException(
