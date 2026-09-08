@@ -134,17 +134,15 @@ export function UserProfile({ user }: { user: SelfUserInterface | null }) {
                       >
                         +{match.pointWon} Pts
                       </span>
-                      {match.eliminatedAt && (
-                        <p className="mt-1 text-sm opacity-60">
-                          {new Date(match.eliminatedAt).toLocaleString(
-                            'en-US',
-                            {
-                              dateStyle: 'medium',
-                              timeStyle: 'short',
-                            },
-                          )}
-                        </p>
-                      )}
+                      <p className="mt-1 text-sm opacity-60">
+                        {new Date(match.game.startedAt).toLocaleString(
+                          'en-US',
+                          {
+                            dateStyle: 'medium',
+                            timeStyle: 'short',
+                          },
+                        )}
+                      </p>
                     </div>
                   </article>
                 ))
