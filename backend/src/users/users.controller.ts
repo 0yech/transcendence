@@ -1,7 +1,10 @@
 import {
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
+  Post,
   Query,
   Res,
   StreamableFile,
@@ -10,6 +13,8 @@ import {
 import type { Response } from 'express';
 import { JwtAuthGuard } from '../auth/auth.guard';
 import { UsersService } from './users.service';
+import { CurrentUser } from 'src/auth/current-user.decorator';
+import type { JwtPayload } from 'src/auth/jwt-payload.interface';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard)
@@ -67,5 +72,57 @@ export class UsersController {
     );
 
     return new StreamableFile(avatar.bytes, { type: avatar.mimeType });
+  }
+
+  // TODO implement routes to list friends for a given user
+
+  @UseGuards(JwtAuthGuard)
+  @Post('friends/invite/:userId')
+  @HttpCode(HttpStatus.OK)
+  async inviteFriend(
+    @Param('userId') targetUserId: string,
+    @CurrentUser() issuer: JwtPayload,
+  ) {
+    await this.usersService.inviteFriend(issuer.sub, targetUserId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('friends/remove/:userId')
+  @HttpCode(HttpStatus.OK)
+  async removeFriend(
+    @Param('userId') targetUserId: string,
+    @CurrentUser() issuer: JwtPayload,
+  ) {
+    await this.usersService.removeFriend(issuer.sub, targetUserId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('friends/invitations/:id/cancel')
+  @HttpCode(HttpStatus.OK)
+  async cancelInvitation(
+    @Param('id') invitationId: string,
+    @CurrentUser() issuer: JwtPayload,
+  ) {
+    await this.usersService.cancelInvitation(invitationId, issuer.sub);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('friends/invitations/:id/decline')
+  @HttpCode(HttpStatus.OK)
+  async declineInvitation(
+    @Param('id') invitationId: string,
+    @CurrentUser() issuer: JwtPayload,
+  ) {
+    await this.usersService.declineInvitation(invitationId, issuer.sub);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('friends/invitations/:id/accept')
+  @HttpCode(HttpStatus.OK)
+  async acceptInvitation(
+    @Param('id') invitationId: string,
+    @CurrentUser() issuer: JwtPayload,
+  ) {
+    await this.usersService.acceptInvitation(invitationId, issuer.sub);
   }
 }
