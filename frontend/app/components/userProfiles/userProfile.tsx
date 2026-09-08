@@ -5,6 +5,17 @@ import type {
 } from '~/context/WebSocketContext';
 import { Avatar } from '~/components/Avatar';
 import { NavBar } from '../Navbar';
+import {
+  accentInsetCardClass,
+  accentPillClass,
+  eyebrowClass,
+  insetCardClass,
+  pageContentClass,
+  profilePageShellClass,
+  primaryCardClass,
+  sectionTitleClass,
+  statLabelClass,
+} from '~/styles/theme';
 
 interface UserPopUpProps {
   user: UserInterfaceLobby;
@@ -34,93 +45,120 @@ export function UserPopUp({ user }: UserPopUpProps) {
 export function UserProfile({ user }: { user: SelfUserInterface | null }) {
   const date = new Date(user?.createdAt ? user?.createdAt : '');
 
-  console.log(user);
   return (
     <>
-      <title>{user?.username}'s Profile</title>
+      <title>{user?.username ? `${user.username}'s Profile` : 'Profile'}</title>
       <NavBar className="fixed"></NavBar>
-      <div className="h-dvh flex flex-col justify-center items-center">
-        <div className="text-shadow-lg text-shadow-pink/20 flex flex-col justify-center items-center gap-5 h-fit p-8 rounded-4xl max-w-200 min-w-100 bg-dark-blue/30 shadow-2xl shadow-dark-blue">
-          <h1 className="text-7xl font-black w-fit">
-            {user?.guild
-              ? `${user?.guildRole} of ${user?.guild.name.toUpperCase()}`
-              : 'NO GUILD'}
-          </h1>
-          <div className="flex justify-between w-full">
-            <div className="flex flex-col justify-between gap-5 items-center h-full">
-              <Avatar
-                className="shadow-xl shadow-pink/40 w-50 h-50"
-                src={user?.avatarUrl}
-                alt={`Profile of ${user?.username}`}
-              ></Avatar>
-              <h2 className="h-full text-center text-3xl font-bold">
-                {user?.username}
-              </h2>
-            </div>
-            <div className="flex h-full flex-col justify-between items-end">
-              <h2 className="italic">{user?.totalPts} Pts</h2>
-              {/* <p>email: {user?.email}</p> */}
-              <p className="text-center">
-                Account created on{' '}
-                {date.toLocaleString('en-US', {
-                  dateStyle: 'long',
-                  timeStyle: 'short',
-                })}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="text-shadow-lg text-shadow-pink/20 flex flex-col gap-5 p-8 rounded-4xl max-w-200 min-w-100 w-full bg-dark-blue/30 shadow-2xl shadow-dark-blue mt-5">
-          <h2 className="text-4xl font-black">Match History</h2>
-
-          <div className="flex flex-col gap-3">
-            {user?.gamePlayers?.length ? (
-              user.gamePlayers.map((match: SelfMatchHistory) => (
-                <div
-                  key={match.id}
-                  className="flex items-center justify-between gap-6 p-5 rounded-3xl bg-dark-blue/40 shadow-lg shadow-dark-blue/30"
-                >
-                  <div className="flex flex-col gap-1 min-w-0">
-                    <h3 className="text-2xl font-bold truncate">
-                      {match.eliminatedPosition
-                        ? `Eliminated #${match.eliminatedPosition}`
-                        : 'Survived'}
-                    </h3>
-
-                    <p className="text-sm opacity-70">
-                      Game ID: {match.game.id}
-                    </p>
-                  </div>
-
-                  <div className="flex flex-col items-end gap-1 shrink-0">
-                    <span
-                      className={`text-2xl font-black ${
-                        (match.pointWon ?? 0) > 0 ? 'text-pink' : 'opacity-70'
-                      }`}
-                    >
-                      +{match.pointWon} Pts
-                    </span>
-
-                    {match.eliminatedAt && (
-                      <span className="text-sm opacity-60">
-                        {new Date(match.eliminatedAt).toLocaleString('en-US', {
-                          dateStyle: 'medium',
-                          timeStyle: 'short',
-                        })}
-                      </span>
-                    )}
-                  </div>
+      <main className={profilePageShellClass}>
+        <div className={pageContentClass}>
+          <section className={primaryCardClass}>
+            <p className={eyebrowClass}>Player profile</p>
+            <div className="mt-5 flex flex-col gap-7 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex min-w-0 flex-col items-center gap-4 sm:flex-row sm:text-left">
+                <div className="rounded-full bg-linear-to-br from-blue to-pink p-1 shadow-xl shadow-pink/40">
+                  <Avatar
+                    className="h-36 w-36 sm:h-44 sm:w-44"
+                    src={user?.avatarUrl}
+                    alt={`Profile of ${user?.username}`}
+                  />
                 </div>
-              ))
-            ) : (
-              <p className="text-center opacity-60 py-6">
-                No games played yet.
-              </p>
-            )}
-          </div>
+                <div className="min-w-0 sm:text-left">
+                  <h1 className="text-4xl font-black sm:text-6xl">
+                    {user?.guild
+                      ? `${user.guildRole} of ${user.guild.name.toUpperCase()}`
+                      : 'No guild'}
+                  </h1>
+                  <p className="mt-2 text-lg font-bold text-light-pink">
+                    {user?.username ?? 'Loading profile'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex w-full justify-center gap-3 sm:w-auto sm:flex-col sm:items-end">
+                <div
+                  className={`${accentInsetCardClass} px-5 py-3 text-center sm:text-right`}
+                >
+                  <p className={statLabelClass}>Total points</p>
+                  <p className="text-3xl font-black text-pink">
+                    {user?.totalPts ?? 0}
+                  </p>
+                </div>
+                <div
+                  className={`${insetCardClass} px-5 py-3 text-center text-sm opacity-75 sm:text-right`}
+                >
+                  Account created{' '}
+                  {Number.isNaN(date.getTime())
+                    ? 'recently'
+                    : date.toLocaleDateString('en-US', { dateStyle: 'long' })}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className={primaryCardClass}>
+            <div className="flex items-baseline justify-between gap-4">
+              <div>
+                <p className={eyebrowClass}>Recent activity</p>
+                <h2 className={`mt-1 ${sectionTitleClass}`}>Match History</h2>
+              </div>
+              <span className={accentPillClass}>
+                {user?.gamePlayers?.length ?? 0}
+              </span>
+            </div>
+
+            <div className="mt-5 flex flex-col gap-3">
+              {user?.gamePlayers?.length ? (
+                user.gamePlayers.map((match: SelfMatchHistory) => (
+                  <article
+                    key={match.id}
+                    className={`${insetCardClass} flex items-center justify-between gap-6 p-5 transition-colors hover:bg-pink/10`}
+                  >
+                    <div className="min-w-0">
+                      <h3 className="truncate text-xl font-bold sm:text-2xl">
+                        {match.eliminatedPosition
+                          ? `Eliminated #${match.eliminatedPosition}`
+                          : 'Survived'}
+                      </h3>
+                      <p className="mt-1 text-sm opacity-60">
+                        Game ID: {match.game.id}
+                      </p>
+                    </div>
+
+                    <div className="shrink-0 text-right">
+                      <span
+                        className={
+                          (match.pointWon ?? 0) > 0
+                            ? 'text-2xl font-black text-pink'
+                            : 'text-2xl font-black opacity-70'
+                        }
+                      >
+                        +{match.pointWon} Pts
+                      </span>
+                      {match.eliminatedAt && (
+                        <p className="mt-1 text-sm opacity-60">
+                          {new Date(match.eliminatedAt).toLocaleString(
+                            'en-US',
+                            {
+                              dateStyle: 'medium',
+                              timeStyle: 'short',
+                            },
+                          )}
+                        </p>
+                      )}
+                    </div>
+                  </article>
+                ))
+              ) : (
+                <p
+                  className={`${insetCardClass} py-12 text-center text-xl opacity-60`}
+                >
+                  No games played yet.
+                </p>
+              )}
+            </div>
+          </section>
         </div>
-      </div>
+      </main>
     </>
   );
 }
