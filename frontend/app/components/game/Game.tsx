@@ -9,6 +9,7 @@ import { useNavigate, useParams } from 'react-router';
 import LobbyChat from '~/components/LobbyChat';
 import { getUserById } from '~/utils/users';
 import { motion } from 'motion/react';
+import TurnTimer from '~/components/game/TurnTimer';
 
 export function Game() {
   const { lightColor, lightIntensity } = useControls({
@@ -22,11 +23,13 @@ export function Game() {
   {
     /**Début de l'enfer */
   }
-  const { playSlot, gameState, userId, playFour, unable } = UseWebSocket();
+  const { playSlot, gameState, userId, playFour, unable, getCode } =
+    UseWebSocket();
   const [winnerId, setWinnerId] = useState<string | null>(null);
   const [turnUser, setTurnUser] = useState<string | null>(null);
   const navigate = useNavigate();
   const { code } = useParams();
+  const lobbyCode = getCode();
 
   useEffect(() => {
     if (gameState && gameState.winnerId)
@@ -56,7 +59,7 @@ export function Game() {
   }
   if (gameState?.winnerId && gameState?.status == 'FINISHED') {
     setTimeout(() => {
-      navigate('/');
+      navigate(`/game/${lobbyCode}`);
     }, 10000);
   }
 
@@ -67,12 +70,16 @@ export function Game() {
   return (
     <>
       {/**L'enfer 2, le retour de la vengeance */}
-      <div className="w-fit h-fit flex flex-col gap-4 fixed top-14">
+      <div className="w-fit h-fit flex flex-col gap-4 fixed top-14 z-10">
         <div className="w-fit h-fit flex flex-col gap-4">
           <li>who's turn: {turnUser}</li>
           <li>pendingPlays: {gameState?.pendingPlays}</li>
           <li>turnNumber: {gameState?.turnNumber}</li>
           <li>DeckCount: {gameState?.deckCount}</li>
+          {gameState?.status === 'IN_PROGRESS' &&
+            gameState.turnNumber !== undefined && (
+              <TurnTimer key={gameState.turnNumber} />
+            )}
           <li>
             {gameState?.direction ? <>Left to right</> : <>Right to left</>}
           </li>
