@@ -231,6 +231,17 @@ export class UsersService {
       throw new BadRequestException("A user can't friend themself!");
     }
 
+    // Checked before anything else touches the receiver's id: an id that names
+    // no live user would otherwise reach the create below as a foreign key
+    // violation, which is a 500.
+    const receiver = await this.prisma.user.findFirst({
+      where: { id: receiverId, deleted: false },
+      select: { id: true },
+    });
+    if (receiver === null) {
+      throw new NotFoundException('User not found.');
+    }
+
     const existingFriendship = await this.prisma.friendRelation.findFirst({
       where: {
         userId: senderId,
