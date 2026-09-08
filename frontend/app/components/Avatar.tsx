@@ -21,6 +21,7 @@ export function Avatar({
   return (
     <img
       className={twMerge(AvatarStyles[variant], className)}
+      referrerPolicy="no-referrer"
       src={src ?? srcEmpty}
       {...rest}
     />
