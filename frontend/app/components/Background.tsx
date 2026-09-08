@@ -1,5 +1,5 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useSyncExternalStore } from 'react';
 import {
   ShaderMaterial,
   Vector4,
@@ -45,7 +45,7 @@ const WavesPlane = () => {
       frequency: { value: 19.0, min: 0.0, max: 100.0 },
       amplitude: { value: 2.5, min: 0.0, max: 5.0 },
       speed: { value: 0.4, min: 0.0, max: 5.0 },
-      noise: { value: 0.05, min: 0.0, max: 1.0 },
+      noise: { value: 0.0, min: 0.0, max: 1.0 },
       size: { value: 3.0, min: 0.5, max: 6.0 },
       vertexNumber: { value: 128, min: 1, max: 1024, step: 1 },
       wireframe: { value: false },
@@ -58,6 +58,30 @@ const WavesPlane = () => {
         px: { value: 0.0, min: -10.0, max: 10.0 },
         py: { value: 6.0, min: -10.0, max: 10.0 },
         pz: { value: -5.0, min: -10.0, max: 10.0 },
+      }),
+      onde1: folder({
+        ondeX1: { value: 1.0, min: -100.0, max: 100.0 },
+        ondeY1: { value: 1.0, min: -100.0, max: 100.0 },
+        ondeSpeed1: { value: 1.0, min: 0.0, max: 5.0 },
+        ondeFreq1: { value: 1.0, min: 0.0, max: 5.0 },
+      }),
+      onde2: folder({
+        ondeX2: { value: 0.0, min: -100.0, max: 100.0 },
+        ondeY2: { value: 1.0, min: -100.0, max: 100.0 },
+        ondeSpeed2: { value: 1.0, min: 0.0, max: 5.0 },
+        ondeFreq2: { value: 1.0, min: 0.0, max: 5.0 },
+      }),
+      onde3: folder({
+        ondeX3: { value: 1.0, min: -100.0, max: 100.0 },
+        ondeY3: { value: 0.0, min: -100.0, max: 100.0 },
+        ondeSpeed3: { value: 1.0, min: 0.0, max: 5.0 },
+        ondeFreq3: { value: 1.0, min: 0.0, max: 5.0 },
+      }),
+      onde4: folder({
+        ondeX4: { value: 0.0, min: -100.0, max: 100.0 },
+        ondeY4: { value: 0.0, min: -100.0, max: 100.0 },
+        ondeSpeed4: { value: 1.0, min: 0.0, max: 5.0 },
+        ondeFreq4: { value: 1.0, min: 0.0, max: 5.0 },
       }),
       color0: folder({
         c0: '#040231',
@@ -87,7 +111,7 @@ const WavesPlane = () => {
       uFrequency: { value: 1.0 },
       uAmplitude: { value: 0.0 },
       uTime: { value: 0.0 },
-      uNoise: { value: 0.05 },
+      uNoise: { value: 0.0 },
       uCursor: { value: new Vector2(0.5, 0.5) },
       uColors: {
         value: [
@@ -96,6 +120,14 @@ const WavesPlane = () => {
           ConvertColor('#298a8c', 0.62),
           ConvertColor('#c77552', 0.82),
           ConvertColor('#f8e1b8', 1.0),
+        ],
+      },
+      uOndes: {
+        value: [
+          new Vector4(1.0, 1.0, 0.0, 0.0),
+          new Vector4(0.0, 0.0, 0.0, 0.0),
+          new Vector4(1.0, 0.0, 0.0, 0.0),
+          new Vector4(0.0, 1.0, 0.0, 0.0),
         ],
       },
     }),
@@ -118,6 +150,11 @@ const WavesPlane = () => {
       tmpCol.set(hex[i]);
       col[i].set(tmpCol.r, tmpCol.g, tmpCol.b, pos[i]);
     }
+    const ondes = u.uOndes.value as Vector4[];
+    ondes[0].set(ctl.ondeX1, ctl.ondeY1, ctl.ondeFreq1, ctl.ondeSpeed1);
+    ondes[1].set(ctl.ondeX2, ctl.ondeY2, ctl.ondeFreq2, ctl.ondeSpeed2);
+    ondes[2].set(ctl.ondeX3, ctl.ondeY3, ctl.ondeFreq3, ctl.ondeSpeed3);
+    ondes[3].set(ctl.ondeX4, ctl.ondeY4, ctl.ondeFreq4, ctl.ondeSpeed4);
     ray.setFromCamera(state.pointer, camera);
     const hits = ray.intersectObject(mesh.current);
     if (hits.length > 0 && hits[0].uv) {
@@ -152,8 +189,15 @@ const WavesPlane = () => {
   );
 };
 
+const subscribeNoop = () => () => {};
+
 export function Background() {
-  const source = typeof document !== 'undefined' ? document.body : undefined;
+  const hydrated = useSyncExternalStore(
+    subscribeNoop,
+    () => true,
+    () => false,
+  );
+  const source = hydrated ? document.body : undefined;
 
   return (
     <div className="inset-0 fixed -z-50">

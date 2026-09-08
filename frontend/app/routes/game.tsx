@@ -1,9 +1,4 @@
-import { UseWebSocket } from '~/context/UseWebSocket';
-import { useNavigate, useParams } from 'react-router';
-import apiFetch from '~/utils/api-fetch';
-import LobbyChat from '~/components/LobbyChat';
-import { getUserById } from '~/utils/users';
-import { useEffect, useState } from 'react';
+import { Game } from '~/components/game/Game';
 import { NavBar } from '~/components/Navbar';
 
 /**
@@ -16,117 +11,10 @@ import { NavBar } from '~/components/Navbar';
  * @returns the function jsx needed to display the page with what's mentioned on top
  */
 export default function PlayGame() {
-  const { playSlot, gameState, userId, playFour, unable, disconnect } =
-    UseWebSocket();
-  const [winnerId, setWinnerId] = useState<string | null>(null);
-  const [turnUser, setTurnUser] = useState<string | null>(null);
-  const navigate = useNavigate();
-  const { code } = useParams();
-
-  useEffect(() => {
-    if (gameState && gameState.winnerId)
-      getUserById(gameState.winnerId).then((json) =>
-        setWinnerId(json.username),
-      );
-  }, [gameState, gameState?.winnerId]);
-  useEffect(() => {
-    if (gameState && gameState.currentPlayerId)
-      getUserById(gameState.currentPlayerId).then((json) =>
-        setTurnUser(json.username),
-      );
-  }, [gameState, gameState?.currentPlayerId]);
-  if (!code) {
-    return null;
-  }
-
-  let myCards = null;
-  if (gameState) {
-    const players = gameState.players.find(
-      (element) => element.userId === userId(),
-    );
-    console.log(players);
-    if (players) {
-      myCards = players.hand;
-    }
-  }
-  if (gameState?.winnerId && gameState?.status == 'FINISHED') {
-    setTimeout(() => {
-      apiFetch('/api/lobbies/leave', {
-        method: 'POST',
-      });
-      disconnect();
-      navigate('/');
-    }, 10000);
-  }
-
   return (
     <>
-      <NavBar></NavBar>
-      <div className="w-full h-dvh flex flex-col justify-center items-center gap-4">
-        <div className="w-fit h-fit flex flex-col gap-4">
-          <li>
-            <button
-              className="rounded-full w-fit px-5 bg-blue-500 hover:bg-blue-700"
-              onClick={() => navigate('/')}
-            >
-              home
-            </button>
-          </li>
-          <li>who's turn: {turnUser}</li>
-          <li>pendingPlays: {gameState?.pendingPlays}</li>
-          <li>turnNumber: {gameState?.turnNumber}</li>
-          <li>DeckCount: {gameState?.deckCount}</li>
-          <li>total: {gameState?.total}</li>
-          <li>
-            {gameState?.direction ? <>Left to right</> : <>Right to left</>}
-          </li>
-          {winnerId ? <li>Winner: {winnerId}</li> : <></>}
-          {gameState &&
-          gameState.discardPile &&
-          gameState.discardPile.length > 0 ? (
-            <li>
-              LastCardPlayed:{' '}
-              {gameState.discardPile[gameState.discardPile.length - 1].id}
-            </li>
-          ) : (
-            <></>
-          )}
-
-          {Array.isArray(myCards) ? (
-            <>
-              {myCards.map((card, index) => (
-                <li key={card.id}>
-                  <button
-                    className="rounded-full w-fit px-5 bg-pink-400 hover:bg-pink-600"
-                    onClick={() => playSlot(index + 1)}
-                  >
-                    play {index + 1} - {card.id}
-                  </button>
-                </li>
-              ))}
-              <li key="play99">
-                <button
-                  className="rounded-full w-fit px-5 bg-pink-400 hover:bg-pink-600"
-                  onClick={() => playFour()}
-                >
-                  play Four ONO99
-                </button>
-              </li>
-              <li key="forfeit">
-                <button
-                  className="rounded-full w-fit px-5 bg-pink-400 hover:bg-pink-600"
-                  onClick={() => unable()}
-                >
-                  Unable to play
-                </button>
-              </li>
-            </>
-          ) : (
-            <>not waa :(</>
-          )}
-          <LobbyChat code={code} canSend={true} />
-        </div>
-      </div>
+      <NavBar className="fixed"></NavBar>
+      <Game></Game>
     </>
   );
 }
