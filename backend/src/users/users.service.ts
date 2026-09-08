@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -13,7 +14,10 @@ import {
   publicViewUserSelect,
 } from './users.select';
 import { sniffImageMimeType } from './avatar.util';
-import { OAuthProvider } from 'src/generated/prisma/enums';
+import {
+  FriendInvitationStatus,
+  OAuthProvider,
+} from 'src/generated/prisma/enums';
 
 @Injectable()
 export class UsersService {
@@ -234,6 +238,185 @@ export class UsersService {
       });
 
       return updated.avatarUrl;
+    });
+  }
+
+  /**
+   * Returns a list of active friends for a user.
+   */
+  async findFriends(userId: string) {
+    return await this.prisma.friendRelation.findMany({
+      where: {
+        userId: userId,
+      },
+      select: {
+        friend: { select: publicViewUserSelect },
+      },
+    });
+  }
+
+  /**
+   * Returns a list of pending invitations for a user.
+   */
+  async findInvitations(userId: string) {
+    return await this.prisma.friendInvitation.findMany({
+      where: {
+        receiverId: userId,
+        status: FriendInvitationStatus.PENDING,
+      },
+    });
+  }
+
+  /**
+   * Creates a friend invitation, and returns it.
+   */
+  async inviteFriend(senderId: string, receiverId: string) {
+    if (senderId === receiverId) {
+      throw new BadRequestException("A user can't friend themself!");
+    }
+
+    // Checked before anything else touches the receiver's id: an id that names
+    // no live user would otherwise reach the create below as a foreign key
+    // violation, which is a 500.
+    const receiver = await this.prisma.user.findFirst({
+      where: { id: receiverId, deleted: false },
+      select: { id: true },
+    });
+    if (receiver === null) {
+      throw new NotFoundException('User not found.');
+    }
+
+    const existingFriendship = await this.prisma.friendRelation.findFirst({
+      where: {
+        userId: senderId,
+        friendId: receiverId,
+      },
+    });
+    if (existingFriendship) {
+      throw new BadRequestException('Users are already friends.');
+    }
+
+    let existingInvitation = await this.prisma.friendInvitation.findFirst({
+      where: {
+        senderId: senderId,
+        receiverId: receiverId,
+        status: FriendInvitationStatus.PENDING,
+      },
+    });
+
+    // If the same invitation already exists
+    if (existingInvitation) {
+      // If the same invitation was already sent
+      throw new ConflictException(
+        'An invitation for that user already exists.',
+      );
+    }
+
+    // If an invitation was made the other way
+    existingInvitation = await this.prisma.friendInvitation.findFirst({
+      where: {
+        senderId: receiverId,
+        receiverId: senderId,
+        status: FriendInvitationStatus.PENDING,
+      },
+    });
+    if (existingInvitation) {
+      // The sender is the one that received the invitation from the other,
+      // so we make it like they accepted it
+      return await this.acceptInvitation(existingInvitation.id, senderId);
+    }
+
+    return await this.prisma.friendInvitation.create({
+      data: {
+        senderId: senderId,
+        receiverId: receiverId,
+      },
+    });
+  }
+
+  async cancelInvitation(invitationId: string, issuerId: string) {
+    await this.prisma.friendInvitation.update({
+      where: {
+        id: invitationId,
+        senderId: issuerId,
+        status: FriendInvitationStatus.PENDING,
+      },
+      data: {
+        status: FriendInvitationStatus.CANCELLED,
+      },
+    });
+  }
+
+  async declineInvitation(invitationId: string, issuerId: string) {
+    await this.prisma.friendInvitation.update({
+      where: {
+        id: invitationId,
+        receiverId: issuerId,
+        status: FriendInvitationStatus.PENDING,
+      },
+      data: {
+        status: FriendInvitationStatus.DECLINED,
+      },
+    });
+  }
+
+  async acceptInvitation(invitationId: string, issuerId: string) {
+    const invitation = await this.prisma.friendInvitation.findUnique({
+      where: {
+        id: invitationId,
+        status: FriendInvitationStatus.PENDING,
+      },
+    });
+
+    if (!invitation) {
+      throw new NotFoundException('Invitation does not exist at that id.');
+    }
+    if (invitation.receiverId !== issuerId) {
+      throw new ForbiddenException(
+        "You can't accept another user's invitation for them.",
+      );
+    }
+
+    const senderId = invitation.senderId;
+    const receiverId = invitation.receiverId;
+
+    await this.prisma.$transaction([
+      // Mark invitation as accepted
+      this.prisma.friendInvitation.update({
+        where: {
+          id: invitationId,
+          status: FriendInvitationStatus.PENDING,
+        },
+        data: {
+          status: FriendInvitationStatus.ACCEPTED,
+        },
+      }),
+
+      // Create the friend relations, two rows to signify a two-way relation
+      this.prisma.friendRelation.createMany({
+        data: [
+          {
+            userId: senderId,
+            friendId: receiverId,
+          },
+          {
+            userId: receiverId,
+            friendId: senderId,
+          },
+        ],
+        skipDuplicates: true,
+      }),
+    ]);
+  }
+
+  async removeFriend(ownerId: string, friendId: string) {
+    await this.prisma.friendRelation.deleteMany({
+      where: {
+        OR: [
+          { userId: ownerId, friendId: friendId },
+          { userId: friendId, friendId: ownerId },
+        ],
+      },
     });
   }
 
