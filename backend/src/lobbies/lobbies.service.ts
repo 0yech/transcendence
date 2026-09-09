@@ -32,9 +32,7 @@ export class LobbiesService {
    * @return The ids of lobbies eligible for expiration.
    */
   private async findInactiveLobbies() {
-    const inactivityLimit = new Date(
-      Date.now() - lobbyInactivityMs,
-    );
+    const inactivityLimit = new Date(Date.now() - lobbyInactivityMs);
 
     return this.prisma.lobby.findMany({
       where: {
@@ -106,8 +104,7 @@ export class LobbiesService {
    */
   @Interval(60_000)
   async cleanupInactiveLobbies() {
-    const inactiveLobbies =
-      await this.findInactiveLobbies();
+    const inactiveLobbies = await this.findInactiveLobbies();
 
     for (const lobby of inactiveLobbies) {
       await this.deactivateLobby(lobby.id);
