@@ -36,6 +36,14 @@ export class UsersController {
     return this.usersService.findPublicIdentityById(id);
   }
 
+  /**
+   * @brief Returns lifetime statistics for a public player profile.
+   */
+  @Get('public/id/:id/stats')
+  getPlayerStats(@Param('id') id: string) {
+    return this.usersService.getPlayerStats(id);
+  }
+
   @Get('public/username/:username')
   findPublicByUser(@Param('username') username: string) {
     return this.usersService.findPublicIdentityByUser(username);

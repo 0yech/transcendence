@@ -28,3 +28,28 @@ export async function getUserByUsername(
 
   return response.json();
 }
+
+export type PlayerStats = {
+  gamesPlayed: number;
+  wins: number;
+  losses: number;
+  winRate: number;
+  gamesWithPoints: number;
+  scoredGameRate: number;
+  lastPlayedAt: string | null;
+};
+
+/**
+ * @brief Get lifetime statistics for a player profile.
+ */
+export async function getPlayerStats(id: string): Promise<PlayerStats> {
+  const response = await apiFetch(
+    `/api/users/public/id/${encodeURIComponent(id)}/stats`,
+  );
+
+  if (!response.ok) {
+    throw new Error('Player stats not found');
+  }
+
+  return response.json();
+}
