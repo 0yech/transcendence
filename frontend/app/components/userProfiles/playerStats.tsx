@@ -28,9 +28,6 @@ export function PlayerStats({ userId }: PlayerStatsProps) {
 
     let cancelled = false;
 
-    setStats(null);
-    setHasError(false);
-
     getPlayerStats(userId)
       .then((data) => {
         if (!cancelled) {
@@ -39,6 +36,7 @@ export function PlayerStats({ userId }: PlayerStatsProps) {
       })
       .catch(() => {
         if (!cancelled) {
+          setStats(null);
           setHasError(true);
         }
       });
