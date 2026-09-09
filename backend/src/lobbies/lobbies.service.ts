@@ -2,6 +2,9 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import type { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { publicLobbySelect } from './lobbies.select';
+import { Interval } from '@nestjs/schedule';
+
+const lobbyInactivityMs = 15 * 60 * 1000;
 
 function generateLobbyCode(): string {
   return Math.random().toString(36).slice(2, 8).toUpperCase();
@@ -16,6 +19,100 @@ function generateLobbyCode(): string {
 @Injectable()
 export class LobbiesService {
   constructor(private readonly prisma: PrismaService) {}
+
+  /**
+   * @brief Finds active lobbies that have had no game activity
+   * for at least 15 minutes.
+   *
+   * A lobby is considered inactive when:
+   * - it is at least 15 minutes old;
+   * - it has no game currently in progress;
+   * - no game has started or finished during the last 15 minutes.
+   *
+   * @return The ids of lobbies eligible for expiration.
+   */
+  private async findInactiveLobbies() {
+    const inactivityLimit = new Date(
+      Date.now() - lobbyInactivityMs,
+    );
+
+    return this.prisma.lobby.findMany({
+      where: {
+        active: true,
+        createdAt: {
+          lte: inactivityLimit,
+        },
+        games: {
+          none: {
+            OR: [
+              {
+                status: 'IN_PROGRESS',
+              },
+              {
+                startedAt: {
+                  gt: inactivityLimit,
+                },
+              },
+              {
+                finishedAt: {
+                  gt: inactivityLimit,
+                },
+              },
+            ],
+          },
+        },
+      },
+
+      select: {
+        id: true,
+        code: true,
+      },
+    });
+  }
+
+  /**
+   * @brief Marks a lobby as inactive and removes all users from it.
+   *
+   * @param lobbyId The lobby to deactivate.
+   */
+  private async deactivateLobby(lobbyId: string) {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.user.updateMany({
+        where: {
+          lobbyId,
+        },
+        data: {
+          lobbyId: null,
+        },
+      });
+
+      await tx.lobby.update({
+        where: {
+          id: lobbyId,
+        },
+        data: {
+          active: false,
+          leaderId: null,
+        },
+      });
+    });
+  }
+
+  /**
+   * @brief Expires lobbies that have had no game activity
+   * for at least 15 minutes.
+   *
+   * The check runs once per minute.
+   */
+  @Interval(60_000)
+  async cleanupInactiveLobbies() {
+    const inactiveLobbies =
+      await this.findInactiveLobbies();
+
+    for (const lobby of inactiveLobbies) {
+      await this.deactivateLobby(lobby.id);
+    }
+  }
 
   /**
    * @brief Creates a short code that has no active dupe.
