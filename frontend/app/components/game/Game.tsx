@@ -1,5 +1,5 @@
 import { Canvas } from '@react-three/fiber';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense } from 'react';
 import { useControls } from 'leva';
 import { OrbitControls } from '@react-three/drei';
 // import { useMotionValue, useSpring } from 'motion/react';
@@ -7,7 +7,6 @@ import { Card } from './Card';
 import { UseWebSocket } from '~/context/UseWebSocket';
 import { useNavigate, useParams } from 'react-router';
 import LobbyChat from '~/components/LobbyChat';
-import { getUserById } from '~/utils/users';
 import { motion } from 'motion/react';
 import TurnTimer from '~/components/game/TurnTimer';
 
@@ -25,24 +24,13 @@ export function Game() {
   }
   const { playSlot, gameState, userId, playFour, unable, getCode } =
     UseWebSocket();
-  const [winnerId, setWinnerId] = useState<string | null>(null);
-  const [turnUser, setTurnUser] = useState<string | null>(null);
-  const navigate = useNavigate();
+  const users: Record<string, string> = Object.fromEntries(
+    (gameState?.players || []).map((user) => [user.userId, user.username]),
+  );
   const { code } = useParams();
   const lobbyCode = getCode();
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    if (gameState && gameState.winnerId)
-      getUserById(gameState.winnerId).then((json) =>
-        setWinnerId(json.username),
-      );
-  }, [gameState, gameState?.winnerId]);
-  useEffect(() => {
-    if (gameState && gameState.currentPlayerId)
-      getUserById(gameState.currentPlayerId).then((json) =>
-        setTurnUser(json.username),
-      );
-  }, [gameState, gameState?.currentPlayerId]);
   if (!code) {
     return null;
   }
@@ -52,12 +40,11 @@ export function Game() {
     const players = gameState.players.find(
       (element) => element.userId === userId(),
     );
-    console.log(players);
     if (players) {
       myCards = players.hand;
     }
   }
-  if (gameState?.winnerId && gameState?.status == 'FINISHED') {
+  if (gameState?.status == 'FINISHED') {
     setTimeout(() => {
       navigate(`/game/${lobbyCode}`);
     }, 10000);
@@ -72,7 +59,11 @@ export function Game() {
       {/**L'enfer 2, le retour de la vengeance */}
       <div className="w-fit h-fit flex flex-col gap-4 fixed top-14 z-10">
         <div className="w-fit h-fit flex flex-col gap-4">
-          <li>who's turn: {turnUser}</li>
+          {gameState && gameState.currentPlayerId ? (
+            <li>who's turn: {users[gameState.currentPlayerId]}</li>
+          ) : (
+            <></>
+          )}
           <li>pendingPlays: {gameState?.pendingPlays}</li>
           <li>turnNumber: {gameState?.turnNumber}</li>
           <li>DeckCount: {gameState?.deckCount}</li>
@@ -83,7 +74,11 @@ export function Game() {
           <li>
             {gameState?.direction ? <>Left to right</> : <>Right to left</>}
           </li>
-          {winnerId ? <li>Winner: {winnerId}</li> : <></>}
+          {gameState && gameState.winnerId ? (
+            <li>Winner: {users[gameState.winnerId]}</li>
+          ) : (
+            <></>
+          )}
           {gameState &&
           gameState.discardPile &&
           gameState.discardPile.length > 0 ? (
@@ -134,7 +129,7 @@ export function Game() {
       </div>
       <div className="inset-0 fixed">
         {/* eventSource={document.body} eventPrefix="client" */}
-        <Canvas>
+        <Canvas camera={{ position: [0, 25, 35], fov: 50 }}>
           <ambientLight intensity={0.2} />
           <directionalLight
             position={[0, 9, 20]}
@@ -157,49 +152,45 @@ export function Game() {
                     )
                   : 'censored'
               }.png`}
-              position={[0, 0, -22]}
-              rotation={[-Math.PI / 6, 0, 0]}
+              position={[0, 0, 0]}
+              rotation={[-Math.PI / 2, 0, 0]}
             />
-            <group
-              scale={0.3}
-              position={[0, -2, 0]}
-              rotation={[-Math.PI / 12, 0, 0]}
-            >
+            <group position={[0, 4, 15]} rotation={[-Math.PI / 8, 0, 0]}>
               <Card
                 frontImage={`/cards/${Array.isArray(myCards) ? myCards[0].id.slice(0, myCards[0].id.lastIndexOf('_')) : 'censored'}.png`}
+                position={[2.1, 0, 0]}
+                rotation={[0, Math.PI / 128, Math.PI / 6]}
                 onClick={(e) => {
                   e.stopPropagation();
                   playSlot(1);
                 }}
-                position={[-2.1, 0, 0]}
-                rotation={[0, Math.PI / 128, Math.PI / 6]}
               />
               <Card
                 frontImage={`/cards/${Array.isArray(myCards) ? myCards[1].id.slice(0, myCards[1].id.lastIndexOf('_')) : 'censored'}.png`}
+                position={[-0.7, 0.5, 0]}
+                rotation={[0, Math.PI / 128, Math.PI / 12]}
                 onClick={(e) => {
                   e.stopPropagation();
                   playSlot(2);
                 }}
-                position={[-0.7, 0.5, 0]}
-                rotation={[0, Math.PI / 128, Math.PI / 12]}
               />
               <Card
                 frontImage={`/cards/${Array.isArray(myCards) ? myCards[2].id.slice(0, myCards[2].id.lastIndexOf('_')) : 'censored'}.png`}
+                position={[0.7, 0.5, 0]}
+                rotation={[0, Math.PI / 128, -Math.PI / 12]}
                 onClick={(e) => {
                   e.stopPropagation();
                   playSlot(3);
                 }}
-                position={[0.7, 0.5, 0]}
-                rotation={[0, Math.PI / 128, -Math.PI / 12]}
               />
               <Card
                 frontImage={`/cards/${Array.isArray(myCards) ? myCards[3].id.slice(0, myCards[3].id.lastIndexOf('_')) : 'censored'}.png`}
+                position={[2.1, 0, 0]}
+                rotation={[0, Math.PI / 128, -Math.PI / 6]}
                 onClick={(e) => {
                   e.stopPropagation();
                   playSlot(4);
                 }}
-                position={[2.1, 0, 0]}
-                rotation={[0, Math.PI / 128, -Math.PI / 6]}
               />
             </group>
           </Suspense>

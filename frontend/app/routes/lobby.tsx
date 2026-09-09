@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import type { UserInterfaceLobby } from '~/utils/lobbies';
 import LobbyChat from '~/components/LobbyChat';
 import { NavBar } from '~/components/Navbar';
+import { getUserById } from '~/utils/users';
 
 export async function clientLoader({ params }: { params: Params<string> }) {
   const { code } = params;
@@ -32,6 +33,7 @@ export async function clientLoader({ params }: { params: Params<string> }) {
 export default function PreGame({ loaderData }: Route.ComponentProps) {
   const { startGame, userId } = UseWebSocket();
   const [useUsers, setUsers] = useState<UserInterfaceLobby[] | null>(null);
+  const [getLeaderId, setLeaderId] = useState<string>('');
 
   const {
     id,
@@ -42,6 +44,8 @@ export default function PreGame({ loaderData }: Route.ComponentProps) {
     createdAt,
     updatedAt,
   } = loaderData;
+
+  getUserById(leaderId).then((data) => setLeaderId(data.username));
 
   const navigate = useNavigate();
 
@@ -101,11 +105,11 @@ export default function PreGame({ loaderData }: Route.ComponentProps) {
 
       <div className="flex flex-row">
         <div>
-          <h2>Id: {id}</h2>
+          <h2>lobby id: {id}</h2>
           <h2>Code: {code}</h2>
           <h2>active: {active}</h2>
           <h2>is Private: {isPrivate ? 'true' : 'false'}</h2>
-          <h2>leaderId: {leaderId}</h2>
+          <h2>leader: {getLeaderId}</h2>
           <h2>createdAt: {createdAt}</h2>
           <h2>updatedAt: {updatedAt}</h2>
 
