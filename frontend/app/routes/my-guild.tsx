@@ -17,6 +17,7 @@ type GuildActionIntent =
   | 'invite-user'
   | 'kick-member'
   | 'leave-guild'
+  | 'rename-guild'
   | 'delete-guild'
   | 'promote-member'
   | 'demote-member'
@@ -48,6 +49,7 @@ function isGuildActionIntent(
     intent === 'invite-user' ||
     intent === 'kick-member' ||
     intent === 'leave-guild' ||
+    intent === 'rename-guild' ||
     intent === 'delete-guild' ||
     intent === 'promote-member' ||
     intent === 'demote-member' ||
@@ -184,6 +186,36 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
       return {
         intent,
         error: await getApiErrorMessage(response, 'Failed to create guild'),
+      };
+    }
+
+    return redirect('/guilds/me');
+  }
+
+  if (intent === 'rename-guild') {
+    const name = formData.get('name');
+
+    if (typeof name !== 'string' || !name.trim()) {
+      return {
+        intent,
+        error: 'Guild name is required',
+      };
+    }
+
+    const response = await apiFetch('/api/guilds/rename', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: name.trim(),
+      }),
+    });
+
+    if (!response.ok) {
+      return {
+        intent,
+        error: await getApiErrorMessage(response, 'Failed to rename guild'),
       };
     }
 
@@ -419,6 +451,7 @@ export default function MyGuild({
       : undefined;
 
   const guildActionError =
+    actionData?.intent === 'rename-guild' ||
     actionData?.intent === 'leave-guild' ||
     actionData?.intent === 'delete-guild'
       ? actionData.error

@@ -65,6 +65,26 @@ export class GuildsService {
     });
   }
 
+  private validateGuildName(name: string): string {
+    const cleanName = name?.trim();
+
+    if (!cleanName) {
+      throw new BadRequestException('Guild name is required');
+    }
+
+    if (cleanName.length < 3 || cleanName.length > 20) {
+      throw new BadRequestException(
+        'Guild name must be between 3 and 20 characters',
+      );
+    }
+
+    if (!/^[a-zA-Z0-9 _-]+$/.test(cleanName)) {
+      throw new BadRequestException('Guild name contains invalid characters');
+    }
+
+    return cleanName;
+  }
+
   /**
    * @brief Creates a guild and makes the user its leader.
    *
@@ -73,7 +93,7 @@ export class GuildsService {
    * @return The newly created guild.
    */
   async createGuild(userId: string, name: string) {
-    const cleanName = name?.trim();
+    const cleanName = this.validateGuildName(name);
 
     if (!cleanName) {
       throw new BadRequestException('Guild name is required');
@@ -136,6 +156,72 @@ export class GuildsService {
 
       return tx.guild.findUniqueOrThrow({
         where: { id: guild.id },
+        select: publicGuildSelect,
+      });
+    });
+  }
+
+  /**
+   * @brief Renames the authenticated user's guild.
+   *
+   * Only the guild leader can rename the guild.
+   *
+   * @param userId The authenticated user's id.
+   * @param name The new guild name.
+   * @return The updated guild.
+   */
+  async renameGuild(userId: string, name: string) {
+    const cleanName = this.validateGuildName(name);
+
+    if (!cleanName) {
+      throw new BadRequestException('Guild name is required');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      /*
+       * Retrieve the user's guild and role.
+       * The backend must enforce the LEADER permission even if
+       * the frontend only displays the field to leaders.
+       */
+      const user = await tx.user.findUnique({
+        where: { id: userId },
+        select: {
+          guildId: true,
+          guildRole: true,
+        },
+      });
+
+      if (!user) {
+        throw new NotFoundException(`User with id ${userId} not found`);
+      }
+
+      if (!user.guildId) {
+        throw new BadRequestException('User is not in a guild');
+      }
+
+      if (user.guildRole !== GuildRole.LEADER) {
+        throw new ForbiddenException(
+          'Only the guild leader can rename the guild',
+        );
+      }
+      const existingGuild = await tx.guild.findUnique({
+        where: { name: cleanName },
+        select: {
+          id: true,
+        },
+      });
+
+      if (existingGuild && existingGuild.id !== user.guildId) {
+        throw new BadRequestException('Guild name is already taken');
+      }
+
+      return tx.guild.update({
+        where: {
+          id: user.guildId,
+        },
+        data: {
+          name: cleanName,
+        },
         select: publicGuildSelect,
       });
     });
