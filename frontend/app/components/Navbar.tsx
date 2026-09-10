@@ -52,6 +52,13 @@ export function NavBar({ className, variant = 'primary', ...rest }: NavProps) {
             </ButtonNavLink>
           </li>
         )}
+        {user?.id && (
+          <li>
+            <ButtonNavLink to="/friends" end>
+              Friends
+            </ButtonNavLink>
+          </li>
+        )}
         {user?.id &&
           user.lobbyId &&
           lobbyCode &&
