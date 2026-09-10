@@ -265,6 +265,21 @@ export class UsersService {
         receiverId: userId,
         status: FriendInvitationStatus.PENDING,
       },
+      select: {
+        id: true,
+        senderId: true,
+        receiverId: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+        sender: {
+          select: {
+            id: true,
+            username: true,
+            avatarUrl: true,
+          },
+        },
+      },
     });
   }
 
