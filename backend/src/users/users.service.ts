@@ -12,6 +12,7 @@ import {
   publicUserSelect,
   userIdentitySelect,
   publicViewUserSelect,
+  friendUserSelect,
 } from './users.select';
 import { sniffImageMimeType } from './avatar.util';
 import {
@@ -250,7 +251,7 @@ export class UsersService {
         userId: userId,
       },
       select: {
-        friend: { select: publicViewUserSelect },
+        friend: { select: friendUserSelect },
       },
     });
   }
