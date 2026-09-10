@@ -6,7 +6,7 @@ This document describes the HTTP routes currently exposed by the NestJS backend.
 >
 > All backend routes use the global `/api` prefix.
 >
-> This guide reflects the repository state reviewed on 2026-09-08.
+> This guide reflects the repository state reviewed on 2026-09-10.
 
 ## Environments
 
@@ -517,7 +517,13 @@ Returns the authenticated user's friends.
       "id": "cmf0x1a2b0000abcd1234efgh",
       "username": "player2",
       "avatarUrl": null,
-      "lobbyId": null,
+      "lobbyId": "cmf0x1a2b0002abcd3456qrst",
+      "lobby": {
+        "code": "A1B2C3",
+        "active": true,
+        "private": false,
+        "_count": { "users": 2 }
+      },
       "gamePlayers": [],
       "totalPts": 0,
       "guildId": null,
@@ -532,6 +538,8 @@ Returns the authenticated user's friends.
 ```
 
 > Friendship is symmetric and stored as two rows, so each user appears in the other's list. There is no "pending" state here: a user only appears once an invitation has been accepted.
+
+> `lobby` is `null` when the friend is not in one, and is the only place a lobby `code` is handed out for another user. It is exposed to friends and not on the public profile routes on purpose: joining only needs the code, and `POST /api/lobbies/:code/join` does not check the `private` flag. Treat a friend as joinable only when `lobby.active` is `true` — a stale `lobbyId` can outlive the lobby it names.
 
 > The array has no defined order. Do not rely on the order being stable between requests.
 
@@ -569,14 +577,19 @@ Returns the pending friend invitations **received** by the authenticated user.
     "receiverId": "cmf0x1a2b0001abcd2345mnop",
     "status": "PENDING",
     "createdAt": "2026-09-08T09:11:51.370Z",
-    "updatedAt": "2026-09-08T09:11:51.370Z"
+    "updatedAt": "2026-09-08T09:11:51.370Z",
+    "sender": {
+      "id": "cmf0x1a2b0000abcd1234efgh",
+      "username": "player2",
+      "avatarUrl": null
+    }
   }
 ]
 ```
 
 > Only `PENDING` invitations are returned, and only ones addressed to the caller. Invitations the caller has sent are not exposed by any route, and neither is the history of accepted, declined, or cancelled ones.
 
-> Invitations carry `senderId` but not the sender's username or avatar. Rendering a readable list currently needs a follow-up request per sender, to `GET /api/users/public/id/:id`.
+> Each invitation embeds the sender's `id`, `username`, and `avatarUrl` under `sender`, so a readable list needs no follow-up request.
 
 **Possible errors**
 
