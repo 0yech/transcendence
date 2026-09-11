@@ -39,7 +39,7 @@ export function Card({
   }
 
   const halfThickness = thickness / 2;
-  const eps = 0.001; // décale légèrement les faces pour éviter le z-fighting avec le corps extrudé
+  const eps = 0.01; // décale légèrement les faces pour éviter le z-fighting avec le corps extrudé
 
   return (
     <group {...groupProps}>

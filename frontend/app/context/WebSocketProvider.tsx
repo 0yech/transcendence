@@ -243,77 +243,92 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
   }, [connect]);
 
   /**
-   *user.id
-   * @brief handle the playing of card by slot number
    *
-   * @async @returns create the new Promise<boolean> for the return or a throw if fails
+   * @brief emit a game action and report whether the server accepted it.
+   *
+   * @brief an illegal move raises a WsException server-side, which never calls
+   * @brief the ack: listening to "exception" is what makes a refusal immediate
+   * @brief instead of waiting the 2s timeout. Only one action is ever in flight,
+   * @brief so the exception that lands here belongs to this action.
+   *
+   * @async @returns a Promise<boolean> that resolves false when the action is
+   * @async refused, times out, or fails.
    *
    */
-  function playCard(slot: number): Promise<boolean> {
+  function emitGameAction(
+    event: string,
+    payload: Record<string, unknown>,
+  ): Promise<boolean> {
     return new Promise((resolve) => {
-      if (!wsRef.current || !codeLink.current)
-        throw new Error('No active game. cannot play a card');
-      wsRef.current.timeout(2000).emit(
-        'game:play-slot',
+      const socket = wsRef.current;
+
+      if (!socket || !codeLink.current)
+        throw new Error(`No active game. cannot emit ${event}`);
+
+      let settled = false;
+
+      const finish = (accepted: boolean, reason?: unknown) => {
+        if (settled) return;
+
+        settled = true;
+        socket.off('exception', onRefused);
+
+        if (!accepted) console.warn(`${event} refused`, reason);
+
+        resolve(accepted);
+      };
+
+      const onRefused = (error: unknown) => finish(false, error);
+
+      socket.on('exception', onRefused);
+
+      socket.timeout(2000).emit(
+        event,
         {
           lobbyCode: codeLink.current,
-          slot: slot,
+          ...payload,
         },
-        () => {
-          console.log('played slot ' + slot);
-          return resolve(true);
+        // .timeout() places the error first, the server answer second.
+        (timeoutError: Error | null, ack?: { ok: true }) => {
+          finish(!timeoutError && ack?.ok === true, timeoutError);
         },
       );
     });
+  }
+
+  /**
+   *
+   * @brief handle the playing of card by slot number
+   *
+   * @async @returns a Promise<boolean>, false if the server refused the move
+   *
+   */
+  function playCard(slot: number): Promise<boolean> {
+    return emitGameAction('game:play-slot', { slot: slot });
   }
 
   /**
    *
    * @brief handle the playing of the four cards (must all be ONO99)
    *
-   * @async @returns create the new Promise<boolean> for the return or a throw if fails
+   * @async @returns a Promise<boolean>, false if the server refused the move
    *
    */
   function playFour(): Promise<boolean> {
-    return new Promise((resolve) => {
-      if (!wsRef.current || !codeLink.current)
-        throw new Error('No active game. cannot play a card');
-      wsRef.current.timeout(2000).emit(
-        'game:discard-four-ono99',
-        {
-          lobbyCode: codeLink.current,
-        },
-        () => {
-          console.log('played all 4 ONO');
-          return resolve(true);
-        },
-      );
-    });
+    return emitGameAction('game:discard-four-ono99', {});
   }
 
   /**
    *
    * @brief handle declaring forfeit
    *
-   * @async @returns create the new Promise<boolean> for the return or a throw if fails
+   * @async @returns a Promise<boolean>, false if the server refused the action
    *
    */
   function unable(): Promise<boolean> {
-    return new Promise((resolve) => {
-      if (!wsRef.current || !codeLink.current)
-        throw new Error('No active game. cannot play a card');
-      wsRef.current.timeout(2000).emit(
-        'game:unable',
-        {
-          lobbyCode: codeLink.current,
-        },
-        () => {
-          console.log('declared forfeit');
-          return resolve(true);
-        },
-      );
-    });
+    return emitGameAction('game:unable', {});
   }
+
   /**
    *
    * @brief handle the emitting of the start of the game

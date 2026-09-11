@@ -17,12 +17,3 @@ export function createCardShape(width: number, height: number, radius: number) {
 
   return shape;
 }
-
-/**
- *  / -------0
- * |
- * |
- * |
- * |
- * |
- */
