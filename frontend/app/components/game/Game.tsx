@@ -1,16 +1,49 @@
-import { Canvas } from '@react-three/fiber';
-import { Suspense } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { useControls } from 'leva';
-import { OrbitControls } from '@react-three/drei';
+import { useTexture } from '@react-three/drei';
 // import { useMotionValue, useSpring } from 'motion/react';
 import { Card } from './Card';
+import { Group } from 'three';
 import { UseWebSocket } from '~/context/UseWebSocket';
 import { useNavigate, useParams } from 'react-router';
 import LobbyChat from '~/components/LobbyChat';
 import { motion } from 'motion/react';
 import TurnTimer from '~/components/game/TurnTimer';
 
+type CardState = {
+  slot: number;
+  phase: 'idle' | 'toDiscard' | 'fromDeck';
+};
+
+function preloadCardsImages() {
+  useTexture.preload('/cards/censored.png');
+  useTexture.preload('/cards/back.png');
+  useTexture.preload(`/cards/MINUS_TEN_-10.png`);
+  useTexture.preload(`/cards/ONO99_ONO99.png`);
+  useTexture.preload(`/cards/PLAY_TWO_Play2.png`);
+  useTexture.preload(`/cards/REVERSE_Reverse.png`);
+  for (let i = 0; i <= 10; i++) useTexture.preload(`/cards/NUMBER_${i}.png`);
+}
+
+preloadCardsImages();
+
+function cardName(card: { id: string } | undefined) {
+  if (!card || !card.id) return 'censored';
+  return card.id.slice(0, card.id.lastIndexOf('_'));
+}
+
 export function Game() {
+  const cardsRef = useRef<Group[]>([]);
+  const [cards, setCards] = useState<CardState[]>([
+    { slot: 1, phase: 'idle' },
+    { slot: 2, phase: 'idle' },
+    { slot: 3, phase: 'idle' },
+    { slot: 4, phase: 'idle' },
+  ]);
+  const stepsRotation = [-2, -1, 1, 2];
+  const stepsPosition = [1, 2, -2, -1];
+
   const { lightColor, lightIntensity } = useControls({
     lightColor: 'white',
     lightIntensity: {
@@ -19,6 +52,7 @@ export function Game() {
       max: 5.0,
     },
   });
+
   {
     /**Début de l'enfer */
   }
@@ -31,11 +65,22 @@ export function Game() {
   const lobbyCode = getCode();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (gameState?.status === 'FINISHED') {
+      const id = setTimeout(() => navigate(`/game/${lobbyCode}`), 10000);
+      if (id) return () => clearTimeout(id);
+    }
+  }, [gameState?.status, navigate, lobbyCode]);
+
+  // useFrame((_, delta) => {
+  //   const card =
+  // })
+
   if (!code) {
     return null;
   }
 
-  let myCards = null;
+  let myCards = undefined;
   if (gameState) {
     const players = gameState.players.find(
       (element) => element.userId === userId(),
@@ -44,11 +89,7 @@ export function Game() {
       myCards = players.hand;
     }
   }
-  if (gameState?.status == 'FINISHED') {
-    setTimeout(() => {
-      navigate(`/game/${lobbyCode}`);
-    }, 10000);
-  }
+  const hand = Array.isArray(myCards) ? myCards : [];
 
   {
     /**Retour en zone "safe" */
@@ -90,7 +131,7 @@ export function Game() {
             <></>
           )}
 
-          {Array.isArray(myCards) ? (
+          {hand.length > 0 ? (
             <>
               <li key="play99">
                 <button
@@ -138,63 +179,45 @@ export function Game() {
           />
           <Suspense fallback={null}>
             <Card
+              key="discardPile"
               frontImage={`/cards/${
                 gameState &&
-                gameState.discardPile &&
-                gameState.discardPile.length > 0
-                  ? gameState.discardPile[
-                      gameState.discardPile.length - 1
-                    ].id.slice(
-                      0,
-                      gameState.discardPile[
-                        gameState.discardPile.length - 1
-                      ].id.lastIndexOf('_'),
-                    )
-                  : 'censored'
+                cardName(
+                  gameState.discardPile[gameState.discardPile.length - 1],
+                )
               }.png`}
               position={[0, 0, 0]}
               rotation={[-Math.PI / 2, 0, 0]}
             />
             <group position={[0, 4, 15]} rotation={[-Math.PI / 8, 0, 0]}>
-              <Card
-                frontImage={`/cards/${Array.isArray(myCards) ? myCards[0].id.slice(0, myCards[0].id.lastIndexOf('_')) : 'censored'}.png`}
-                position={[2.1, 0, 0]}
-                rotation={[0, Math.PI / 128, Math.PI / 6]}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  playSlot(1);
-                }}
-              />
-              <Card
-                frontImage={`/cards/${Array.isArray(myCards) ? myCards[1].id.slice(0, myCards[1].id.lastIndexOf('_')) : 'censored'}.png`}
-                position={[-0.7, 0.5, 0]}
-                rotation={[0, Math.PI / 128, Math.PI / 12]}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  playSlot(2);
-                }}
-              />
-              <Card
-                frontImage={`/cards/${Array.isArray(myCards) ? myCards[2].id.slice(0, myCards[2].id.lastIndexOf('_')) : 'censored'}.png`}
-                position={[0.7, 0.5, 0]}
-                rotation={[0, Math.PI / 128, -Math.PI / 12]}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  playSlot(3);
-                }}
-              />
-              <Card
-                frontImage={`/cards/${Array.isArray(myCards) ? myCards[3].id.slice(0, myCards[3].id.lastIndexOf('_')) : 'censored'}.png`}
-                position={[2.1, 0, 0]}
-                rotation={[0, Math.PI / 128, -Math.PI / 6]}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  playSlot(4);
-                }}
-              />
+              {Array.from({ length: 4 }, (_, i) => {
+                return (
+                  <Card
+                    key={`card${i}`}
+                    ref={(el) => {
+                      if (el) cardsRef.current[i] = el;
+                    }}
+                    frontImage={`/cards/${cardName(hand?.[i])}.png`}
+                    position={[
+                      1.1 * stepsPosition[i],
+                      0.5 * (Math.abs(stepsRotation[i]) - 1),
+                      0,
+                    ]}
+                    rotation={[
+                      0,
+                      Math.PI / 128,
+                      Math.PI / (stepsRotation[i] * 6),
+                    ]}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      playSlot(cards[i].slot);
+                    }}
+                  />
+                );
+              })}
             </group>
           </Suspense>
-          <OrbitControls />
+          {/* <OrbitControls /> */}
         </Canvas>
       </div>
     </>

@@ -62,26 +62,26 @@ const WavesPlane = () => {
       onde1: folder({
         ondeX1: { value: 1.0, min: -100.0, max: 100.0 },
         ondeY1: { value: 1.0, min: -100.0, max: 100.0 },
-        ondeSpeed1: { value: 1.0, min: 0.0, max: 5.0 },
-        ondeFreq1: { value: 1.0, min: 0.0, max: 5.0 },
+        ondeSpeed1: { value: 1.0, min: -5.0, max: 5.0, step: 0.01 },
+        ondeFreq1: { value: 1.0, min: -5.0, max: 5.0, step: 0.01 },
       }),
       onde2: folder({
         ondeX2: { value: 0.0, min: -100.0, max: 100.0 },
         ondeY2: { value: 1.0, min: -100.0, max: 100.0 },
-        ondeSpeed2: { value: 1.0, min: 0.0, max: 5.0 },
-        ondeFreq2: { value: 1.0, min: 0.0, max: 5.0 },
+        ondeSpeed2: { value: 1.0, min: -5.0, max: 5.0, step: 0.01 },
+        ondeFreq2: { value: 1.0, min: -5.0, max: 5.0, step: 0.01 },
       }),
       onde3: folder({
         ondeX3: { value: 1.0, min: -100.0, max: 100.0 },
         ondeY3: { value: 0.0, min: -100.0, max: 100.0 },
-        ondeSpeed3: { value: 1.0, min: 0.0, max: 5.0 },
-        ondeFreq3: { value: 1.0, min: 0.0, max: 5.0 },
+        ondeSpeed3: { value: 1.0, min: -5.0, max: 5.0, step: 0.01 },
+        ondeFreq3: { value: 1.0, min: -5.0, max: 5.0, step: 0.01 },
       }),
       onde4: folder({
         ondeX4: { value: 0.0, min: -100.0, max: 100.0 },
         ondeY4: { value: 0.0, min: -100.0, max: 100.0 },
-        ondeSpeed4: { value: 1.0, min: 0.0, max: 5.0 },
-        ondeFreq4: { value: 1.0, min: 0.0, max: 5.0 },
+        ondeSpeed4: { value: 1.0, min: -5.0, max: 5.0, step: 0.01 },
+        ondeFreq4: { value: 1.0, min: -5.0, max: 5.0, step: 0.01 },
       }),
       color0: folder({
         c0: '#040231',
@@ -163,10 +163,6 @@ const WavesPlane = () => {
     }
     u.uCursor.value.set(smoothMouse.x.get(), smoothMouse.y.get());
   });
-
-  //   useFrame((state) => {
-  //   console.log(state.pointer.x.toFixed(2), state.pointer.y.toFixed(2))
-  // })
 
   return (
     <mesh
