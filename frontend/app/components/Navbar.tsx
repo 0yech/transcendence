@@ -5,6 +5,7 @@ import { UseWebSocket } from '~/context/UseWebSocket';
 import { useState, useEffect } from 'react';
 import type { SelfUserInterface } from '~/context/WebSocketContext';
 import { LogoutButton } from '~/pages/auth/logout';
+import apiFetch from '~/utils/api-fetch';
 
 const baseStyle =
   'group flex justify-between items-center h-18 z-50 sticky w-full pr-2' as const;
@@ -25,7 +26,7 @@ export function NavBar({ className, variant = 'primary', ...rest }: NavProps) {
   const [menuVisibility, setMenuVisibility] = useState<boolean>(false);
 
   useEffect(() => {
-    fetch('/api/auth/me')
+    apiFetch('/api/auth/me')
       .then((data) => data.json())
       .then((json) => setUser(json))
       .catch((e) => console.log(e));
