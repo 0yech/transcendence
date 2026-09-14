@@ -34,6 +34,7 @@ export class PresenceService {
       this.socketIdsPerUser.get(userId)?.delete(socketId) &&
       this.socketIdsPerUser.get(userId)?.size === 0
     ) {
+      this.socketIdsPerUser.delete(userId);
       return true;
     } else {
       return false;
