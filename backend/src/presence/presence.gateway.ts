@@ -8,6 +8,7 @@ import { DefaultEventsMap, Server, Socket } from 'socket.io';
 import { PresenceService } from './presence.service';
 import { JwtPayload } from 'src/auth/jwt-payload.interface';
 import { JwtService } from '@nestjs/jwt';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 type PresenceSocket = Socket<
   DefaultEventsMap,
@@ -16,6 +17,9 @@ type PresenceSocket = Socket<
   { user?: JwtPayload }
 >;
 
+/**
+ * socket.io gateway used to communicate online status changes between users.
+ */
 @WebSocketGateway({
   namespace: '/presence',
 })
@@ -28,8 +32,14 @@ export class PresenceGateway
   constructor(
     private readonly presenceService: PresenceService,
     private readonly jwtService: JwtService,
+    private readonly prismaService: PrismaService,
   ) {}
 
+  /**
+   * Verifies the authentication of the user, and then joins a room for the user.
+   * This room will be available to other users to notify the current user of
+   * online status changes.
+   */
   async handleConnection(client: PresenceSocket) {
     const token = this.getCookie(
       client.handshake.headers.cookie,
@@ -37,7 +47,7 @@ export class PresenceGateway
     );
 
     if (!token) {
-      client.emit('game:error', {
+      client.emit('presence:error', {
         message: 'Unauthorized',
       });
 
@@ -50,7 +60,7 @@ export class PresenceGateway
 
       client.data.user = payload;
     } catch {
-      client.emit('game:error', {
+      client.emit('presence:error', {
         message: 'Unauthorized',
       });
 
@@ -58,18 +68,49 @@ export class PresenceGateway
       return;
     }
 
-    this.presenceService.addSocket(client.data.user.sub, client.id);
-    client.join(client.data.user.sub);
-    console.log(client.rooms);
+    const userId = client.data.user.sub;
+
+    const friendRelations = await this.prismaService.friendRelation.findMany({
+      where: { userId: userId },
+    });
+
+    // Recheck socket status after await
+    if (!client.connected) {
+      return;
+    }
+
+    if (this.presenceService.addSocket(userId, client.id)) {
+      friendRelations.forEach((friendRelation) => {
+        client
+          .to(friendRelation.friendId)
+          .emit('presence:online', { userId: userId });
+      });
+    }
+
+    const onlineFriends = friendRelations
+      .filter((relation) => this.presenceService.isOnline(relation.friendId))
+      .map((row) => row.friendId);
+    client.emit('presence:sync', { onlineFriends: onlineFriends });
+
+    client.join(userId);
   }
 
   async handleDisconnect(client: PresenceSocket) {
     // Socket gets disconnected if handleConnection didn't connect it to begin with
     // which would mean client.data.user is undefined
     if (client.data.user) {
-      this.presenceService.removeSocket(client.data.user.sub, client.id);
-      client.leave(client.data.user.sub);
-      console.log(client.rooms);
+      if (this.presenceService.removeSocket(client.data.user.sub, client.id)) {
+        const friendRelations =
+          await this.prismaService.friendRelation.findMany({
+            where: { userId: client.data.user.sub },
+          });
+
+        friendRelations.forEach((friendRelation) => {
+          client
+            .to(friendRelation.friendId)
+            .emit('presence:offline', { userId: client.data.user?.sub });
+        });
+      }
     }
   }
 

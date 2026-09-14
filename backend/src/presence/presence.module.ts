@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { PresenceService } from './presence.service';
 import { PresenceGateway } from './presence.gateway';
+import { PrismaModule } from 'src/prisma/prisma.module';
 
 @Module({
-  imports: [],
+  imports: [PrismaModule],
   controllers: [],
   providers: [PresenceService, PresenceGateway],
   exports: [],
