@@ -1,10 +1,11 @@
 import {
   OnGatewayConnection,
+  OnGatewayDisconnect,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
 import { DefaultEventsMap, Server, Socket } from 'socket.io';
-// import { PresenceService } from './presence.service';
+import { PresenceService } from './presence.service';
 import { JwtPayload } from 'src/auth/jwt-payload.interface';
 import { JwtService } from '@nestjs/jwt';
 
@@ -18,12 +19,14 @@ type PresenceSocket = Socket<
 @WebSocketGateway({
   namespace: '/presence',
 })
-export class PresenceGateway implements OnGatewayConnection {
+export class PresenceGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   private server!: Server;
 
   constructor(
-    // private readonly presenceService: PresenceService,
+    private readonly presenceService: PresenceService,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -52,6 +55,21 @@ export class PresenceGateway implements OnGatewayConnection {
       });
 
       client.disconnect();
+      return;
+    }
+
+    this.presenceService.addSocket(client.data.user.sub, client.id);
+    client.join(client.data.user.sub);
+    console.log(client.rooms);
+  }
+
+  async handleDisconnect(client: PresenceSocket) {
+    // Socket gets disconnected if handleConnection didn't connect it to begin with
+    // which would mean client.data.user is undefined
+    if (client.data.user) {
+      this.presenceService.removeSocket(client.data.user.sub, client.id);
+      client.leave(client.data.user.sub);
+      console.log(client.rooms);
     }
   }
 
