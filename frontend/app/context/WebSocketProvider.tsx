@@ -108,6 +108,14 @@ export function WebSocketRef({ children }: { children: ReactNode }) {
 
           setGameState(e);
 
+          // A lobby keeps its socket connection between games. Re-arm the
+          // navigation guard once a game finishes so the next game's initial
+          // state can send everyone back to the play screen.
+          if (e.status === 'FINISHED') {
+            gameNavigationDoneRef.current = false;
+            return;
+          }
+
           if (!gameNavigationDoneRef.current && e.turnNumber === 1) {
             gameNavigationDoneRef.current = true;
             navigate(`/game/${code}/play`);

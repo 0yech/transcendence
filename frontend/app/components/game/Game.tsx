@@ -43,6 +43,19 @@ export function Game() {
         setTurnUser(json.username),
       );
   }, [gameState, gameState?.currentPlayerId]);
+
+  useEffect(() => {
+    if (gameState?.status !== 'FINISHED' || !gameState.winnerId) {
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      navigate(`/game/${lobbyCode}`);
+    }, 10000);
+
+    return () => clearTimeout(timeout);
+  }, [gameState?.status, gameState?.winnerId, lobbyCode, navigate]);
+
   if (!code) {
     return null;
   }
@@ -57,12 +70,6 @@ export function Game() {
       myCards = players.hand;
     }
   }
-  if (gameState?.winnerId && gameState?.status == 'FINISHED') {
-    setTimeout(() => {
-      navigate(`/game/${lobbyCode}`);
-    }, 10000);
-  }
-
   {
     /**Retour en zone "safe" */
   }
