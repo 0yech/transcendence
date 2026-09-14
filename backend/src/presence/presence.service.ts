@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class PresenceService {
-  constructor(private socketIdsPerUser: Map<string, Set<string>>) {}
+  private socketIdsPerUser = new Map<string, Set<string>>();
 
   /**
    * Add a listening socket for a given user, guaranteeing that they are online.
