@@ -3,16 +3,17 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
+import { DefaultEventsMap, Server, Socket } from 'socket.io';
 // import { PresenceService } from './presence.service';
 import { JwtPayload } from 'src/auth/jwt-payload.interface';
 import { JwtService } from '@nestjs/jwt';
 
-type PresenceSocket = Socket & {
-  data: {
-    user?: JwtPayload;
-  };
-};
+type PresenceSocket = Socket<
+  DefaultEventsMap,
+  DefaultEventsMap,
+  DefaultEventsMap,
+  { user?: JwtPayload }
+>;
 
 @WebSocketGateway({
   namespace: '/presence',
@@ -52,8 +53,6 @@ export class PresenceGateway implements OnGatewayConnection {
 
       client.disconnect();
     }
-
-    console.log(client.data.user.sub);
   }
 
   /**
