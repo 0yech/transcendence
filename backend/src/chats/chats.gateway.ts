@@ -176,6 +176,19 @@ export class ChatsGateway {
   }
 
   /**
+   * @brief Disconnects an user when kicked from websockets
+   */
+  async disconnectUser(userId: string) {
+    const sockets = await this.server.fetchSockets();
+
+    sockets
+      .filter((socket) => socket.data.userId === userId)
+      .forEach((socket) => {
+        socket.emit('lobby:kicked');
+        socket.disconnect();
+      });
+  }
+  /**
    * @brief Broadcasts a newly created message to a lobby room.
    *
    * Every socket that previously joined the lobby room receives

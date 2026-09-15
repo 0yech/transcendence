@@ -56,24 +56,51 @@ interface LobbyInterface {
  *
  * @returns the jsx for the list of users in a <li>
  */
-export function DisplayUsers(usersObject: {
+export function DisplayUsers({
+  users,
+  leaderId,
+  currentUserId,
+  kickingUserId,
+  onKick,
+}: {
   users: UserInterfaceLobby[] | null;
+  leaderId?: string;
+  currentUserId?: string | null;
+  kickingUserId?: string | null;
+  onKick?: (userId: string) => void;
 }) {
-  const { users } = usersObject;
+  const isLeader = currentUserId === leaderId;
+
   return (
-    <ul>
-      {users ? (
-        users.map((user) => (
-          <li key={user.id}>
-            <div>
-              <p>{user.username}</p>
-              <Avatar src={user.avatarUrl} alt={user.username} />
-            </div>
-          </li>
-        ))
-      ) : (
-        <></>
-      )}
+    <ul className="flex flex-col gap-3">
+      {users?.map((user) => (
+        <li key={user.id}>
+          <div className="flex items-center gap-3">
+            <Avatar
+              src={user.avatarUrl}
+              alt={user.username}
+              className="h-10 w-10"
+            />
+
+            <p className="font-semibold">{user.username}</p>
+
+            {user.id === leaderId && (
+              <span className="text-sm opacity-60">Leader</span>
+            )}
+
+            {isLeader && user.id !== currentUserId && onKick && (
+              <Button
+                variant="danger"
+                className="ml-auto px-4 py-1 text-sm"
+                disabled={kickingUserId === user.id}
+                onClick={() => onKick(user.id)}
+              >
+                {kickingUserId === user.id ? 'Kicking...' : 'Kick'}
+              </Button>
+            )}
+          </div>
+        </li>
+      ))}
     </ul>
   );
 }

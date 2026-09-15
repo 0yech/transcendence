@@ -11,8 +11,19 @@ import { NavBar } from '~/components/Navbar';
 
 export async function clientLoader({ params }: { params: Params<string> }) {
   const { code } = params;
-  const data = await apiFetch(`/api/lobbies/${code}`);
-  return data.json();
+
+  const [lobbyResponse, userResponse] = await Promise.all([
+    apiFetch(`/api/lobbies/${code}`),
+    apiFetch('/api/auth/me'),
+  ]);
+
+  const lobby = await lobbyResponse.json();
+  const user = await userResponse.json();
+
+  return {
+    ...lobby,
+    currentUserId: user.id,
+  };
 }
 
 /**
@@ -30,8 +41,9 @@ export async function clientLoader({ params }: { params: Params<string> }) {
  * @returns the JSX for the lobby information
  */
 export default function PreGame({ loaderData }: Route.ComponentProps) {
-  const { startGame, userId } = UseWebSocket();
+  const { startGame } = UseWebSocket();
   const [useUsers, setUsers] = useState<UserInterfaceLobby[] | null>(null);
+  const [kickingUserId, setKickingUserId] = useState<string | null>(null);
 
   const {
     id,
@@ -41,6 +53,7 @@ export default function PreGame({ loaderData }: Route.ComponentProps) {
     leaderId,
     createdAt,
     updatedAt,
+    currentUserId,
   } = loaderData;
 
   const navigate = useNavigate();
@@ -63,10 +76,37 @@ export default function PreGame({ loaderData }: Route.ComponentProps) {
   }, [code]);
 
   const users: UserInterfaceLobby[] = useUsers ?? loaderData.users ?? [];
-  const currentUserId = userId();
 
   const isMember =
     currentUserId !== null && users.some((user) => user.id === currentUserId);
+
+  async function handleKick(memberId: string) {
+    try {
+      setKickingUserId(memberId);
+
+      const response = await apiFetch(`/api/lobbies/members/${memberId}/kick`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => null);
+
+        throw new Error(
+          error?.message ?? `Failed to kick member (${response.status})`,
+        );
+      }
+
+      const updatedLobby = await response.json();
+
+      if (updatedLobby?.users) {
+        setUsers(updatedLobby.users);
+      }
+    } catch (error) {
+      console.error('Failed to kick member:', error);
+    } finally {
+      setKickingUserId(null);
+    }
+  }
 
   return (
     <>
@@ -110,7 +150,13 @@ export default function PreGame({ loaderData }: Route.ComponentProps) {
           <h2>updatedAt: {updatedAt}</h2>
 
           <h2>Users</h2>
-          <DisplayUsers users={users} />
+          <DisplayUsers
+            users={users}
+            leaderId={leaderId}
+            currentUserId={currentUserId}
+            kickingUserId={kickingUserId}
+            onKick={handleKick}
+          />
         </div>
 
         <div>
