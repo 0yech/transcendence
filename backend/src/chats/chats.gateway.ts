@@ -184,7 +184,6 @@ export class ChatsGateway {
     sockets
       .filter((socket) => socket.data.userId === userId)
       .forEach((socket) => {
-        socket.emit('lobby:kicked');
         socket.disconnect();
       });
   }
