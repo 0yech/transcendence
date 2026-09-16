@@ -33,7 +33,7 @@ export default function Home() {
     async function fetchUser() {
       try {
         const data = await apiFetch('/api/auth/me');
-        const json = await data.json()
+        const json = await data.json();
         if (json && json.username) {
           setUserCurr(json);
         }
