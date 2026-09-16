@@ -2,7 +2,7 @@ export default function PrivacyPolicy() {
   return (
     <main className="mx-auto max-w-2xl space-y-4 p-6">
       <h1 className="text-3xl font-semibold">Privacy Policy</h1>
-      <p className="text-sm">Last updated: 02.09.2026</p>
+      <p className="text-sm">Last updated: 16.09.2026</p>
 
       <p>
         This policy explains what personal data NONO99 collects, why we collect
@@ -60,12 +60,14 @@ export default function PrivacyPolicy() {
         <div>
           <dt className="font-medium">Profile picture</dt>
           <dd>
-            The address of a picture, not the picture itself. We copy it from
-            your sign-in provider the first time you sign in, and you can change
-            it to any address you like. Whoever hosts that address sees the IP
-            address of everyone who views the picture, which means a player can
-            point it at a site of their own and learn who has been looking at
-            them.
+            You can upload a picture, or give us the address of one hosted
+            elsewhere. We copy an address from your sign-in provider the first
+            time you sign in. A picture you upload is stored by us, and only
+            signed-in players can see it. If you use an address instead, your
+            browser fetches the picture from whoever hosts it, and that host
+            sees the IP address of everyone who views it, which means a player
+            can point it at a site of their own and learn who has been looking
+            at them.
           </dd>
         </div>
       </dl>
@@ -80,11 +82,11 @@ export default function PrivacyPolicy() {
         password with them, and we cannot post anything on your behalf.
       </p>
       <p>
-        Of what they send back, we keep three things: your email address, a
+        Of what they send back, we keep four things: your email address, a
         username taken from the part of your email address before the{' '}
-        <code>@</code>, and the address of your profile picture. We keep nothing
-        else that identifies you to them: your account here is matched to theirs
-        by email address alone.
+        <code>@</code>, the address of your profile picture, and the identifier
+        that provider uses for you, so that we recognise you when you sign in
+        that way again.
       </p>
 
       <h3 className="pt-2 font-semibold">When you play</h3>
@@ -120,6 +122,19 @@ export default function PrivacyPolicy() {
             happened.
           </dd>
         </div>
+        <div>
+          <dt className="font-medium">Points</dt>
+          <dd>
+            The points you win in a game, your total, and what your guild has.
+          </dd>
+        </div>
+        <div>
+          <dt className="font-medium">Your record</dt>
+          <dd>
+            How many games you have finished, how many of them you scored in,
+            and when you last played.
+          </dd>
+        </div>
       </dl>
 
       <h3 className="pt-2 font-semibold">When you join a lobby or a guild</h3>
@@ -129,12 +144,11 @@ export default function PrivacyPolicy() {
           <dd>Which lobby you are currently in, if any.</dd>
         </div>
         <div>
-          <dt className="font-medium">Private lobby passwords</dt>
+          <dt className="font-medium">Lobby codes</dt>
           <dd>
-            If you create a private lobby, the password you choose is stored
-            exactly as you typed it, so that we can check it when somebody tries
-            to join. Unlike your account password, we can read it. Do not reuse
-            a password that matters to you.
+            Every lobby has a short code. A private lobby is kept off the public
+            list, but anyone who has its code can join it, so only pass the code
+            to people you want in the game.
           </dd>
         </div>
         <div>
@@ -153,6 +167,30 @@ export default function PrivacyPolicy() {
           </dd>
         </div>
       </dl>
+
+      <h3 className="pt-2 font-semibold">When you add friends</h3>
+      <dl className="space-y-4">
+        <div>
+          <dt className="font-medium">Friends</dt>
+          <dd>
+            Who you are friends with. Friendship is mutual: you each appear on
+            the other's list.
+          </dd>
+        </div>
+        <div>
+          <dt className="font-medium">Friend invitations</dt>
+          <dd>
+            Invitations you send and invitations you receive, including who the
+            other person was and whether it was accepted, declined or cancelled.
+            These are kept after they have been dealt with.
+          </dd>
+        </div>
+      </dl>
+      <p>
+        Your friends can see which lobby you are currently in, and can join it,
+        a private one included. Nobody who is not your friend is told where you
+        are.
+      </p>
 
       <h3 className="pt-2 font-semibold">When you chat</h3>
       <p>
@@ -199,7 +237,7 @@ export default function PrivacyPolicy() {
         </li>
         <li>
           <strong>Refresh token cookie</strong>: a longer-lived one, which keeps
-          you signed in between visits.
+          you signed in while you are using the site.
         </li>
       </ul>
       <p>
@@ -207,9 +245,10 @@ export default function PrivacyPolicy() {
         running in the page.
       </p>
       <p>
-        Logging out ends your session immediately. Sessions do not last forever,
-        and you may occasionally be signed out earlier than you expected; if
-        that happens, simply sign in again.
+        Logging out ends your session immediately, and so does closing your
+        browser. Sessions do not last forever, and you may occasionally be
+        signed out earlier than you expected; if that happens, simply sign in
+        again.
       </p>
       <p>
         We use no analytics, advertising, or third-party tracking cookies.
@@ -238,9 +277,10 @@ export default function PrivacyPolicy() {
       <ul className="list-disc space-y-2 pl-5">
         <li>
           <strong>Other users</strong>: your username and picture, the guild you
-          belong to and your role in it, any message you send in a lobby you
-          share with them, and the replay of any game you played together. Your
-          email address is never shown to other players.
+          belong to and your role in it, your points and your record, your last
+          twenty games and how each one ended, any message you send in a lobby
+          you share with them, and the replay of any game you played together.
+          Your email address is never shown to other players.
         </li>
         <li>
           <strong>Anyone at all</strong>, with no account needed: the list of
@@ -287,25 +327,33 @@ export default function PrivacyPolicy() {
         might wipe it without notice, as this is a student project.
       </p>
       <p>
+        A lobby closes by itself once it has been quiet for fifteen minutes.
+        Nothing in it is deleted when that happens, and its chat stays.
+      </p>
+      <p>
         Server logs are the exception: they are short-lived, and are lost
         whenever the service restarts.
       </p>
 
       <h2 className="pt-4 text-xl font-semibold">Deleting your account</h2>
       <p>
-        There is a <strong>Delete account</strong> button on your profile. It
-        deactivates your account. It does not erase it.
+        Deleting your account deactivates it. It does not erase it. Ask us if
+        you want your account deleted, and we will do it for you.
       </p>
       <p>
-        When you use it, you are signed out and can no longer sign in, your
-        profile page disappears, and your username and email address are
-        replaced with a placeholder.
+        If you lead a guild, you have to pass it to somebody else before your
+        account can be deleted.
+      </p>
+      <p>
+        When that happens, you are signed out and can no longer sign in, your
+        profile page disappears, your username and email address are replaced
+        with a placeholder, and your profile picture is removed.
       </p>
       <p>
         Everything else stays. We keep your chat messages, the record and replay
         of every game you played, the guild invitations you sent and received,
-        your points, and your profile picture. Other players still see all of
-        it, under the placeholder name, with your picture still beside it.
+        your friends and the friend invitations you sent and received, and your
+        points. Other players still see all of it, under the placeholder name.
       </p>
       <p>
         What we keep stays attached to your old account. Deleting is not the
@@ -349,8 +397,7 @@ export default function PrivacyPolicy() {
         </li>
       </ul>
       <p>
-        Only deactivating your account is a button. Everything else on that list
-        we do by hand: email us at{' '}
+        We do all of this by hand: email us at{' '}
         <a className="underline" href="mailto:aisling.fontaine@pm.me">
           aisling.fontaine@pm.me
         </a>{' '}
@@ -369,10 +416,6 @@ export default function PrivacyPolicy() {
         Your account password is stored scrambled, in a form that cannot be
         turned back into the password, so nobody (including us) can read it.
         Traffic between your browser and the site uses HTTPS.
-      </p>
-      <p>
-        The password on a private lobby is different: it is stored exactly as
-        you typed it, and we can read it.
       </p>
       <p>
         This is a student project. Please do not store anything sensitive here,
