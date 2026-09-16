@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { Suspense, useMemo } from 'react';
 import { useTexture } from '@react-three/drei';
 import type { ThreeElements } from '@react-three/fiber';
 import { CardGeometry } from './CardGeometry';
@@ -14,7 +14,22 @@ type CardProps = ThreeElements['group'] & {
   backImage?: string;
 };
 
-export function Card({
+/**
+ * A card, with a Suspense boundary of its own.
+ *
+ * Without it every card lives under the single boundary wrapping the whole
+ * scene, and one texture left to load blanks the entire table — hands, deck and
+ * discard pile — until it arrives. Here a miss only hides the card that missed.
+ */
+export function Card(props: CardProps) {
+  return (
+    <Suspense fallback={null}>
+      <CardMesh {...props} />
+    </Suspense>
+  );
+}
+
+function CardMesh({
   width = 3.5,
   height = 5.5,
   thickness = 0.05,
@@ -24,7 +39,15 @@ export function Card({
   backImage = '/cards/back.png',
   ...groupProps
 }: CardProps) {
-  const [frontMap, backMap] = useTexture([frontImage, backImage]);
+  /*
+   * One URL per call, never an array: useLoader keys its cache on the whole
+   * argument list, so asking for [front, back] builds a three-element key that
+   * can never match the two-element keys preloadCardImages() filled in. Every
+   * pairing would then load again from scratch, and suspend while it does.
+   */
+  const frontMap = useTexture(frontImage);
+  const backMap = useTexture(backImage);
+
   const shape = useMemo(
     () => createCardShape(width, height, radius),
     [width, height, radius],
