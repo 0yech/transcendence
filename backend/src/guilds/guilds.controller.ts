@@ -34,6 +34,12 @@ export class GuildsController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Post('rename')
+  renameGuild(@CurrentUser() user: JwtPayload, @Body() body: { name: string }) {
+    return this.guildsService.renameGuild(user.sub, body.name);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Post('leave')
   leaveGuild(@CurrentUser() user: JwtPayload) {
     return this.guildsService.leaveGuild(user.sub);

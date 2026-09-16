@@ -10,6 +10,7 @@ export default [
   route('profile', 'routes/profile.tsx'),
   route('guilds', 'routes/guilds.tsx'),
   route('guilds/me', 'routes/my-guild.tsx'),
+  route('friends', 'routes/friends.tsx'),
   route('tos', 'routes/tos.tsx'),
   route('privacy', 'routes/privacy.tsx'),
   route('game/:code', 'routes/lobby.tsx'),

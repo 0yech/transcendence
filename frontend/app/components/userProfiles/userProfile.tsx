@@ -16,6 +16,7 @@ import {
   sectionTitleClass,
   statLabelClass,
 } from '~/styles/theme';
+import { PlayerStats } from './playerStats';
 
 interface UserPopUpProps {
   user: UserInterfaceLobby;
@@ -96,7 +97,7 @@ export function UserProfile({ user }: { user: SelfUserInterface | null }) {
               </div>
             </div>
           </section>
-
+          <PlayerStats userId={user?.id} />
           <section className={primaryCardClass}>
             <div className="flex items-baseline justify-between gap-4">
               <div>

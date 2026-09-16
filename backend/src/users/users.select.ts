@@ -98,3 +98,27 @@ export const lobbyUserSelect = {
     },
   },
 };
+
+/**
+ * A friend's public profile, plus the lobby they are currently in.
+ *
+ * The lobby relation is exposed here and not in `publicViewUserSelect` on
+ * purpose: joining a lobby only needs its code, and `joinLobby` does not check
+ * the `private` flag. Handing the code out on the public profile routes would
+ * let any user walk into any private lobby, so only accepted friends get it.
+ */
+export const friendUserSelect = {
+  ...publicViewUserSelect,
+  lobby: {
+    select: {
+      code: true,
+      active: true,
+      private: true,
+      _count: {
+        select: {
+          users: true,
+        },
+      },
+    },
+  },
+} as const;

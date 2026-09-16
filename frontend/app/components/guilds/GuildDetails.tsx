@@ -99,6 +99,7 @@ export function GuildDetails({
 
   const isLeavingGuild = isSubmitting && submittingIntent === 'leave-guild';
   const isDeletingGuild = isSubmitting && submittingIntent === 'delete-guild';
+  const isRenamingGuild = isSubmitting && submittingIntent === 'rename-guild';
 
   const canManageGuild =
     currentUserRole === 'LEADER' || currentUserRole === 'OFFICER';
@@ -367,29 +368,59 @@ export function GuildDetails({
           <h2 className="text-3xl font-black sm:text-4xl">Guild actions</h2>
 
           {currentUserRole === 'LEADER' ? (
-            <Form
-              method="post"
-              onSubmit={(event) => {
-                const confirmed = window.confirm(
-                  `Are you sure you want to delete "${guild.name}"? This action cannot be undone.`,
-                );
+            <>
+              <Form method="post" className="mt-5 flex flex-col gap-3">
+                <input type="hidden" name="_intent" value="rename-guild" />
 
-                if (!confirmed) {
-                  event.preventDefault();
-                }
-              }}
-            >
-              <input type="hidden" name="_intent" value="delete-guild" />
+                <label
+                  htmlFor="guild-name"
+                  className="font-bold text-light-pink"
+                >
+                  Guild name
+                </label>
 
-              <Button
-                variant="danger"
-                type="submit"
-                disabled={isSubmitting}
-                className="mt-5 px-6 py-3"
+                <input
+                  id="guild-name"
+                  name="name"
+                  type="text"
+                  defaultValue={guild.name}
+                  required
+                  className={textInputClass}
+                />
+
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-fit px-6 py-3"
+                >
+                  {isRenamingGuild ? 'Renaming...' : 'Rename guild'}
+                </Button>
+              </Form>
+
+              <Form
+                method="post"
+                onSubmit={(event) => {
+                  const confirmed = window.confirm(
+                    `Are you sure you want to delete "${guild.name}"? This action cannot be undone.`,
+                  );
+
+                  if (!confirmed) {
+                    event.preventDefault();
+                  }
+                }}
               >
-                {isDeletingGuild ? 'Deleting...' : 'Delete guild'}
-              </Button>
-            </Form>
+                <input type="hidden" name="_intent" value="delete-guild" />
+
+                <Button
+                  variant="danger"
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="mt-5 px-6 py-3"
+                >
+                  {isDeletingGuild ? 'Deleting...' : 'Delete guild'}
+                </Button>
+              </Form>
+            </>
           ) : (
             (currentUserRole === 'OFFICER' || currentUserRole === 'MEMBER') && (
               <Form

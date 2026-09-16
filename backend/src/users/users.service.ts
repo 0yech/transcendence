@@ -12,6 +12,7 @@ import {
   publicUserSelect,
   userIdentitySelect,
   publicViewUserSelect,
+  friendUserSelect,
 } from './users.select';
 import { sniffImageMimeType } from './avatar.util';
 import {
@@ -250,7 +251,7 @@ export class UsersService {
         userId: userId,
       },
       select: {
-        friend: { select: publicViewUserSelect },
+        friend: { select: friendUserSelect },
       },
     });
   }
@@ -263,6 +264,21 @@ export class UsersService {
       where: {
         receiverId: userId,
         status: FriendInvitationStatus.PENDING,
+      },
+      select: {
+        id: true,
+        senderId: true,
+        receiverId: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+        sender: {
+          select: {
+            id: true,
+            username: true,
+            avatarUrl: true,
+          },
+        },
       },
     });
   }
@@ -330,19 +346,6 @@ export class UsersService {
       data: {
         senderId: senderId,
         receiverId: receiverId,
-      },
-    });
-  }
-
-  async cancelInvitation(invitationId: string, issuerId: string) {
-    await this.prisma.friendInvitation.update({
-      where: {
-        id: invitationId,
-        senderId: issuerId,
-        status: FriendInvitationStatus.PENDING,
-      },
-      data: {
-        status: FriendInvitationStatus.CANCELLED,
       },
     });
   }
@@ -497,6 +500,88 @@ export class UsersService {
     }
 
     return username;
+  }
+
+  /**
+   * @brief Returns lifetime player statistics for a non-deleted user.
+   *
+   * A scoring game is a finished game where the player earned points.
+   */
+  async getPlayerStats(userId: string) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        id: userId,
+        deleted: false,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found.');
+    }
+
+    const [gamesPlayed, gamesWithPoints, lastGame] =
+      await this.prisma.$transaction([
+        this.prisma.gamePlayer.count({
+          where: {
+            userId,
+            game: {
+              is: {
+                status: 'FINISHED',
+              },
+            },
+          },
+        }),
+        this.prisma.gamePlayer.count({
+          where: {
+            userId,
+            pointWon: {
+              gt: 0,
+            },
+            game: {
+              is: {
+                status: 'FINISHED',
+              },
+            },
+          },
+        }),
+        this.prisma.game.findFirst({
+          where: {
+            status: 'FINISHED',
+            finishedAt: {
+              not: null,
+            },
+            players: {
+              some: {
+                userId,
+              },
+            },
+          },
+          orderBy: {
+            finishedAt: 'desc',
+          },
+          select: {
+            finishedAt: true,
+          },
+        }),
+      ]);
+
+    const winRate =
+      gamesPlayed === 0
+        ? 0
+        : Math.round((gamesWithPoints / gamesPlayed) * 1000) / 10;
+
+    return {
+      gamesPlayed,
+      wins: gamesWithPoints,
+      losses: gamesPlayed - gamesWithPoints,
+      winRate,
+      gamesWithPoints,
+      scoredGameRate: winRate,
+      lastPlayedAt: lastGame?.finishedAt ?? null,
+    };
   }
 
   /**

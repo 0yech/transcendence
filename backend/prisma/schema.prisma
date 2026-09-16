@@ -31,7 +31,6 @@ enum FriendInvitationStatus {
   PENDING
   ACCEPTED
   DECLINED
-  CANCELLED
 }
 
 enum GameStatus {
@@ -57,7 +56,7 @@ enum GameActionType {
 
 model User {
   id             String         @id @default(cuid())
-  username       String         @unique
+  username       String         @unique @db.Citext
   email          String         @unique
   hashedPassword String?
   oauthProvider  OAuthProvider?
@@ -145,7 +144,7 @@ model Avatar {
 
 model Guild {
   id     String @id @default(cuid())
-  name   String @unique
+  name   String @unique @db.Citext
   level  Int    @default(1)
   points Int    @default(0)
 

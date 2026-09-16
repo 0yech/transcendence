@@ -6,7 +6,7 @@ This document describes the HTTP routes currently exposed by the NestJS backend.
 >
 > All backend routes use the global `/api` prefix.
 >
-> This guide reflects the repository state reviewed on 2026-09-08.
+> This guide reflects the repository state reviewed on 2026-09-10.
 
 ## Environments
 
@@ -103,7 +103,6 @@ NestJS global validation is enabled.
 | `POST`   | `/api/users/friends/remove/:userId`             |            Yes | Remove a friend                                                 |
 | `POST`   | `/api/users/friends/invitations/:id/accept`     |            Yes | Accept a received friend invitation                             |
 | `POST`   | `/api/users/friends/invitations/:id/decline`    |            Yes | Decline a received friend invitation                            |
-| `POST`   | `/api/users/friends/invitations/:id/cancel`     |            Yes | Cancel a friend invitation the user sent                        |
 | `GET`    | `/api/lobbies`                                  |             No | List active lobbies                                             |
 | `GET`    | `/api/lobbies/:code`                            |             No | Get a lobby by code                                             |
 | `GET`    | `/api/lobbies/me`                               |            Yes | Get the authenticated user's current lobby                      |
@@ -517,7 +516,13 @@ Returns the authenticated user's friends.
       "id": "cmf0x1a2b0000abcd1234efgh",
       "username": "player2",
       "avatarUrl": null,
-      "lobbyId": null,
+      "lobbyId": "cmf0x1a2b0002abcd3456qrst",
+      "lobby": {
+        "code": "A1B2C3",
+        "active": true,
+        "private": false,
+        "_count": { "users": 2 }
+      },
       "gamePlayers": [],
       "totalPts": 0,
       "guildId": null,
@@ -532,6 +537,8 @@ Returns the authenticated user's friends.
 ```
 
 > Friendship is symmetric and stored as two rows, so each user appears in the other's list. There is no "pending" state here: a user only appears once an invitation has been accepted.
+
+> `lobby` is `null` when the friend is not in one, and is the only place a lobby `code` is handed out for another user. It is exposed to friends and not on the public profile routes on purpose: joining only needs the code, and `POST /api/lobbies/:code/join` does not check the `private` flag. Treat a friend as joinable only when `lobby.active` is `true` — a stale `lobbyId` can outlive the lobby it names.
 
 > The array has no defined order. Do not rely on the order being stable between requests.
 
@@ -569,14 +576,19 @@ Returns the pending friend invitations **received** by the authenticated user.
     "receiverId": "cmf0x1a2b0001abcd2345mnop",
     "status": "PENDING",
     "createdAt": "2026-09-08T09:11:51.370Z",
-    "updatedAt": "2026-09-08T09:11:51.370Z"
+    "updatedAt": "2026-09-08T09:11:51.370Z",
+    "sender": {
+      "id": "cmf0x1a2b0000abcd1234efgh",
+      "username": "player2",
+      "avatarUrl": null
+    }
   }
 ]
 ```
 
-> Only `PENDING` invitations are returned, and only ones addressed to the caller. Invitations the caller has sent are not exposed by any route, and neither is the history of accepted, declined, or cancelled ones.
+> Only `PENDING` invitations are returned, and only ones addressed to the caller. Invitations the caller has sent are not exposed by any route, and neither is the history of accepted or declined ones.
 
-> Invitations carry `senderId` but not the sender's username or avatar. Rendering a readable list currently needs a follow-up request per sender, to `GET /api/users/public/id/:id`.
+> Each invitation embeds the sender's `id`, `username`, and `avatarUrl` under `sender`, so a readable list needs no follow-up request.
 
 **Possible errors**
 
@@ -682,7 +694,7 @@ Accepts an invitation addressed to the authenticated user. This is what creates 
 
 - `401 Unauthorized` — missing, expired, or invalid access token.
 - `403 Forbidden` — the invitation exists and is pending, but was addressed to somebody else (`"You can't accept another user's invitation for them."`).
-- `404 Not Found` — no pending invitation has that id, either because the id is unknown or because it has already been accepted, declined, or cancelled (`"Invitation does not exist at that id."`).
+- `404 Not Found` — no pending invitation has that id, either because the id is unknown or because it has already been accepted or declined (`"Invitation does not exist at that id."`).
 
 ### Example
 
@@ -723,37 +735,6 @@ Declines an invitation addressed to the authenticated user. The invitation becom
 curl -i \
   -b cookies.txt \
   -X POST http://localhost:3000/api/users/friends/invitations/<id>/decline
-```
-
-## `POST /api/users/friends/invitations/:id/cancel`
-
-Withdraws an invitation the authenticated user sent. The invitation becomes `CANCELLED`, and the caller is free to invite the same user again.
-
-**Authentication:** Required
-
-### Path parameters
-
-| Parameter | Type   | Description          |
-| --------- | ------ | -------------------- |
-| `id`      | string | Friend invitation id |
-
-**Body:** None
-
-**Success status:** `200 OK`
-
-**Success body:** Empty
-
-**Possible errors**
-
-- `401 Unauthorized` — missing, expired, or invalid access token.
-- `404 Not Found` — there is no pending invitation with that id sent by the caller. As with `decline`, an unknown id, an already-resolved invitation, and somebody else's invitation are indistinguishable.
-
-### Example
-
-```bash
-curl -i \
-  -b cookies.txt \
-  -X POST http://localhost:3000/api/users/friends/invitations/<id>/cancel
 ```
 
 ---

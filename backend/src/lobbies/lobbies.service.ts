@@ -1,7 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { ChatsGateway } from '../chats/chats.gateway';
 import type { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { publicLobbySelect } from './lobbies.select';
+import { Interval } from '@nestjs/schedule';
+
+const lobbyInactivityMs = 15 * 60 * 1000;
 
 function generateLobbyCode(): string {
   return Math.random().toString(36).slice(2, 8).toUpperCase();
@@ -15,7 +24,101 @@ function generateLobbyCode(): string {
  */
 @Injectable()
 export class LobbiesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly chatsGateway: ChatsGateway,
+  ) {}
+
+  /**
+   * @brief Finds active lobbies that have had no game activity
+   * for at least 15 minutes.
+   *
+   * A lobby is considered inactive when:
+   * - it is at least 15 minutes old;
+   * - it has no game currently in progress;
+   * - no game has started or finished during the last 15 minutes.
+   *
+   * @return The ids of lobbies eligible for expiration.
+   */
+  private async findInactiveLobbies() {
+    const inactivityLimit = new Date(Date.now() - lobbyInactivityMs);
+
+    return this.prisma.lobby.findMany({
+      where: {
+        active: true,
+        createdAt: {
+          lte: inactivityLimit,
+        },
+        games: {
+          none: {
+            OR: [
+              {
+                status: 'IN_PROGRESS',
+              },
+              {
+                startedAt: {
+                  gt: inactivityLimit,
+                },
+              },
+              {
+                finishedAt: {
+                  gt: inactivityLimit,
+                },
+              },
+            ],
+          },
+        },
+      },
+
+      select: {
+        id: true,
+        code: true,
+      },
+    });
+  }
+
+  /**
+   * @brief Marks a lobby as inactive and removes all users from it.
+   *
+   * @param lobbyId The lobby to deactivate.
+   */
+  private async deactivateLobby(lobbyId: string) {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.user.updateMany({
+        where: {
+          lobbyId,
+        },
+        data: {
+          lobbyId: null,
+        },
+      });
+
+      await tx.lobby.update({
+        where: {
+          id: lobbyId,
+        },
+        data: {
+          active: false,
+          leaderId: null,
+        },
+      });
+    });
+  }
+
+  /**
+   * @brief Expires lobbies that have had no game activity
+   * for at least 15 minutes.
+   *
+   * The check runs once per minute.
+   */
+  @Interval(60_000)
+  async cleanupInactiveLobbies() {
+    const inactiveLobbies = await this.findInactiveLobbies();
+
+    for (const lobby of inactiveLobbies) {
+      await this.deactivateLobby(lobby.id);
+    }
+  }
 
   /**
    * @brief Creates a short code that has no active dupe.
@@ -202,7 +305,7 @@ export class LobbiesService {
       throw new NotFoundException(`User with id ${userId} not found`);
     }
 
-    return user.lobby;
+    return user.lobby ?? {};
   }
 
   /**
@@ -266,6 +369,102 @@ export class LobbiesService {
     });
   }
 
+  async kickMember(actorId: string, memberId: string) {
+    if (actorId === memberId) {
+      throw new BadRequestException('You cannot kick yourself');
+    }
+
+    const lobby = await this.prisma.$transaction(async (tx) => {
+      const actor = await tx.user.findUnique({
+        where: {
+          id: actorId,
+        },
+        select: {
+          lobbyId: true,
+        },
+      });
+
+      if (!actor) {
+        throw new NotFoundException(`User with id ${actorId} not found`);
+      }
+
+      if (!actor.lobbyId) {
+        throw new BadRequestException('You are not in a lobby');
+      }
+
+      const lobby = await tx.lobby.findUnique({
+        where: {
+          id: actor.lobbyId,
+        },
+        select: {
+          id: true,
+          active: true,
+          leaderId: true,
+        },
+      });
+
+      if (!lobby || !lobby.active) {
+        throw new NotFoundException('Active lobby not found');
+      }
+
+      if (lobby.leaderId !== actorId) {
+        throw new ForbiddenException('Only the lobby leader can kick members');
+      }
+
+      const member = await tx.user.findUnique({
+        where: {
+          id: memberId,
+        },
+        select: {
+          lobbyId: true,
+        },
+      });
+
+      if (!member) {
+        throw new NotFoundException(`User with id ${memberId} not found`);
+      }
+
+      if (member.lobbyId !== lobby.id) {
+        throw new BadRequestException('User is not in your lobby');
+      }
+
+      const activeGame = await tx.game.findFirst({
+        where: {
+          lobbyId: lobby.id,
+          status: 'IN_PROGRESS',
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (activeGame) {
+        throw new BadRequestException(
+          'Cannot kick a member while a game is in progress',
+        );
+      }
+
+      await tx.user.update({
+        where: {
+          id: memberId,
+        },
+        data: {
+          lobbyId: null,
+        },
+      });
+
+      return tx.lobby.findUniqueOrThrow({
+        where: {
+          id: lobby.id,
+        },
+        select: publicLobbySelect,
+      });
+    });
+
+    await this.chatsGateway.disconnectUser(memberId);
+
+    return lobby;
+  }
   /**
    * @brief Removes the user from the lobby.
    *
