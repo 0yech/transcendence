@@ -31,7 +31,6 @@ enum FriendInvitationStatus {
   PENDING
   ACCEPTED
   DECLINED
-  CANCELLED
 }
 
 enum GameStatus {

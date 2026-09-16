@@ -115,16 +115,6 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('friends/invitations/:id/cancel')
-  @HttpCode(HttpStatus.OK)
-  async cancelInvitation(
-    @Param('id') invitationId: string,
-    @CurrentUser() issuer: JwtPayload,
-  ) {
-    await this.usersService.cancelInvitation(invitationId, issuer.sub);
-  }
-
-  @UseGuards(JwtAuthGuard)
   @Post('friends/invitations/:id/decline')
   @HttpCode(HttpStatus.OK)
   async declineInvitation(
