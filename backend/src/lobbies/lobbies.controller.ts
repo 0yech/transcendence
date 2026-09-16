@@ -44,4 +44,13 @@ export class LobbiesController {
   leaveLobby(@CurrentUser() user: JwtPayload) {
     return this.lobbiesService.leaveLobby(user.sub);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('members/:memberId/kick')
+  kickMember(
+    @CurrentUser() user: JwtPayload,
+    @Param('memberId') memberId: string,
+  ) {
+    return this.lobbiesService.kickMember(user.sub, memberId);
+  }
 }
