@@ -424,7 +424,7 @@ export default function MyGuild({
 
     return (
       <>
-        <title>Guild</title>
+        <title>My Guild</title>
         <NavBar></NavBar>
         <GuildCreation
           invitations={invitations}

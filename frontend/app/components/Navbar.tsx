@@ -48,7 +48,7 @@ export function NavBar({ className, variant = 'primary', ...rest }: NavProps) {
         {user?.id && (
           <li>
             <ButtonNavLink to="/guilds/me" end>
-              {user.guild ? 'My Guild' : 'Create Guild'}
+              My Guild
             </ButtonNavLink>
           </li>
         )}
