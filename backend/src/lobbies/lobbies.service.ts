@@ -305,7 +305,7 @@ export class LobbiesService {
       throw new NotFoundException(`User with id ${userId} not found`);
     }
 
-    return user.lobby;
+    return user.lobby ?? {};
   }
 
   /**
