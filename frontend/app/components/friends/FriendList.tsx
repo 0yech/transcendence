@@ -1,6 +1,7 @@
 import { Form, Link, useNavigation } from 'react-router';
 import { Avatar } from '~/components/Avatar';
 import { Button, ButtonLinkIn } from '~/components/Button';
+import { usePresence } from '~/context/UsePresence';
 import {
   accentPillClass,
   insetCardClass,
@@ -18,7 +19,8 @@ interface FriendListProps {
  * @brief Displays the authenticated user's friends.
  *
  * Each friend sitting in an active lobby gets a button leading to that
- * lobby, so the user can follow them into a game.
+ * lobby, so the user can follow them into a game. A dot on their avatar
+ * shows whether they are online.
  *
  * @param friends The friends to display.
  * @param error An optional error returned by a friend action.
@@ -26,6 +28,7 @@ interface FriendListProps {
  */
 export function FriendList({ friends, error }: FriendListProps) {
   const navigation = useNavigation();
+  const { isOnline } = usePresence();
 
   const isSubmitting = navigation.state === 'submitting';
 
@@ -45,6 +48,8 @@ export function FriendList({ friends, error }: FriendListProps) {
           {friends.map((friend) => {
             const lobby = friend.lobby;
             const isJoinable = lobby !== null && lobby.active;
+            const online = isOnline(friend.id);
+            const status = online ? 'Online' : 'Offline';
 
             return (
               <li
@@ -52,13 +57,24 @@ export function FriendList({ friends, error }: FriendListProps) {
                 className={`flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between ${insetCardClass}`}
               >
                 <div className="flex min-w-0 items-center gap-4">
-                  <Link to={`/profile/byUser/${friend.username}`}>
-                    <Avatar
-                      className="h-14 w-14 transition-transform duration-300 hover:scale-110"
-                      src={friend.avatarUrl}
-                      alt={friend.username}
+                  <div className="relative shrink-0">
+                    <Link to={`/profile/byUser/${friend.username}`}>
+                      <Avatar
+                        className="h-14 w-14 transition-transform duration-300 hover:scale-110"
+                        src={friend.avatarUrl}
+                        alt={friend.username}
+                      />
+                    </Link>
+
+                    <span
+                      aria-hidden="true"
+                      title={status}
+                      className={`absolute bottom-0 right-0 h-4 w-4 rounded-full ring-2 ring-dark-blue ${
+                        online ? 'bg-accept' : 'bg-mid-gray'
+                      }`}
                     />
-                  </Link>
+                    <span className="sr-only">{status}</span>
+                  </div>
 
                   <div className="min-w-0">
                     <Link
