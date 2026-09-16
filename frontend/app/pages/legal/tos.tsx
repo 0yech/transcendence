@@ -2,7 +2,7 @@ export default function TermsOfService() {
   return (
     <main className="mx-auto max-w-2xl space-y-4 p-6">
       <h1 className="text-3xl font-semibold">Terms of Service</h1>
-      <p className="text-sm">Last updated: 02.09.2026</p>
+      <p className="text-sm">Last updated: 16.09.2026</p>
 
       <p>
         These terms govern your use of NONO99, an online multiplayer card game.
@@ -56,6 +56,10 @@ export default function TermsOfService() {
           Harass, threaten, or abuse other players, in chat or through your
           username.
         </li>
+        <li>
+          Keep sending friend or guild invitations to somebody who has declined
+          one.
+        </li>
         <li>Post content that is hateful, sexually explicit, or illegal.</li>
         <li>Impersonate another user, a member of the team, or 42 staff.</li>
         <li>
@@ -67,8 +71,8 @@ export default function TermsOfService() {
           disconnecting to deny other players a result.
         </li>
         <li>
-          Share the password to a private lobby you were let into, or try to
-          guess your way into one you weren't.
+          Share the code to a private lobby you were let into, or try to guess
+          your way into one you weren't.
         </li>
         <li>
           Attack the service: attempt to gain unauthorised access, disrupt
@@ -90,9 +94,10 @@ export default function TermsOfService() {
 
       <h2 className="pt-4 text-xl font-semibold">Content you create</h2>
       <p>
-        You keep ownership of what you write: your username and your chat
-        messages. By posting them you give us permission to store them and show
-        them to the other people in the lobby, which is what makes chat work.
+        You keep ownership of what you write: your username, the name of any
+        guild you create or rename, and your chat messages. By posting them you
+        give us permission to store them and show them to the other people who
+        can see them, which is what makes chat and guilds work.
       </p>
       <p>
         We may remove content that breaks these terms. We don't pre-screen what
@@ -133,9 +138,9 @@ export default function TermsOfService() {
 
       <h2 className="pt-4 text-xl font-semibold">Ending things</h2>
       <p>
-        You can leave at any time. The <strong>Delete account</strong> button on
-        your profile deactivates your account, but it does not erase what we
-        hold about you: our privacy policy sets out exactly what stays.
+        You can leave at any time. Deleting your account deactivates it, but it
+        does not erase what we hold about you: our privacy policy sets out
+        exactly what stays. Ask us and we will delete your account for you.
       </p>
       <p>
         If you want that erased too, email us at{' '}
@@ -143,6 +148,10 @@ export default function TermsOfService() {
           aisling.fontaine@pm.me
         </a>{' '}
         and we will delete it by hand.
+      </p>
+      <p>
+        If you lead a guild, you have to pass it to somebody else before your
+        account can be deleted.
       </p>
       <p>
         We may suspend or terminate your account if you break these terms, if
