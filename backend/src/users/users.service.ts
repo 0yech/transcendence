@@ -350,19 +350,6 @@ export class UsersService {
     });
   }
 
-  async cancelInvitation(invitationId: string, issuerId: string) {
-    await this.prisma.friendInvitation.update({
-      where: {
-        id: invitationId,
-        senderId: issuerId,
-        status: FriendInvitationStatus.PENDING,
-      },
-      data: {
-        status: FriendInvitationStatus.CANCELLED,
-      },
-    });
-  }
-
   async declineInvitation(invitationId: string, issuerId: string) {
     await this.prisma.friendInvitation.update({
       where: {

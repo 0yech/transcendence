@@ -29,7 +29,7 @@ export interface FriendInvitation {
   id: string;
   senderId: string;
   receiverId: string;
-  status: 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'CANCELLED';
+  status: 'PENDING' | 'ACCEPTED' | 'DECLINED';
   createdAt: string;
   updatedAt: string;
   sender: {
