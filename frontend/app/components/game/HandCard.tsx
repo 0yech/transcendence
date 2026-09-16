@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ThreeEvent } from '@react-three/fiber';
-import { useSpring, animated, type SpringValue } from '@react-spring/three';
+import {
+  useSpring,
+  animated,
+  easings,
+  type SpringValue,
+} from '@react-spring/three';
 import { Card } from './Card';
 import type { CardPhase } from './useHandCards';
 import {
@@ -16,28 +21,28 @@ import {
 
 const SPRING_CONFIG = { tension: 170, friction: 22 };
 const HOVER_CONFIG = { tension: 320, friction: 26 };
-// Sec et nerveux : c'est un refus, pas un mouvement de jeu.
+// Sharp and nervous: this is a refusal, not a game move.
 const DENY_CONFIG = { tension: 1400, friction: 24 };
 
 /**
- * Les types de @react-three/fiber n'acceptent pas un SpringValue de tuple, que
- * react-spring anime pourtant sans problème. Contournement le temps que les
- * deux typages se rejoignent.
+ * The @react-three/fiber types do not accept a SpringValue of a tuple, which
+ * react-spring nonetheless animates without trouble. A workaround until the
+ * two typings meet.
  */
 const animatedVec3 = (value: SpringValue<Vec3>) => value as unknown as Vec3;
 
 type HandCardProps = {
-  /** position dans l'éventail (0-3), qui fixe la pose au repos */
+  /** position in the fan (0-3), which fixes the resting pose */
   index: number;
-  /** cibles de vol, propres au siège de cette main */
+  /** flight targets, specific to this hand's seat */
   frame: HandFrame;
   frontImage: string;
   phase: CardPhase;
-  /** retard au décollage, en ms */
+  /** take-off delay, in ms */
   delay: number;
-  /** une main adverse se regarde mais ne se clique pas */
+  /** an opponent's hand is looked at but not clicked */
   interactive: boolean;
-  /** le backend acceptera-t-il ce coup maintenant ? */
+  /** will the backend accept this move right now? */
   playable: boolean;
   onArrived: () => void;
   onPlay: () => void;
@@ -67,14 +72,14 @@ export function HandCard({
     config: SPRING_CONFIG,
   }));
 
-  // Le refus vit sur un groupe imbriqué : il se superpose à la pose courante
-  // (repos ou survol) au lieu d'entrer en conflit avec elle.
+  // The refusal lives on a nested group: it layers over the current pose
+  // (resting or hovered) instead of fighting with it.
   const [denySpring, denyApi] = useSpring<{ offset: number }>(() => ({
     offset: 0,
     config: DENY_CONFIG,
   }));
 
-  // On garde le callback dans une ref pour qu'il ne relance pas l'effet.
+  // We keep the callback in a ref so that it does not restart the effect.
   const arrivedRef = useRef(onArrived);
   useEffect(() => {
     arrivedRef.current = onArrived;
@@ -94,12 +99,12 @@ export function HandCard({
 
     const run = async () => {
       if (phase === 'fromDeck') {
-        // téléportation instantanée vers la pioche avant de repartir
+        // instant teleport onto the deck before setting off again
         api.set({ position: frame.deck, rotation: FLAT_ROT });
       }
 
-      // 'fromDeck' et 'rejected' visent tous deux la main : seul le premier
-      // se téléporte d'abord sur la pioche.
+      // 'fromDeck' and 'rejected' both aim at the hand: only the first
+      // teleports onto the deck beforehand.
       const target =
         phase === 'toDiscard'
           ? { position: frame.discard, rotation: FLAT_ROT }
@@ -135,9 +140,22 @@ export function HandCard({
     denyApi.start({
       from: { offset: 0 },
       to: async (next) => {
-        await next({ offset: 0.28 });
-        await next({ offset: -0.24 });
-        await next({ offset: 0.14 });
+        await next({
+          offset: 0.2,
+          config: { duration: 55, easing: easings.easeOutBack },
+        });
+        await next({
+          offset: -0.2,
+          config: { duration: 55, easing: easings.easeOutBack },
+        });
+        await next({
+          offset: 0.1,
+          config: { duration: 45, easing: easings.easeOutBack },
+        });
+        await next({
+          offset: -0.1,
+          config: { duration: 45, easing: easings.easeOutBack },
+        });
         await next({ offset: 0 });
       },
     });
@@ -149,8 +167,8 @@ export function HandCard({
     e.stopPropagation();
 
     if (playable) {
-      // la carte s'en va : sans ça elle reviendrait en pose survolée, r3f
-      // n'émettant pas de pointerout quand c'est l'objet qui bouge.
+      // the card is leaving: without this it would come back to the hovered
+      // pose, r3f not emitting a pointerout when it is the object that moves.
       setHovered(false);
       onPlay();
       return;
@@ -160,8 +178,8 @@ export function HandCard({
   };
 
   return (
-    // L'arc est porté par le groupe le plus externe : son offset reste ainsi
-    // vertical dans l'espace de la main, sans suivre la carte qui bascule à plat.
+    // The arc is carried by the outermost group: its offset therefore stays
+    // vertical in the hand's space, without following the card as it tips flat.
     <animated.group
       position-y={spring.arc.to((t) => arcWeight(t) * frame.arcUp[1])}
       position-z={spring.arc.to((t) => arcWeight(t) * frame.arcUp[2])}
@@ -181,7 +199,7 @@ export function HandCard({
             onClick={handleClick}
             onPointerOver={(e: ThreeEvent<PointerEvent>) => {
               if (!interactive) return;
-              // sans ça les cartes situées derrière se croient survolées aussi
+              // without this the cards behind think they are hovered too
               e.stopPropagation();
               if (phase === 'idle') setHovered(true);
             }}

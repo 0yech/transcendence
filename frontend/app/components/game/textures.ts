@@ -1,8 +1,8 @@
 import { useTexture } from '@react-three/drei';
 
 /**
- * Les textures des cartes, préchargées au chargement du module pour qu'aucune
- * carte ne "pope" au premier affichage.
+ * The card textures, preloaded when the module loads so that no card pops in
+ * on first display.
  */
 function preloadCardImages() {
   useTexture.preload('/cards/censored.png');
@@ -16,13 +16,13 @@ function preloadCardImages() {
 
 preloadCardImages();
 
-/** Nom de fichier d'une carte : "NUMBER_7_7" -> "NUMBER_7". */
+/** A card's file name: "NUMBER_7_7" -> "NUMBER_7". */
 export function cardName(card: { id: string } | undefined | null): string {
   if (!card || !card.id) return 'censored';
   return card.id.slice(0, card.id.lastIndexOf('_'));
 }
 
-/** Chemin de la texture d'une carte, ou de la carte masquée si elle est inconnue. */
+/** Path to a card's texture, or to the hidden card if it is unknown. */
 export function cardImage(card: { id: string } | undefined | null): string {
   return `/cards/${cardName(card)}.png`;
 }

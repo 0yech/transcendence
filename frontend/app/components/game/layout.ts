@@ -1,59 +1,59 @@
 /**
- * Géométrie de la table et des mains.
+ * Geometry of the table and of the hands.
  *
- * Tout ce qui touche à la disposition vit ici, paramétré par l'angle du siège :
- * la main locale et celle d'un adversaire ne diffèrent que par cet angle.
+ * Everything to do with layout lives here, parameterised by the seat angle:
+ * the local hand and an opponent's differ only by that angle.
  */
 
 export type Vec3 = [number, number, number];
 
 /* ------------------------------------------------------------------ */
-/*  La table                                                          */
+/*  The table                                                         */
 /* ------------------------------------------------------------------ */
 
-/** La pile de défausse et la pioche, posées sur la table. */
+/** The discard pile and the deck, sitting on the table. */
 export const DISCARD_WORLD: Vec3 = [0, 0, 0];
-export const DECK_WORLD: Vec3 = [7, 0, 0];
+export const DECK_WORLD: Vec3 = [7, 0.5, 0];
 
-/** Une carte se pose juste au-dessus d'une pile, jamais dedans. */
+/** A card lands just above a pile, never inside it. */
 const DROP_HEIGHT = 0.15;
 
 const above = ([x, y, z]: Vec3): Vec3 => [x, y + DROP_HEIGHT, z];
 
 /* ------------------------------------------------------------------ */
-/*  Les sièges                                                        */
+/*  The seats                                                         */
 /* ------------------------------------------------------------------ */
 
-/** Distance entre le centre de la table et une main. */
+/** Distance between the centre of the table and a hand. */
 export const SEAT_RADIUS = 16;
-/** Hauteur à laquelle une main flotte au-dessus de la table. */
+/** Height at which a hand floats above the table. */
 export const SEAT_HEIGHT = 4;
-/** Inclinaison de l'éventail vers son joueur. */
+/** Tilt of the fan towards its player. */
 export const HAND_TILT = -Math.PI / 8;
 
-/** Position de la main dans le repère de son siège. */
+/** Position of the hand in its seat's frame. */
 export const HAND_LOCAL_POS: Vec3 = [0, SEAT_HEIGHT, SEAT_RADIUS];
 
 /**
- * Angle d'un siège autour de la table. Le siège 0 est celui du joueur local,
- * face à la caméra ; `offset` est le nombre de sièges qui l'en séparent.
+ * Angle of a seat around the table. Seat 0 is the local player's, facing the
+ * camera; `offset` is the number of seats between the two.
  */
 export function seatAngle(offset: number, playerCount: number): number {
   return playerCount > 0 ? (offset * 2 * Math.PI) / playerCount : 0;
 }
 
 /* ------------------------------------------------------------------ */
-/*  Repères                                                           */
+/*  Frames                                                            */
 /* ------------------------------------------------------------------ */
 
-/** Rotation d'un vecteur de -angle autour de Y (monde -> repère du siège). */
+/** Rotates a vector by -angle around Y (world -> seat frame). */
 function worldDirToSeat([x, y, z]: Vec3, angle: number): Vec3 {
   const cos = Math.cos(angle);
   const sin = Math.sin(angle);
   return [x * cos - z * sin, y, x * sin + z * cos];
 }
 
-/** Rotation d'un vecteur de -HAND_TILT autour de X (siège -> repère de la main). */
+/** Rotates a vector by -HAND_TILT around X (seat -> hand frame). */
 function seatDirToHand([x, y, z]: Vec3): Vec3 {
   const a = -HAND_TILT;
   return [
@@ -63,15 +63,15 @@ function seatDirToHand([x, y, z]: Vec3): Vec3 {
   ];
 }
 
-/** Direction du monde exprimée dans le repère local d'une main. */
+/** A world direction expressed in a hand's local frame. */
 function worldDirToHand(dir: Vec3, angle: number): Vec3 {
   return seatDirToHand(worldDirToSeat(dir, angle));
 }
 
 /**
- * Position du monde exprimée dans le repère local d'une main. Nécessaire parce
- * que la défausse et la pioche sont posées dans le monde, alors que les cartes
- * animées sont enfants du groupe main.
+ * A world position expressed in a hand's local frame. Needed because the
+ * discard pile and the deck sit in world space, while the animated cards are
+ * children of the hand group.
  */
 function worldPosToHand([x, y, z]: Vec3, angle: number): Vec3 {
   const [sx, sy, sz] = worldDirToSeat([x, y, z], angle);
@@ -82,18 +82,18 @@ function worldPosToHand([x, y, z]: Vec3, angle: number): Vec3 {
   ]);
 }
 
-/** Une carte posée à plat : -PI/2 dans le monde, donc -PI/2 - tilt en local. */
+/** A card lying flat: -PI/2 in the world, so -PI/2 - tilt in local space. */
 export const FLAT_ROT: Vec3 = [-Math.PI / 2 - HAND_TILT, 0, 0];
 
 /**
- * Les cibles d'un vol, vues depuis un siège donné. Une carte jouée depuis un
- * siège tourné se pose donc sur la défausse avec l'orientation de ce siège.
+ * The targets of a flight, seen from a given seat. A card played from a turned
+ * seat therefore lands on the discard pile with that seat's orientation.
  */
 export type HandFrame = {
   angle: number;
   discard: Vec3;
   deck: Vec3;
-  /** "Vers le haut du monde", exprimé dans le repère de la main. */
+  /** "Towards world up", expressed in the hand's frame. */
   arcUp: Vec3;
 };
 
@@ -107,39 +107,39 @@ export function handFrame(angle: number): HandFrame {
 }
 
 /* ------------------------------------------------------------------ */
-/*  L'éventail                                                        */
+/*  The fan                                                           */
 /* ------------------------------------------------------------------ */
 
-const STEPS_POSITION = [1, 2, -2, -1];
-const STEPS_ROTATION = [-2, -1, 1, 2];
+const STEPS_POSITION = [0.8, 2, -2, -0.8];
+const STEPS_ROTATION = [-2, -0.6, 0.6, 2];
 
-/** Rang de chaque carte de gauche à droite dans l'éventail. */
+/** Rank of each card from left to right in the fan. */
 export const FAN_RANK: number[] = STEPS_POSITION.map(
   (sp) => STEPS_POSITION.filter((other) => other < sp).length,
 );
 
 /**
- * Ordre d'empilement : plus une carte est à droite, plus elle est devant. Sans
- * ce décalage les quatre cartes sont coplanaires et se disputent le depth
- * buffer sur leurs zones de chevauchement.
+ * Stacking order: the further right a card sits, the further forward it is.
+ * Without this offset the four cards are coplanar and fight over the depth
+ * buffer wherever they overlap.
  */
 const Z_STEP = 0.03;
 
 export const REST_POS: Vec3[] = STEPS_POSITION.map((sp, i) => [
-  1.1 * sp,
-  0.5 * (Math.abs(STEPS_ROTATION[i]) - 1),
+  1.5 * sp,
+  0.8 * (Math.abs(STEPS_ROTATION[i]) - 1),
   FAN_RANK[i] * Z_STEP,
 ]);
 
 export const REST_ROT: Vec3[] = STEPS_ROTATION.map((sr) => [
   0,
   Math.PI / 128,
-  Math.PI / (sr * 6),
+  Math.PI / (sr * 7),
 ]);
 
 /**
- * Survol : la carte monte, avance vers son joueur — donc devant toutes les
- * autres, dont le Z max vaut 3 * Z_STEP — et se redresse à moitié.
+ * Hover: the card rises, moves towards its player — so in front of all the
+ * others, whose max Z is 3 * Z_STEP — and straightens up halfway.
  */
 const HOVER_LIFT = 0.7;
 const HOVER_FORWARD = 0.9;
@@ -158,18 +158,18 @@ export const HOVER_ROT: Vec3[] = REST_ROT.map(([x, y, z]) => [
 ]);
 
 /* ------------------------------------------------------------------ */
-/*  L'arc de vol                                                      */
+/*  The flight arc                                                    */
 /* ------------------------------------------------------------------ */
 
 /**
- * Une carte en vol suit une Bézier quadratique dont le point de contrôle est
- * décalé vers le haut du monde, d'où la hauteur ci-dessous.
+ * A card in flight follows a quadratic Bézier whose control point is offset
+ * towards world up, hence the height below.
  */
-const ARC_HEIGHT = 9;
+const ARC_HEIGHT = 12;
 
 /**
- * Poids du point de contrôle dans une Bézier quadratique : nul aux deux bouts,
- * maximal au milieu. Clampé parce que le ressort dépasse un peu 1 en fin de
- * course, ce qui ferait plonger la carte sous la table.
+ * Weight of the control point in a quadratic Bézier: zero at both ends, max in
+ * the middle. Clamped because the spring overshoots 1 slightly at the end of
+ * its travel, which would send the card diving under the table.
  */
 export const arcWeight = (t: number) => Math.max(0, 2 * (1 - t) * t);

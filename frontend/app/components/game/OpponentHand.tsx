@@ -5,13 +5,13 @@ import type { TablePlay } from './useLastPlay';
 import type { InterfaceCardsGameState } from '~/context/WebSocketContext';
 
 /**
- * La main d'un adversaire : quatre dos de cartes qui s'animent quand le serveur
- * annonce qu'il a joué.
+ * An opponent's hand: four card backs that animate when the server announces
+ * they have played.
  *
- * Le contenu de sa main n'est jamais transmis — le backend n'en envoie que le
- * nombre — d'où la main vide passée à useHandCards : chaque carte affiche la
- * texture masquée, et de toute façon l'éventail est tourné vers son joueur,
- * donc c'est son dos qu'on voit.
+ * The contents of their hand are never transmitted — the backend only sends
+ * the count — hence the empty hand passed to useHandCards: every card shows
+ * the hidden texture, and the fan is turned towards its player anyway, so its
+ * back is what we see.
  */
 const HIDDEN_HAND: InterfaceCardsGameState[] = [];
 
@@ -19,13 +19,23 @@ type OpponentHandProps = {
   playerId: string;
   angle: number;
   lastPlay: TablePlay | null;
+  /** one of their cards has just landed on the discard pile */
+  onLanded: () => void;
 };
 
-export function OpponentHand({ playerId, angle, lastPlay }: OpponentHandProps) {
-  const { cards, replayOpponent, handleArrived } = useHandCards(HIDDEN_HAND);
+export function OpponentHand({
+  playerId,
+  angle,
+  lastPlay,
+  onLanded,
+}: OpponentHandProps) {
+  const { cards, replayOpponent, handleArrived } = useHandCards(
+    HIDDEN_HAND,
+    onLanded,
+  );
 
-  // Le hook se recrée à chaque rendu : le passer en dépendance relancerait
-  // l'animation en boucle.
+  // The hook is recreated on every render: passing it as a dependency would
+  // restart the animation in a loop.
   const replayRef = useRef(replayOpponent);
   useEffect(() => {
     replayRef.current = replayOpponent;

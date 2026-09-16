@@ -3,16 +3,16 @@ import { UseWebSocket } from '~/context/UseWebSocket';
 import type { InterfaceCardsGameState } from '~/context/WebSocketContext';
 
 /**
- * Le dernier coup posé sur la table, adversaires compris.
+ * The last move laid on the table, opponents included.
  *
- * Le backend n'annonce pas "qui vient de jouer" de façon fiable :
- * lastPlayedById n'est pas mis à jour lors d'un quadruple ONO99. En revanche
- * toute action est forcément le fait du joueur dont c'était le tour, donc
- * l'auteur est le currentPlayerId de l'état précédent.
+ * The backend does not reliably announce "who just played": lastPlayedById is
+ * not updated on a quadruple ONO99. Any action, however, is necessarily the
+ * doing of the player whose turn it was, so the author is the currentPlayerId
+ * of the previous state.
  */
 export type TablePlay = {
   actorId: string;
-  /** les cartes qui viennent d'atterrir sur la défausse */
+  /** the cards that have just landed on the discard pile */
   revealed: InterfaceCardsGameState[];
   turnNumber: number;
 };
@@ -40,14 +40,14 @@ export function useLastPlay(): TablePlay | null {
       currentPlayerId: gameState.currentPlayerId,
     };
 
-    // Premier état reçu : rien à rejouer, on se contente de mémoriser.
+    // First state received: nothing to replay, we merely memorise it.
     if (!previous || gameState.turnNumber <= previous.turnNumber) return;
 
     const added = pile.length - previous.pileSize;
 
     /*
-     * added <= 0 couvre deux cas sans animation : le joueur a déclaré ne pas
-     * pouvoir jouer, ou la défausse vient d'être remélangée dans la pioche.
+     * added <= 0 covers two cases with no animation: the player declared they
+     * could not play, or the discard pile was just reshuffled into the deck.
      */
     if (added <= 0 || !previous.currentPlayerId) return;
 

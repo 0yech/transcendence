@@ -7,12 +7,12 @@ import TurnTimer from '~/components/game/TurnTimer';
 import { UseWebSocket } from '~/context/UseWebSocket';
 
 /**
- * Tout l'habillage DOM posé par-dessus la scène : l'état de la partie, le total
- * en cours, les actions et le chat.
+ * All the DOM chrome laid over the scene: the state of the game, the running
+ * total, the actions and the chat.
  *
- * L'overlay couvre l'écran entier mais laisse passer les clics
- * (pointer-events-none) : seuls les panneaux les reprennent, sinon il masquerait
- * les cartes du canvas.
+ * The overlay covers the whole screen but lets clicks through
+ * (pointer-events-none): only the panels take them back, otherwise it would
+ * mask the cards on the canvas.
  */
 
 const PANEL =
@@ -23,9 +23,9 @@ const LABEL = 'text-mid-gray text-xs tracking-wider uppercase';
 const SEPARATOR = 'my-1 h-1 w-full rounded-full border-0 bg-mid-dark-blue/60';
 
 /*
- * LobbyChat est partagé avec la page lobby et n'a aucun style propre. On le
- * cadre depuis l'extérieur en attendant qu'il soit stylisé pour de bon : sans
- * ça sa liste de messages pousse le champ de saisie hors du panneau.
+ * LobbyChat is shared with the lobby page and has no styling of its own. We
+ * frame it from the outside until it is styled for good: without this its
+ * message list pushes the input field out of the panel.
  */
 const CHAT_FRAME = [
   '[&>p:first-child]:text-mid-gray [&>p:first-child]:text-xs [&>p:first-child]:uppercase [&>p:first-child]:tracking-wider',
@@ -54,7 +54,7 @@ function Stat({ label, value }: { label: string; value: ReactNode }) {
   );
 }
 
-/** Le total vire à l'orange puis au rouge à mesure qu'on approche de 99. */
+/** The total turns orange then red as it closes in on 99. */
 function totalTone(total: number): string {
   if (total >= 90)
     return 'text-danger drop-shadow-[0_0_16px_rgba(255,117,117,0.5)]';
@@ -95,7 +95,7 @@ export function GameHud({
 
   return (
     <div className="pointer-events-none fixed inset-0 z-10 top-14 grid grid-rows-[auto_1fr_auto] gap-4 p-4">
-      {/* ----- haut : état à gauche, total au centre ----- */}
+      {/* ----- top: state on the left, total in the middle ----- */}
       <header className="grid grid-cols-[1fr_auto_1fr] items-start gap-4">
         <Panel className="w-64">
           <Stat
@@ -140,7 +140,7 @@ export function GameHud({
 
           <hr className={SEPARATOR} />
 
-          {/* Repères de mise au point, à retirer une fois le jeu stabilisé. */}
+          {/* Debugging readouts, to remove once the game has settled. */}
           <Stat label="Turn number" value={gameState?.turnNumber ?? '—'} />
           <Stat label="Pending plays" value={gameState?.pendingPlays ?? '—'} />
         </Panel>
@@ -165,10 +165,10 @@ export function GameHud({
         <div />
       </header>
 
-      {/* la colonne du milieu reste vide : c'est la table */}
+      {/* the middle column stays empty: that is the table */}
       <div />
 
-      {/* ----- bas : actions à gauche, chat à droite ----- */}
+      {/* ----- bottom: actions on the left, chat on the right ----- */}
       <footer className="flex items-end justify-between gap-4">
         <Panel className="w-64">
           <span className={LABEL}>Actions</span>

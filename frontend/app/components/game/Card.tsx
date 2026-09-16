@@ -30,20 +30,20 @@ export function Card({
     [width, height, radius],
   );
 
-  // ShapeGeometry utilise les coordonnées locales du vertex comme UV brutes
-  // (de -width/2 à width/2), pas normalisées entre 0 et 1. On recadre donc
-  // la texture elle-même pour que le [0,1] final tombe pile sur les bords de la carte.
+  // ShapeGeometry uses the raw local vertex coordinates as UVs (from -width/2
+  // to width/2), not normalised between 0 and 1. So we reframe the texture
+  // itself for the final [0,1] to land exactly on the card edges.
   for (const map of [frontMap, backMap]) {
     map.repeat.set(1 / width, 1 / height);
     map.offset.set(0.5, 0.5);
   }
 
   const halfThickness = thickness / 2;
-  const eps = 0.01; // décale légèrement les faces pour éviter le z-fighting avec le corps extrudé
+  const eps = 0.01; // nudges the faces apart to avoid z-fighting with the extruded body
 
   return (
     <group {...groupProps}>
-      {/* le corps : uniquement visible sur la tranche, les faces sont recouvertes par les 2 plans ci-dessous */}
+      {/* the body: only visible on the edge, its faces are covered by the 2 planes below */}
       <mesh>
         <CardGeometry
           width={width}
@@ -55,13 +55,13 @@ export function Card({
         <meshStandardMaterial color="white" roughness={0.6} metalness={0} />
       </mesh>
 
-      {/* face avant */}
+      {/* front face */}
       <mesh position={[0, 0, halfThickness + eps]}>
         <shapeGeometry args={[shape]} />
         <meshStandardMaterial map={frontMap} roughness={0.5} metalness={0} />
       </mesh>
 
-      {/* face arrière : retournée à 180° autour de Y pour que son motif soit orienté vers l'extérieur */}
+      {/* back face: flipped 180° around Y so its pattern faces outwards */}
       <mesh position={[0, 0, -halfThickness - eps]} rotation={[0, Math.PI, 0]}>
         <shapeGeometry args={[shape]} />
         <meshStandardMaterial map={backMap} roughness={0.5} metalness={0} />

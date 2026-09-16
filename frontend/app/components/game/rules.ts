@@ -1,9 +1,9 @@
 import type { InterfaceCardsGameState } from '~/context/WebSocketContext';
 
 /**
- * Miroir côté client de canPlayCard() du backend (backend/src/games/ono99.rules.ts).
- * Sert uniquement à éviter de lancer une animation pour un coup que le serveur
- * refusera : le backend reste la seule autorité sur la légalité d'un coup.
+ * Client-side mirror of the backend's canPlayCard() (backend/src/games/ono99.rules.ts).
+ * Only there to avoid starting an animation for a move the server will refuse:
+ * the backend stays the sole authority on whether a move is legal.
  */
 export function canPlayCard(
   card: InterfaceCardsGameState | undefined | null,
@@ -19,8 +19,8 @@ export function canPlayCard(
 }
 
 /**
- * Miroir de hasFourOno99() du backend. Le service compte les ONO99 sans vérifier
- * la taille de la main, d'où le >= 4 plutôt qu'un every().
+ * Mirror of the backend's hasFourOno99(). The service counts ONO99s without
+ * checking the hand size, hence the >= 4 rather than an every().
  */
 export function hasFourOno99(hand: InterfaceCardsGameState[]): boolean {
   return hand.filter((card) => card.type === 'ONO99').length >= 4;

@@ -4,31 +4,38 @@ import { useControls } from 'leva';
 import { Card } from './Card';
 import { OpponentHand } from './OpponentHand';
 import { PlayerHand } from './PlayerHand';
-import { DISCARD_WORLD, seatAngle } from './layout';
+import { DECK_WORLD, DISCARD_WORLD, seatAngle } from './layout';
 import { useLastPlay } from './useLastPlay';
 import { cardImage } from './textures';
 import type { CardState } from './useHandCards';
 import { UseWebSocket } from '~/context/UseWebSocket';
+import type { InterfaceCardsGameState } from '~/context/WebSocketContext';
 import { OrbitControls } from '@react-three/drei';
 
 /**
- * La scène 3D : la défausse au centre, les mains tout autour.
+ * The 3D scene: the discard pile in the middle, the hands all around.
  *
- * Les joueurs sont répartis à intervalle régulier, le joueur local toujours à
- * l'angle 0 face à la caméra. À deux, l'adversaire se retrouve donc en face.
+ * Players are spread at regular intervals, the local one always at angle 0
+ * facing the camera. With two players the opponent therefore sits opposite.
  */
 type GameTableProps = {
   cards: CardState[];
+  /** the discard top to show, frozen while a card is in flight */
+  discardTop: InterfaceCardsGameState | null;
   canPlaySlot: (slot: number) => boolean;
   onPlay: (index: number) => void;
   onArrived: (index: number) => void;
+  /** an opponent has just laid a card on the discard pile */
+  onOpponentLanded: () => void;
 };
 
 export function GameTable({
   cards,
+  discardTop,
   canPlaySlot,
   onPlay,
   onArrived,
+  onOpponentLanded,
 }: GameTableProps) {
   const { gameState, userId } = UseWebSocket();
   const lastPlay = useLastPlay();
@@ -38,12 +45,9 @@ export function GameTable({
     lightIntensity: { value: 1.0, min: 0.0, max: 5.0 },
   });
 
-  const lastDiscard =
-    gameState?.discardPile?.[gameState.discardPile.length - 1];
-
   /*
-   * Les sièges suivent l'ordre du backend, tourné pour que le joueur local
-   * tombe à l'angle 0. Un joueur éliminé n'a plus de main à montrer.
+   * Seats follow the backend order, rotated so the local player falls at angle
+   * 0. An eliminated player no longer has a hand to show.
    */
   const me = userId();
   const seated = [...(gameState?.players ?? [])].sort(
@@ -78,8 +82,14 @@ export function GameTable({
         <Suspense fallback={null}>
           <Card
             key="discardPile"
-            frontImage={cardImage(lastDiscard)}
+            frontImage={cardImage(discardTop)}
             position={DISCARD_WORLD}
+            rotation={[-Math.PI / 2, 0, 0]}
+          />
+          <Card
+            frontImage={'/cards/back.png'}
+            thickness={1.05}
+            position={DECK_WORLD}
             rotation={[-Math.PI / 2, 0, 0]}
           />
 
@@ -97,6 +107,7 @@ export function GameTable({
               playerId={player.userId}
               angle={angle}
               lastPlay={lastPlay}
+              onLanded={onOpponentLanded}
             />
           ))}
         </Suspense>

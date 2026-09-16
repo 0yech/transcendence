@@ -4,13 +4,15 @@ import { UseWebSocket } from '~/context/UseWebSocket';
 import { GameHud } from './GameHud';
 import { GameTable } from './GameTable';
 import { canPlayCard, hasFourOno99 } from './rules';
+import { useDiscardTop } from './useDiscardTop';
 import { useHandCards } from './useHandCards';
 
 /**
- * Le joueur local : ce qu'il a le droit de jouer, et ce qu'on envoie au serveur.
+ * The local player: what they are allowed to play, and what we send to the
+ * server.
  *
- * L'état d'animation vit dans useHandCards, la scène dans GameTable et
- * l'habillage dans GameHud.
+ * The animation state lives in useHandCards, the scene in GameTable and the
+ * chrome in GameHud.
  */
 export function Game() {
   const { code } = useParams();
@@ -20,36 +22,42 @@ export function Game() {
 
   const lobbyCode = getCode();
 
-  /* --- main du joueur ------------------------------------------------ */
+  /* --- player hand --------------------------------------------------- */
 
   const me = gameState?.players.find((p) => p.userId === userId());
   const rawHand = me?.hand;
   const hand = Array.isArray(rawHand) ? rawHand : [];
 
-  const { cards, animating, playCardAt, discardFour, handleArrived } =
-    useHandCards(hand);
+  /* --- discard pile -------------------------------------------------- */
+  // The pile only reveals itself once a card has landed, hence the commit
+  // wired to both animation sources: this hand and the ones across the table.
 
-  /* --- jouabilité ----------------------------------------------------- */
-  // Mêmes conditions que le backend : sans ça l'animation partirait pour un
-  // coup refusé par le serveur, et la main affichée deviendrait fausse.
+  const discardTop = useDiscardTop();
+
+  const { cards, animating, playCardAt, discardFour, handleArrived } =
+    useHandCards(hand, discardTop.commit);
+
+  /* --- playability --------------------------------------------------- */
+  // Same conditions as the backend: without this the animation would start
+  // for a move the server refuses, and the displayed hand would go wrong.
 
   const isMyTurn =
     gameState?.status === 'IN_PROGRESS' &&
     gameState.currentPlayerId === userId() &&
     me?.status === 'ACTIVE';
 
-  // Tant qu'une carte vole, les slots sont décalés de façon optimiste et la
-  // main de référence n'est pas à jour : on ne peut rien valider de fiable.
+  // While a card is in flight the slots are shifted optimistically and the
+  // reference hand is out of date: nothing can be validated reliably.
   const canPlaySlot = (slot: number) =>
     isMyTurn && !animating && canPlayCard(hand[slot], gameState?.total ?? 0);
 
   const canPlayFour = isMyTurn && !animating && hasFourOno99(hand);
 
-  /* --- coups --------------------------------------------------------- */
+  /* --- moves --------------------------------------------------------- */
 
   const handlePlay = (index: number) => {
     if (!canPlaySlot(cards[index].slot)) return;
-    // le backend numérote les slots à partir de 1
+    // the backend numbers slots from 1
     playCardAt(index, (slot) => playSlot(slot + 1));
   };
 
@@ -58,7 +66,7 @@ export function Game() {
     discardFour(playFour);
   };
 
-  /* --- navigation de fin de partie ----------------------------------- */
+  /* --- end-of-game navigation ---------------------------------------- */
 
   useEffect(() => {
     if (gameState?.status !== 'FINISHED') return;
@@ -80,9 +88,11 @@ export function Game() {
 
       <GameTable
         cards={cards}
+        discardTop={discardTop.card}
         canPlaySlot={canPlaySlot}
         onPlay={handlePlay}
         onArrived={handleArrived}
+        onOpponentLanded={discardTop.commit}
       />
     </>
   );

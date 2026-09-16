@@ -4,12 +4,13 @@ import { HAND_LOCAL_POS, HAND_TILT, handFrame } from './layout';
 import type { CardState } from './useHandCards';
 
 /**
- * L'éventail d'un joueur, posé à son siège. Le siège tourne autour de la table,
- * la main reste "devant lui" : c'est la seule différence entre le joueur local
- * et un adversaire. Une main sans `onPlay` n'est ni cliquable ni survolable.
+ * A player's fan, laid out at their seat. The seat turns around the table, the
+ * hand stays "in front of them": that is the only difference between the local
+ * player and an opponent. A hand with no `onPlay` is neither clickable nor
+ * hoverable.
  */
 type PlayerHandProps = {
-  /** angle du siège autour de la table, 0 pour le joueur local */
+  /** seat angle around the table, 0 for the local player */
   angle: number;
   cards: CardState[];
   onArrived: (index: number) => void;

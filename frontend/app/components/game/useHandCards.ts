@@ -4,27 +4,27 @@ import { FAN_RANK } from './layout';
 import { cardImage } from './textures';
 
 /**
- * L'état d'animation d'une main de quatre cartes.
+ * The animation state of a four-card hand.
  *
- * Le hook ne connaît ni le réseau ni la 3D : il décrit ce que chaque objet 3D
- * doit montrer et où il doit aller. Le joueur local lui passe un `commit` qui
- * interroge le serveur ; une main adverse s'anime sans commit, l'action ayant
- * déjà eu lieu côté serveur.
+ * The hook knows neither the network nor the 3D: it describes what each 3D
+ * object must show and where it must go. The local player passes it a `commit`
+ * that asks the server; an opponent's hand animates without one, the action
+ * having already happened server-side.
  */
 
 export type CardPhase = 'idle' | 'toDiscard' | 'fromDeck' | 'rejected';
 
 export type CardState = {
-  /** index (0-3) du slot backend que cet objet 3D représente */
+  /** index (0-3) of the backend slot this 3D object stands for */
   slot: number;
   phase: CardPhase;
-  /** texture actuellement affichée (gelée pendant l'animation) */
+  /** texture currently displayed (frozen during the animation) */
   display: string;
-  /** retard au décollage, non nul seulement pendant un quadruple ONO99 */
+  /** take-off delay, non-zero only during a quadruple ONO99 */
   delay: number;
 };
 
-/** Les quatre ONO99 décollent en cascade, de la carte la plus à gauche à la plus à droite. */
+/** The four ONO99s take off in a cascade, from the leftmost card to the rightmost. */
 const FOUR_STAGGER_MS = 110;
 const FOUR_DELAYS: number[] = FAN_RANK.map((rank) => rank * FOUR_STAGGER_MS);
 
@@ -37,43 +37,51 @@ const INITIAL_CARDS: CardState[] = [0, 1, 2, 3].map((slot) => ({
 
 export type HandCards = {
   cards: CardState[];
-  /** vrai tant qu'une carte est en vol : aucun coup ne peut partir entre-temps */
+  /** true while a card is in flight: no move can leave in the meantime */
   animating: boolean;
-  /** joue la carte portée par l'objet 3D `index` */
+  /** plays the card carried by the 3D object `index` */
   playCardAt: (
     index: number,
     commit?: (slot: number) => Promise<boolean>,
   ) => void;
-  /** défausse les quatre ONO99 d'un coup */
+  /** discards the four ONO99s in one go */
   discardFour: (commit?: () => Promise<boolean>) => void;
   /**
-   * Rejoue le coup d'un adversaire. On ignore quelle carte de son éventail est
-   * partie — on choisit donc au hasard parmi celles au repos — mais on sait
-   * laquelle atterrit sur la défausse, et c'est elle qu'il faut montrer en vol.
+   * Replays an opponent's move. We do not know which card of their fan left —
+   * so we pick at random among those at rest — but we do know which one lands
+   * on the discard pile, and that is the one to show in flight.
    */
   replayOpponent: (revealed: InterfaceCardsGameState[]) => void;
-  /** à appeler quand l'objet 3D `index` a fini son vol */
+  /** to call once the 3D object `index` has finished its flight */
   handleArrived: (index: number) => void;
 };
 
-export function useHandCards(hand: InterfaceCardsGameState[]): HandCards {
+/**
+ * @param onLanded notified every time a card of this hand lands on the discard
+ * pile, so that the pile only reveals itself at that moment.
+ */
+export function useHandCards(
+  hand: InterfaceCardsGameState[],
+  onLanded?: () => void,
+): HandCards {
   const [cards, setCards] = useState<CardState[]>(INITIAL_CARDS);
 
-  // Les callbacks asynchrones (fin de vol, réponse du serveur) lisent l'état
-  // courant sans avoir à figurer dans des dépendances.
+  // The asynchronous callbacks (end of flight, server answer) read the
+  // current state without having to appear in any dependency list.
   const handRef = useRef(hand);
   const cardsRef = useRef(cards);
+  const landedRef = useRef(onLanded);
   useEffect(() => {
     handRef.current = hand;
     cardsRef.current = cards;
+    landedRef.current = onLanded;
   });
 
-  // Clé stable : ne change que si le contenu réel de la main change.
+  // Stable key: only changes if the real contents of the hand change.
   const handKey = hand.map((c) => c?.id ?? '').join('|');
-
   /*
-   * Une carte au repos affiche toujours ce que dit le backend ; une carte en vol
-   * garde sa texture gelée jusqu'à son arrivée.
+   * A card at rest always shows what the backend says; a card in flight keeps
+   * its texture frozen until it arrives.
    */
   useEffect(() => {
     setCards((prev) =>
@@ -85,11 +93,11 @@ export function useHandCards(hand: InterfaceCardsGameState[]): HandCards {
     );
   }, [handKey]);
 
-  /** Envoie une carte à la défausse et renvoie le slot qu'elle occupait. */
+  /** Sends a card to the discard pile and returns the slot it occupied. */
   const startPlay = (index: number, display?: string): number => {
     const played = cardsRef.current[index].slot;
 
-    // Le backend décale : tout slot > played perd 1, la nouvelle carte arrive en 3.
+    // The backend shifts: every slot > played loses 1, the new card lands at 3.
     setCards((prev) =>
       prev.map((c, i) => {
         if (i === index)
@@ -107,10 +115,10 @@ export function useHandCards(hand: InterfaceCardsGameState[]): HandCards {
     return played;
   };
 
-  /** Envoie les quatre cartes à la défausse en cascade. */
+  /** Sends the four cards to the discard pile in a cascade. */
   const startDiscardFour = (displays?: string[]) => {
-    // Le backend vide la main et la remplit aussitôt : les slots ne bougent pas,
-    // les quatre cartes partent et reviennent chacune à sa place.
+    // The backend empties the hand and refills it at once: the slots do not
+    // move, the four cards leave and each comes back to its own place.
     setCards((prev) =>
       prev.map((c, i) => ({
         ...c,
@@ -129,9 +137,9 @@ export function useHandCards(hand: InterfaceCardsGameState[]): HandCards {
 
     if (!commit) return;
 
-    // Exactement l'inverse du décalage ci-dessus. Le display est recalculé car
-    // un refus tardif peut arriver après que handleArrived ait déjà gelé la
-    // texture du slot 3 sur cette carte.
+    // Exactly the inverse of the shift above. The display is recomputed
+    // because a late refusal can arrive after handleArrived has already frozen
+    // the slot 3 texture onto this card.
     const rollback = () =>
       setCards((prev) =>
         prev.map((c, i) => {
@@ -186,13 +194,17 @@ export function useHandCards(hand: InterfaceCardsGameState[]): HandCards {
   };
 
   const handleArrived = (index: number) => {
+    // Outside the updater: React may replay it twice in StrictMode, and the
+    // discard pile would then reveal itself twice for a single landing.
+    if (cardsRef.current[index].phase === 'toDiscard') landedRef.current?.();
+
     setCards((prev) =>
       prev.map((c, i) => {
         if (i !== index) return c;
 
         if (c.phase === 'toDiscard') {
-          // la carte est sur la défausse : on change la texture maintenant, et
-          // on repart de la pioche. Le retard est déjà consommé.
+          // the card is on the discard pile: we swap the texture now, and set
+          // off again from the deck. The delay is already spent.
           return {
             ...c,
             phase: 'fromDeck',
@@ -219,7 +231,7 @@ export function useHandCards(hand: InterfaceCardsGameState[]): HandCards {
   };
 }
 
-/** Ramène les cartes en main si le serveur a refusé le coup. */
+/** Brings the cards back into the hand if the server refused the move. */
 function settle(
   answer: Promise<boolean>,
   rollback: () => void,
