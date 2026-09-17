@@ -4,6 +4,7 @@ export default [
   index('routes/home.tsx'),
   route('login', 'routes/login.tsx'),
   route('register', 'routes/register.tsx'),
+  route('settings', 'routes/settings.tsx'),
   route('logout', 'routes/logout.tsx'),
   route('lobbies', 'routes/display-lobby.tsx'),
   route('remove-account', 'routes/remove-account.tsx'),
