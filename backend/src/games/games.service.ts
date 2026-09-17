@@ -567,7 +567,7 @@ export class GamesService {
     game: GameWithPlayers,
     userId: string,
     reason: 'NO_LEGAL_MOVE' | 'TURN_TIMEOUT',
-  ) {
+  ): Promise<ReturnType<GamesService['toPublicGame']>> {
     const gameId = game.id;
 
     const player = game.players.find(
@@ -1048,7 +1048,10 @@ export class GamesService {
    * @param viewerId The authenticated user id used to customize the returned public view.
    * @return The finished game view if the game ended, otherwise the current public game view.
    */
-  private async finishIfNeeded(game: GameWithPlayers, viewerId: string) {
+  private async finishIfNeeded(
+    game: GameWithPlayers,
+    viewerId: string,
+  ): Promise<ReturnType<GamesService['toPublicGame']>> {
     const active = game.players.filter(
       (p: GamePlayerWithUser) => p.status === 'ACTIVE',
     );
@@ -1067,12 +1070,11 @@ export class GamesService {
       return !hasPlayableCard(hand, game.total) && !hasFourOno99(hand);
     });
 
-    if (nobodyCanPlay && game.lastPlayedById) {
-      return this.finishGame(
-        game.id,
-        game.lastPlayedById,
-        viewerId,
-        this.calculatePoints(1, game.players.length),
+    if (nobodyCanPlay && game.currentPlayerId) {
+      return this.eliminateCurrentPlayer(
+        game,
+        game.currentPlayerId,
+        'NO_LEGAL_MOVE',
       );
     }
 
