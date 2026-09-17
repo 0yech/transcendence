@@ -1,6 +1,6 @@
 export default function TermsOfService() {
   return (
-    <main className="mx-auto max-w-2xl space-y-4 p-6">
+    <main className="mx-auto max-w-2xl space-y-4 p-6 pb-16">
       <h1 className="text-3xl font-semibold">Terms of Service</h1>
       <p className="text-sm">Last updated: 16.09.2026</p>
 

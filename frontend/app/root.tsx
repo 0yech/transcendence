@@ -11,6 +11,7 @@ import { WebSocketProvider } from './context/WebSocketProvider';
 import type { Route } from './+types/root';
 import './app.css';
 import { Background } from './components/Background';
+import { Footer } from './components/Footer';
 import { PresenceProvider } from './context/PresenceProvider';
 
 export const links: Route.LinksFunction = () => [
@@ -37,6 +38,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body className="bg-[url(/background.png)] bg-cover min-h-dvh">
         {children}
+        <Footer />
         <Background />
         <ScrollRestoration />
         <Scripts />
