@@ -48,6 +48,38 @@ export function UserPopUp({ user }: UserPopUpProps) {
 export function UserProfile({ user }: { user: SelfUserInterface | null }) {
   const date = new Date(user?.createdAt ? user?.createdAt : '');
 
+  const userPts = user?.totalPts ?? 0;
+  const ranks = [
+    { minPts: 0, name: 'Noob' },
+    { minPts: 100, name: 'Beginner' },
+    { minPts: 850, name: 'Amateur' },
+    { minPts: 1500, name: 'Semipro' },
+    { minPts: 3000, name: 'Pro' },
+    { minPts: 4500, name: 'Legend' },
+    { minPts: 8000, name: 'GOAT' },
+    { minPts: 31415, name: 'Hacker' },
+    { minPts: 1000000, name: 'Nolife' },
+  ];
+  const rankIndex = ranks.reduce(
+    (currentIndex, rank, index) =>
+      userPts >= rank.minPts ? index : currentIndex,
+    0,
+  );
+  const currentRank = ranks[rankIndex];
+  const nextRank = ranks[rankIndex + 1];
+  const userRank = currentRank.name;
+  const xpProgress = nextRank
+    ? Math.min(
+        100,
+        Math.max(
+          0,
+          ((userPts - currentRank.minPts) /
+            (nextRank.minPts - currentRank.minPts)) *
+            100,
+        ),
+      )
+    : 100;
+
   return (
     <>
       <title>{user?.username ? `${user.username}'s Profile` : 'Profile'}</title>
@@ -78,16 +110,45 @@ export function UserProfile({ user }: { user: SelfUserInterface | null }) {
               </div>
 
               <div className="flex w-full justify-center gap-3 sm:w-auto sm:flex-col sm:items-end">
-                <div
-                  className={`${accentInsetCardClass} px-5 py-3 text-center sm:text-right`}
-                >
-                  <p className={statLabelClass}>Total points</p>
-                  <p className="text-3xl font-black text-pink">
-                    {user?.totalPts ?? 0}
-                  </p>
+                <div className="flex flex-row justify-between w-full gap-2">
+                  <div
+                    className={`${accentInsetCardClass} px-5 py-3 text-center sm:text-right w-1/2`}
+                  >
+                    <p className={statLabelClass}>Rank</p>
+                    <p className="text-3xl font-black text-pink">{userRank}</p>
+                  </div>
+                  <div
+                    className={`${accentInsetCardClass} px-5 py-3 text-center sm:text-right w-1/2`}
+                  >
+                    <p className={statLabelClass}>Total points</p>
+                    <p className="text-3xl font-black text-pink">{userPts}</p>
+                  </div>
+                </div>
+                <div className="w-full">
+                  <div className="mb-1 flex items-center justify-between text-xs font-bold text-light-pink">
+                    <span>XP</span>
+                    <span>
+                      {nextRank
+                        ? `${userPts} / ${nextRank.minPts}`
+                        : 'Max rank'}
+                    </span>
+                  </div>
+                  <div
+                    className="h-3 w-full overflow-hidden rounded-full bg-mid-dark-blue/80"
+                    role="progressbar"
+                    aria-label="Rank progression"
+                    aria-valuemin={0}
+                    aria-valuemax={nextRank?.minPts ?? userPts}
+                    aria-valuenow={userPts}
+                  >
+                    <div
+                      className="h-full rounded-full bg-linear-to-r from-blue to-pink transition-[width] duration-500"
+                      style={{ width: `${xpProgress}%` }}
+                    />
+                  </div>
                 </div>
                 <div
-                  className={`${insetCardClass} px-5 py-3 text-center text-sm opacity-75 sm:text-right`}
+                  className={`${insetCardClass} px-5 py-3 text-center text-sm opacity-75 sm:text-right `}
                 >
                   Account created{' '}
                   {Number.isNaN(date.getTime())
