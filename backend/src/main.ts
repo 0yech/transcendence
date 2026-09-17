@@ -1,20 +1,14 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import cookieParser from 'cookie-parser';
-import { ValidationPipe } from '@nestjs/common';
+import { buildValidationPipe } from './common/validation-pipe';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors();
   app.setGlobalPrefix('api');
   app.use(cookieParser());
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true, // Transform data types into the ones present in the DTO class
-    }),
-  );
+  app.useGlobalPipes(buildValidationPipe());
   await app.listen(process.env.BACKEND_PORT ?? 3000);
 }
 bootstrap();
