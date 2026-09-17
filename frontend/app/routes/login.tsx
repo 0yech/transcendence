@@ -7,10 +7,11 @@ import { StylisedLink } from '../components/StylisedLink';
 import { NavBar } from '~/components/Navbar';
 import { UseWebSocket } from '~/context/UseWebSocket';
 import { useEffect } from 'react';
+import apiFetch from '~/utils/api-fetch';
 
 export async function clientAction({ request }: Route.ClientActionArgs) {
   const data = await request.formData();
-  const response = await fetch('/api/auth/login', {
+  const response = await apiFetch('/api/auth/login', {
     method: 'POST',
     body: JSON.stringify(Object.fromEntries(data)),
     headers: new Headers({
@@ -27,10 +28,10 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
     }
   }
 
-  const resp = await fetch('/api/auth/me');
+  const resp = await apiFetch('/api/auth/me');
   if (resp.ok) {
     const userJson = await resp.json();
-    const lobbyResponse = await fetch('/api/lobbies/me');
+    const lobbyResponse = await apiFetch('/api/lobbies/me');
     if (lobbyResponse.ok) {
       console.log(lobbyResponse);
       const lobbyText = await lobbyResponse.text();

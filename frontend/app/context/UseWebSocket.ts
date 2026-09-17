@@ -13,7 +13,7 @@ export function UseWebSocket() {
   const context = useContext(WebsocketContext);
 
   if (!context) {
-    throw new Error('useWebSocket must be used inside WebSocketRef');
+    throw new Error('useWebSocket must be used inside the provider');
   }
 
   return context;

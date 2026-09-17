@@ -1,218 +1,96 @@
-import { Canvas } from '@react-three/fiber';
-import { Suspense, useEffect, useState } from 'react';
-import { useControls } from 'leva';
-import { OrbitControls } from '@react-three/drei';
-// import { useMotionValue, useSpring } from 'motion/react';
-import { Card } from './Card';
-import { UseWebSocket } from '~/context/UseWebSocket';
+import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import LobbyChat from '~/components/LobbyChat';
-import { getUserById } from '~/utils/users';
-import { motion } from 'motion/react';
-import TurnTimer from '~/components/game/TurnTimer';
+import { UseWebSocket } from '~/context/UseWebSocket';
+import { GameHud } from './GameHud';
+import { GameTable } from './GameTable';
+import { canPlayCard, hasFourOno99 } from './rules';
+import { useDiscardTop } from './useDiscardTop';
+import { useHandCards } from './useHandCards';
 
+/**
+ * The local player: what they are allowed to play, and what we send to the
+ * server.
+ *
+ * The animation state lives in useHandCards, the scene in GameTable and the
+ * chrome in GameHud.
+ */
 export function Game() {
-  const { lightColor, lightIntensity } = useControls({
-    lightColor: 'white',
-    lightIntensity: {
-      value: 1.0,
-      min: 0.0,
-      max: 5.0,
-    },
-  });
-  {
-    /**Début de l'enfer */
-  }
-  const { playSlot, gameState, userId, playFour, unable, getCode } =
-    UseWebSocket();
-  const [winnerId, setWinnerId] = useState<string | null>(null);
-  const [turnUser, setTurnUser] = useState<string | null>(null);
-  const navigate = useNavigate();
   const { code } = useParams();
+  const navigate = useNavigate();
+  const { playSlot, playFour, unable, gameState, userId, getCode } =
+    UseWebSocket();
+
   const lobbyCode = getCode();
 
+  // player and
+  const me = gameState?.players.find((p) => p.userId === userId());
+  const rawHand = me?.hand;
+  const hand = Array.isArray(rawHand) ? rawHand : [];
+
+  /* discard pile
+   *   The pile only reveals itself once a card has landed, hence the commit
+   *   wired to both animation sources: this hand and the ones across the table.
+   */
+  const discardTop = useDiscardTop();
+
+  const { cards, animating, playCardAt, discardFour, handleArrived } =
+    useHandCards(hand, discardTop.commit);
+
+  /* playability
+   *   Same conditions as the backend: without this the animation would start
+   *   for a move the server refuses, and the displayed hand would go wrong.
+   */
+  const isMyTurn =
+    gameState?.status === 'IN_PROGRESS' &&
+    gameState.currentPlayerId === userId() &&
+    me?.status === 'ACTIVE';
+
+  // While a card is in flight the slots are shifted optimistically and the
+  // reference hand is out of date: nothing can be validated reliably.
+  const canPlaySlot = (slot: number) =>
+    isMyTurn && !animating && canPlayCard(hand[slot], gameState?.total ?? 0);
+
+  const canPlayFour = isMyTurn && !animating && hasFourOno99(hand);
+
+  // moves
+  const handlePlay = (index: number) => {
+    if (!canPlaySlot(cards[index].slot)) return;
+    // the backend numbers slots from 1
+    playCardAt(index, (slot) => playSlot(slot + 1));
+  };
+
+  const handlePlayFour = () => {
+    if (!canPlayFour) return;
+    discardFour(playFour);
+  };
+
+  // end of game navigation
   useEffect(() => {
-    if (gameState && gameState.winnerId)
-      getUserById(gameState.winnerId).then((json) =>
-        setWinnerId(json.username),
-      );
-  }, [gameState, gameState?.winnerId]);
-  useEffect(() => {
-    if (gameState && gameState.currentPlayerId)
-      getUserById(gameState.currentPlayerId).then((json) =>
-        setTurnUser(json.username),
-      );
-  }, [gameState, gameState?.currentPlayerId]);
+    if (gameState?.status !== 'FINISHED') return;
+    const id = setTimeout(() => navigate(`/game/${lobbyCode}`), 2000);
+    return () => clearTimeout(id);
+  }, [gameState?.status, navigate, lobbyCode]);
 
-  useEffect(() => {
-    if (gameState?.status !== 'FINISHED' || !gameState.winnerId) {
-      return;
-    }
-
-    const timeout = setTimeout(() => {
-      navigate(`/game/${lobbyCode}`);
-    }, 1000);
-
-    return () => clearTimeout(timeout);
-  }, [gameState?.status, gameState?.winnerId, lobbyCode, navigate]);
-
-  if (!code) {
-    return null;
-  }
-
-  let myCards = null;
-  if (gameState) {
-    const players = gameState.players.find(
-      (element) => element.userId === userId(),
-    );
-    console.log(players);
-    if (players) {
-      myCards = players.hand;
-    }
-  }
-  {
-    /**Retour en zone "safe" */
-  }
+  if (!code) return null;
 
   return (
     <>
-      {/**L'enfer 2, le retour de la vengeance */}
-      <div className="w-fit h-fit flex flex-col gap-4 fixed top-14 z-10">
-        <div className="w-fit h-fit flex flex-col gap-4">
-          <li>who's turn: {turnUser}</li>
-          <li>pendingPlays: {gameState?.pendingPlays}</li>
-          <li>turnNumber: {gameState?.turnNumber}</li>
-          <li>DeckCount: {gameState?.deckCount}</li>
-          {gameState?.status === 'IN_PROGRESS' &&
-            gameState.turnNumber !== undefined && (
-              <TurnTimer key={gameState.turnNumber} />
-            )}
-          <li>
-            {gameState?.direction ? <>Left to right</> : <>Right to left</>}
-          </li>
-          {winnerId ? <li>Winner: {winnerId}</li> : <></>}
-          {gameState &&
-          gameState.discardPile &&
-          gameState.discardPile.length > 0 ? (
-            <li>
-              LastCardPlayed:{' '}
-              {gameState.discardPile[gameState.discardPile.length - 1].id}
-            </li>
-          ) : (
-            <></>
-          )}
+      <GameHud
+        code={code}
+        hasHand={hand.length > 0}
+        canPlayFour={canPlayFour}
+        onPlayFour={handlePlayFour}
+        onUnable={unable}
+      />
 
-          {Array.isArray(myCards) ? (
-            <>
-              <li key="play99">
-                <button
-                  className="rounded-full w-fit px-5 bg-pink-400 hover:bg-pink-600"
-                  onClick={() => playFour()}
-                >
-                  play Four ONO99
-                </button>
-              </li>
-              <li key="forfeit">
-                <button
-                  className="rounded-full w-fit px-5 bg-pink-400 hover:bg-pink-600"
-                  onClick={() => unable()}
-                >
-                  Unable to play
-                </button>
-              </li>
-            </>
-          ) : (
-            <>not waa :(</>
-          )}
-          <LobbyChat code={code} canSend={true} />
-        </div>
-      </div>
-      {/**Ouf, c'est fini */}
-      <div className="inset-0 top-0 h-dvh flex justify-center items-center">
-        <motion.div
-          initial={{ opacity: 0, y: 100 }}
-          animate={{ opacity: 1, y: -100 }}
-          transition={{ duration: 1, ease: 'easeInOut' }}
-        >
-          <h1 className="text-9xl font-display text-shadow-lg">
-            NONO{gameState?.total}
-          </h1>
-        </motion.div>
-      </div>
-      <div className="inset-0 fixed">
-        {/* eventSource={document.body} eventPrefix="client" */}
-        <Canvas>
-          <ambientLight intensity={0.2} />
-          <directionalLight
-            position={[0, 9, 20]}
-            color={lightColor}
-            intensity={lightIntensity}
-          />
-          <Suspense fallback={null}>
-            <Card
-              frontImage={`/cards/${
-                gameState &&
-                gameState.discardPile &&
-                gameState.discardPile.length > 0
-                  ? gameState.discardPile[
-                      gameState.discardPile.length - 1
-                    ].id.slice(
-                      0,
-                      gameState.discardPile[
-                        gameState.discardPile.length - 1
-                      ].id.lastIndexOf('_'),
-                    )
-                  : 'censored'
-              }.png`}
-              position={[0, 0, -22]}
-              rotation={[-Math.PI / 6, 0, 0]}
-            />
-            <group
-              scale={0.3}
-              position={[0, -2, 0]}
-              rotation={[-Math.PI / 12, 0, 0]}
-            >
-              <Card
-                frontImage={`/cards/${Array.isArray(myCards) ? myCards[0].id.slice(0, myCards[0].id.lastIndexOf('_')) : 'censored'}.png`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  playSlot(1);
-                }}
-                position={[-2.1, 0, 0]}
-                rotation={[0, Math.PI / 128, Math.PI / 6]}
-              />
-              <Card
-                frontImage={`/cards/${Array.isArray(myCards) ? myCards[1].id.slice(0, myCards[1].id.lastIndexOf('_')) : 'censored'}.png`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  playSlot(2);
-                }}
-                position={[-0.7, 0.5, 0]}
-                rotation={[0, Math.PI / 128, Math.PI / 12]}
-              />
-              <Card
-                frontImage={`/cards/${Array.isArray(myCards) ? myCards[2].id.slice(0, myCards[2].id.lastIndexOf('_')) : 'censored'}.png`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  playSlot(3);
-                }}
-                position={[0.7, 0.5, 0]}
-                rotation={[0, Math.PI / 128, -Math.PI / 12]}
-              />
-              <Card
-                frontImage={`/cards/${Array.isArray(myCards) ? myCards[3].id.slice(0, myCards[3].id.lastIndexOf('_')) : 'censored'}.png`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  playSlot(4);
-                }}
-                position={[2.1, 0, 0]}
-                rotation={[0, Math.PI / 128, -Math.PI / 6]}
-              />
-            </group>
-          </Suspense>
-          <OrbitControls />
-        </Canvas>
-      </div>
+      <GameTable
+        cards={cards}
+        discardTop={discardTop.card}
+        canPlaySlot={canPlaySlot}
+        onPlay={handlePlay}
+        onArrived={handleArrived}
+        onOpponentLanded={discardTop.commit}
+      />
     </>
   );
 }

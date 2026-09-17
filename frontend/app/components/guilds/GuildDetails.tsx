@@ -137,7 +137,7 @@ export function GuildDetails({
       <div className={pageContentClass}>
         <section className={primaryCardClass}>
           <p className={eyebrowClass}>Guild hall</p>
-          <h1 className="mt-1 break-words text-4xl font-black sm:text-6xl">
+          <h1 className="mt-1 wrap-break-word text-4xl font-black sm:text-6xl">
             {guild.name}
           </h1>
           <dl className="mt-6 grid grid-cols-3 gap-3">

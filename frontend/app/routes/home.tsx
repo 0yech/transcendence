@@ -5,6 +5,7 @@ import { NavBar } from '~/components/Navbar';
 import type { SelfUserInterface } from '~/context/WebSocketContext';
 import { ButtonLinkIn } from '~/components/Button';
 import { UseWebSocket } from '~/context/UseWebSocket';
+import apiFetch from '~/utils/api-fetch';
 
 export function HomeButton() {
   const navigate = useNavigate();
@@ -19,13 +20,6 @@ export function HomeButton() {
   );
 }
 
-async function getFetch(apiPath: string) {
-  const resp = await fetch(apiPath);
-  if (!resp.ok) return null;
-  const json = await resp.json();
-  return json;
-}
-
 /**
  *
  * @brief create a useState for home page. loads it and pass it to Welcome component
@@ -37,13 +31,19 @@ export default function Home() {
   const [userCurr, setUserCurr] = useState<SelfUserInterface | null>(null);
   useEffect(() => {
     async function fetchUser() {
-      const data = await getFetch('/api/auth/me');
-      if (data && data.username) {
-        setUserCurr(data);
+      try {
+        const data = await apiFetch('/api/auth/me');
+        const json = await data.json();
+        if (json && json.username) {
+          setUserCurr(json);
+        }
+      } catch (e) {
+        console.log(e);
       }
     }
     fetchUser();
   }, []);
+
   if (userCurr) setUser(userCurr);
   return (
     <>

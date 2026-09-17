@@ -217,7 +217,7 @@ export function JoinLobbyWithCodeForm() {
   async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     try {
-      const resp = await fetch(`/api/lobbies/${code}/join`, {
+      const resp = await apiFetch(`/api/lobbies/${code}/join`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -279,7 +279,7 @@ export default function DisplayLobbies() {
 
   const fetchLobbies = async () => {
     try {
-      const response = await fetch('/api/lobbies');
+      const response = await apiFetch('/api/lobbies');
       if (response.ok) {
         const data = await response.json();
         setLobbies(data);

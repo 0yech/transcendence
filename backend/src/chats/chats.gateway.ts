@@ -7,7 +7,7 @@ import {
   WsException,
 } from '@nestjs/websockets';
 import { JwtService } from '@nestjs/jwt';
-import { Server, Socket } from 'socket.io';
+import { DefaultEventsMap, Server, Socket } from 'socket.io';
 import { PrismaService } from '../prisma/prisma.service';
 
 /**
@@ -16,11 +16,12 @@ import { PrismaService } from '../prisma/prisma.service';
  * The user id is stored in socket. data after the JWT has been verified
  * during the connection handshake.
  */
-type AuthenticatedSocket = Socket & {
-  data: {
-    userId?: string;
-  };
-};
+type AuthenticatedSocket = Socket<
+  DefaultEventsMap,
+  DefaultEventsMap,
+  DefaultEventsMap,
+  { userId?: string }
+>;
 
 @WebSocketGateway({
   namespace: '/chats',

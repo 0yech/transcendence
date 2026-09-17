@@ -1,5 +1,6 @@
 import { useEffect, useState, type SyntheticEvent } from 'react';
 import { io } from 'socket.io-client';
+import apiFetch from '~/utils/api-fetch';
 
 interface ChatMessage {
   id: string;
@@ -86,7 +87,7 @@ export default function LobbyChat({ code, canSend }: LobbyChatProps) {
           setConnected(true);
 
           try {
-            const historyResponse = await fetch(
+            const historyResponse = await apiFetch(
               `/api/lobbies/${encodeURIComponent(code)}/messages`,
             );
 
@@ -149,7 +150,7 @@ export default function LobbyChat({ code, canSend }: LobbyChatProps) {
     }
 
     try {
-      const response = await fetch(
+      const response = await apiFetch(
         `/api/lobbies/${encodeURIComponent(code)}/messages`,
         {
           method: 'POST',
