@@ -5,10 +5,11 @@ import { redirect } from 'react-router';
 import { StylisedLink } from '~/components/StylisedLink';
 import { OauthLoginOptions } from '~/pages/auth/oauth';
 import { NavBar } from '~/components/Navbar';
+import apiFetch from '~/utils/api-fetch';
 
 export async function clientAction({ request }: Route.ActionArgs) {
   const data = await request.formData();
-  const response = await fetch('/api/auth/register', {
+  const response = await apiFetch('/api/auth/register', {
     method: 'POST',
     body: JSON.stringify(Object.fromEntries(data)),
     headers: new Headers({

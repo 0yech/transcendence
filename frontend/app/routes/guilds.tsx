@@ -2,9 +2,10 @@ import type { Route } from './+types/guilds';
 import { GuildRankingTable } from '../components/guilds/GuildRankingTable';
 import { NavBar } from '~/components/Navbar';
 import { eyebrowClass, pageShellClass, primaryCardClass } from '~/styles/theme';
+import apiFetch from '~/utils/api-fetch';
 
 export async function clientLoader() {
-  const response = await fetch('/api/guilds');
+  const response = await apiFetch('/api/guilds');
 
   if (!response.ok) {
     throw new Error('Failed to fetch guilds');
