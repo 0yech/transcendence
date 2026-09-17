@@ -11,6 +11,7 @@ import { LobbiesModule } from './lobbies/lobbies.module';
 import { UsersModule } from './users/users.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { PrismaExceptionFilter } from './prisma/prisma-exception.filter';
+import { PresenceModule } from './presence/presence.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { PrismaExceptionFilter } from './prisma/prisma-exception.filter';
     GuildsModule,
     GamesModule,
     ChatsModule,
+    PresenceModule,
     ScheduleModule.forRoot(),
   ],
   controllers: [AppController],

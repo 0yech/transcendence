@@ -10,15 +10,16 @@ import {
   WebSocketServer,
   WsException,
 } from '@nestjs/websockets';
-import type { Server, Socket } from 'socket.io';
+import type { DefaultEventsMap, Server, Socket } from 'socket.io';
 import type { JwtPayload } from '../auth/jwt-payload.interface';
 import { GamesService } from './games.service';
 
-type GameSocket = Socket & {
-  data: {
-    user?: JwtPayload;
-  };
-};
+type GameSocket = Socket<
+  DefaultEventsMap,
+  DefaultEventsMap,
+  DefaultEventsMap,
+  { user?: JwtPayload }
+>;
 
 type GameState = {
   id: string;

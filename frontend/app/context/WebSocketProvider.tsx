@@ -15,7 +15,7 @@ import type { InterfaceGameState, SelfUserInterface } from './WebSocketContext';
  * @returns a collection of function that will be used. read inside function for informations
  *
  */
-export function WebSocketRef({ children }: { children: ReactNode }) {
+export function WebSocketProvider({ children }: { children: ReactNode }) {
   const wsRef = useRef<Socket | null>(null);
   const codeLink = useRef<string | null>(null);
   const userIdRef = useRef<string | null>(null);

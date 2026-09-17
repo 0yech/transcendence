@@ -6,7 +6,7 @@ This document describes the Socket.IO namespaces and events exposed by the backe
 >
 > Game WebSocket behavior reflects the `feat/ws-game` pull request state reviewed on 2026-08-15.
 
-The backend uses Socket.IO for real-time game state and lobby chat delivery.
+The backend uses Socket.IO for real-time game state, lobby chat delivery and friend presence.
 
 For browser clients, the existing authentication cookie can be reused. Register server-event listeners before emitting the corresponding join event so that initial updates are not missed.
 
@@ -443,3 +443,105 @@ This does **not** remove the user from the lobby database. Use the HTTP lobby le
 ```
 
 ---
+
+## Presence WebSocket
+
+**Namespace:** `/presence`
+
+**Authentication:** Required
+
+The gateway reads the `access_token` cookie during the Socket.IO handshake.
+
+If the cookie is missing or invalid, the server emits `presence:error`:
+
+```json
+{
+  "message": "Unauthorized"
+}
+```
+
+and then disconnects the socket.
+
+The token is checked only while the socket connects. An accepted socket stays accepted until it disconnects, even once its access token expires.
+
+Presence is entirely server-driven: every event goes from server to client, and the client emits nothing. A user counts as online while at least one of their sockets is open on this namespace, so several tabs or devices count as one online user. The state is held in memory by `PresenceService`, so a backend restart begins with nobody online.
+
+Each socket joins a Socket.IO room named after its own user id. Status changes are emitted to the rooms of that user's friends, so a status only ever reaches that user's friends.
+
+### Recommended integration order
+
+```text
+1. Connect to /presence with the access_token cookie, once a user is logged in.
+2. Register the presence:sync, presence:online and presence:offline listeners.
+3. Replace the whole set of online friends with each presence:sync payload.
+4. Add and remove ids as presence:online and presence:offline arrive.
+5. Disconnect when the user logs out.
+```
+
+> Register the listeners before connecting: `presence:sync` is sent as soon as the server accepts the socket.
+
+### `presence:sync`
+
+The friends who are online at the moment this socket connects.
+
+**Direction:** Server → Client
+
+Sent once per accepted connection, before any other presence event, including after Socket.IO reconnects on its own. It is always sent, with an empty list when no friend is online, so a client can treat it as a full replacement of its local state.
+
+**Payload**
+
+```json
+{
+  "onlineFriends": ["user-id", "other-user-id"]
+}
+```
+
+### `presence:online`
+
+A friend came online: their first socket connected.
+
+**Direction:** Server → Client
+
+Sent only to the friends of that user, and only for the connection that brought them from zero sockets to one. Opening a second tab sends nothing.
+
+**Payload**
+
+```json
+{
+  "userId": "user-id"
+}
+```
+
+### `presence:offline`
+
+A friend went offline: their last socket closed.
+
+**Direction:** Server → Client
+
+Not sent while the user still has another socket open. A browser that disappears without closing its socket (a closed laptop, a lost connection) is noticed through the Socket.IO heartbeat, so this event can arrive up to roughly 45 seconds later.
+
+**Payload**
+
+```json
+{
+  "userId": "user-id"
+}
+```
+
+### `presence:error`
+
+Connection-level authentication error.
+
+**Direction:** Server → Client
+
+Current payload:
+
+```json
+{
+  "message": "Unauthorized"
+}
+```
+
+After this event, the gateway disconnects the unauthenticated socket.
+
+Socket.IO does not reconnect by itself after a server-side disconnect. A client that wants to recover, for instance because its access token expired while it was disconnected, has to refresh the session and call `connect()` again. `frontend/app/context/PresenceProvider.tsx` does this once per rejection.
