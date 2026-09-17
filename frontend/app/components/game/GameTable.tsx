@@ -25,7 +25,7 @@ type GameTableProps = {
   canPlaySlot: (slot: number) => boolean;
   onPlay: (index: number) => void;
   onArrived: (index: number) => void;
-  /** an opponent has just laid a card on the discard pile */
+  // an opponent has just laid a card on the discard pile
   onOpponentLanded: () => void;
 };
 

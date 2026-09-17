@@ -19,7 +19,7 @@ type OpponentHandProps = {
   playerId: string;
   angle: number;
   lastPlay: TablePlay | null;
-  /** one of their cards has just landed on the discard pile */
+  // one of their cards has just landed on the discard pile
   onLanded: () => void;
 };
 

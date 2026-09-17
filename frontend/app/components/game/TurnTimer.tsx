@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 const TURN_DURATION_SEC = 20;
 
-/** Turn countdown, wound back on every turnNumber change through its key. */
+// Turn countdown, wound back on every turnNumber change through its key.
 export default function TurnTimer() {
   const [remainingSeconds, setRemainingSeconds] = useState(TURN_DURATION_SEC);
 

@@ -10,7 +10,7 @@ import type { CardState } from './useHandCards';
  * hoverable.
  */
 type PlayerHandProps = {
-  /** seat angle around the table, 0 for the local player */
+  // seat angle around the table, 0 for the local player
   angle: number;
   cards: CardState[];
   onArrived: (index: number) => void;

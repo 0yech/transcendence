@@ -22,25 +22,24 @@ export function Game() {
 
   const lobbyCode = getCode();
 
-  /* --- player hand --------------------------------------------------- */
-
+  // player and
   const me = gameState?.players.find((p) => p.userId === userId());
   const rawHand = me?.hand;
   const hand = Array.isArray(rawHand) ? rawHand : [];
 
-  /* --- discard pile -------------------------------------------------- */
-  // The pile only reveals itself once a card has landed, hence the commit
-  // wired to both animation sources: this hand and the ones across the table.
-
+  /* discard pile
+   *   The pile only reveals itself once a card has landed, hence the commit
+   *   wired to both animation sources: this hand and the ones across the table.
+   */
   const discardTop = useDiscardTop();
 
   const { cards, animating, playCardAt, discardFour, handleArrived } =
     useHandCards(hand, discardTop.commit);
 
-  /* --- playability --------------------------------------------------- */
-  // Same conditions as the backend: without this the animation would start
-  // for a move the server refuses, and the displayed hand would go wrong.
-
+  /* playability
+   *   Same conditions as the backend: without this the animation would start
+   *   for a move the server refuses, and the displayed hand would go wrong.
+   */
   const isMyTurn =
     gameState?.status === 'IN_PROGRESS' &&
     gameState.currentPlayerId === userId() &&
@@ -53,8 +52,7 @@ export function Game() {
 
   const canPlayFour = isMyTurn && !animating && hasFourOno99(hand);
 
-  /* --- moves --------------------------------------------------------- */
-
+  // moves
   const handlePlay = (index: number) => {
     if (!canPlaySlot(cards[index].slot)) return;
     // the backend numbers slots from 1
@@ -66,8 +64,7 @@ export function Game() {
     discardFour(playFour);
   };
 
-  /* --- end-of-game navigation ---------------------------------------- */
-
+  // end of game navigation
   useEffect(() => {
     if (gameState?.status !== 'FINISHED') return;
     const id = setTimeout(() => navigate(`/game/${lobbyCode}`), 10000);

@@ -54,7 +54,7 @@ function Stat({ label, value }: { label: string; value: ReactNode }) {
   );
 }
 
-/** The total turns orange then red as it closes in on 99. */
+// The total turns orange then red as it closes in on 99.
 function totalTone(total: number): string {
   if (total >= 90)
     return 'text-danger drop-shadow-[0_0_16px_rgba(255,117,117,0.5)]';

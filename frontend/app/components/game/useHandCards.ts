@@ -15,16 +15,16 @@ import { cardImage } from './textures';
 export type CardPhase = 'idle' | 'toDiscard' | 'fromDeck' | 'rejected';
 
 export type CardState = {
-  /** index (0-3) of the backend slot this 3D object stands for */
+  // index (0-3) of the backend slot this 3D object stands for
   slot: number;
   phase: CardPhase;
-  /** texture currently displayed (frozen during the animation) */
+  // texture currently displayed (frozen during the animation)
   display: string;
-  /** take-off delay, non-zero only during a quadruple ONO99 */
+  // take-off delay, non-zero only during a quadruple ONO99
   delay: number;
 };
 
-/** The four ONO99s take off in a cascade, from the leftmost card to the rightmost. */
+// The four ONO99s take off in a cascade, from the leftmost card to the rightmost.
 const FOUR_STAGGER_MS = 110;
 const FOUR_DELAYS: number[] = FAN_RANK.map((rank) => rank * FOUR_STAGGER_MS);
 
@@ -37,14 +37,14 @@ const INITIAL_CARDS: CardState[] = [0, 1, 2, 3].map((slot) => ({
 
 export type HandCards = {
   cards: CardState[];
-  /** true while a card is in flight: no move can leave in the meantime */
+  // true while a card is in flight: no move can leave in the meantime
   animating: boolean;
-  /** plays the card carried by the 3D object `index` */
+  // plays the card carried by the 3D object `index`
   playCardAt: (
     index: number,
     commit?: (slot: number) => Promise<boolean>,
   ) => void;
-  /** discards the four ONO99s in one go */
+  // discards the four ONO99s in one go
   discardFour: (commit?: () => Promise<boolean>) => void;
   /**
    * Replays an opponent's move. We do not know which card of their fan left —
@@ -52,7 +52,7 @@ export type HandCards = {
    * on the discard pile, and that is the one to show in flight.
    */
   replayOpponent: (revealed: InterfaceCardsGameState[]) => void;
-  /** to call once the 3D object `index` has finished its flight */
+  // to call once the 3D object `index` has finished its flight
   handleArrived: (index: number) => void;
 };
 
@@ -93,7 +93,7 @@ export function useHandCards(
     );
   }, [handKey]);
 
-  /** Sends a card to the discard pile and returns the slot it occupied. */
+  // Sends a card to the discard pile and returns the slot it occupied.
   const startPlay = (index: number, display?: string): number => {
     const played = cardsRef.current[index].slot;
 
@@ -115,7 +115,7 @@ export function useHandCards(
     return played;
   };
 
-  /** Sends the four cards to the discard pile in a cascade. */
+  // Sends the four cards to the discard pile in a cascade.
   const startDiscardFour = (displays?: string[]) => {
     // The backend empties the hand and refills it at once: the slots do not
     // move, the four cards leave and each comes back to its own place.
@@ -231,7 +231,7 @@ export function useHandCards(
   };
 }
 
-/** Brings the cards back into the hand if the server refused the move. */
+// Brings the cards back into the hand if the server refused the move.
 function settle(
   answer: Promise<boolean>,
   rollback: () => void,

@@ -12,7 +12,7 @@ import type { InterfaceCardsGameState } from '~/context/WebSocketContext';
  */
 export type TablePlay = {
   actorId: string;
-  /** the cards that have just landed on the discard pile */
+  // the cards that have just landed on the discard pile
   revealed: InterfaceCardsGameState[];
   turnNumber: number;
 };

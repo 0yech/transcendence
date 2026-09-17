@@ -7,31 +7,25 @@
 
 export type Vec3 = [number, number, number];
 
-/* ------------------------------------------------------------------ */
-/*  The table                                                         */
-/* ------------------------------------------------------------------ */
-
-/** The discard pile and the deck, sitting on the table. */
+// Table related
+// The discard pile and the deck, sitting on the table.
 export const DISCARD_WORLD: Vec3 = [0, 0, 0];
 export const DECK_WORLD: Vec3 = [7, 0.5, 0];
 
-/** A card lands just above a pile, never inside it. */
+// A card lands just above a pile, never inside it.
 const DROP_HEIGHT = 0.15;
 
 const above = ([x, y, z]: Vec3): Vec3 => [x, y + DROP_HEIGHT, z];
 
-/* ------------------------------------------------------------------ */
-/*  The seats                                                         */
-/* ------------------------------------------------------------------ */
-
-/** Distance between the centre of the table and a hand. */
+// Seats related
+// Distance between the centre of the table and a hand.
 export const SEAT_RADIUS = 16;
-/** Height at which a hand floats above the table. */
+// Height at which a hand floats above the table.
 export const SEAT_HEIGHT = 4;
-/** Tilt of the fan towards its player. */
+// Tilt of the fan towards its player.
 export const HAND_TILT = -Math.PI / 8;
 
-/** Position of the hand in its seat's frame. */
+// Position of the hand in its seat's frame.
 export const HAND_LOCAL_POS: Vec3 = [0, SEAT_HEIGHT, SEAT_RADIUS];
 
 /**
@@ -42,18 +36,15 @@ export function seatAngle(offset: number, playerCount: number): number {
   return playerCount > 0 ? (offset * 2 * Math.PI) / playerCount : 0;
 }
 
-/* ------------------------------------------------------------------ */
-/*  Frames                                                            */
-/* ------------------------------------------------------------------ */
-
-/** Rotates a vector by -angle around Y (world -> seat frame). */
+// Frames related
+// Rotates a vector by -angle around Y (world -> seat frame).
 function worldDirToSeat([x, y, z]: Vec3, angle: number): Vec3 {
   const cos = Math.cos(angle);
   const sin = Math.sin(angle);
   return [x * cos - z * sin, y, x * sin + z * cos];
 }
 
-/** Rotates a vector by -HAND_TILT around X (seat -> hand frame). */
+// Rotates a vector by -HAND_TILT around X (seat -> hand frame).
 function seatDirToHand([x, y, z]: Vec3): Vec3 {
   const a = -HAND_TILT;
   return [
@@ -63,7 +54,7 @@ function seatDirToHand([x, y, z]: Vec3): Vec3 {
   ];
 }
 
-/** A world direction expressed in a hand's local frame. */
+// A world direction expressed in a hand's local frame.
 function worldDirToHand(dir: Vec3, angle: number): Vec3 {
   return seatDirToHand(worldDirToSeat(dir, angle));
 }
@@ -82,7 +73,7 @@ function worldPosToHand([x, y, z]: Vec3, angle: number): Vec3 {
   ]);
 }
 
-/** A card lying flat: -PI/2 in the world, so -PI/2 - tilt in local space. */
+// A card lying flat: -PI/2 in the world, so -PI/2 - tilt in local space.
 export const FLAT_ROT: Vec3 = [-Math.PI / 2 - HAND_TILT, 0, 0];
 
 /**
@@ -93,7 +84,7 @@ export type HandFrame = {
   angle: number;
   discard: Vec3;
   deck: Vec3;
-  /** "Towards world up", expressed in the hand's frame. */
+  // "Towards world up", expressed in the hand's frame.
   arcUp: Vec3;
 };
 
@@ -106,14 +97,11 @@ export function handFrame(angle: number): HandFrame {
   };
 }
 
-/* ------------------------------------------------------------------ */
-/*  The fan                                                           */
-/* ------------------------------------------------------------------ */
-
+// Hand "Fan" shape related
 const STEPS_POSITION = [0.8, 2, -2, -0.8];
 const STEPS_ROTATION = [-2, -0.6, 0.6, 2];
 
-/** Rank of each card from left to right in the fan. */
+// Rank of each card from left to right in the fan.
 export const FAN_RANK: number[] = STEPS_POSITION.map(
   (sp) => STEPS_POSITION.filter((other) => other < sp).length,
 );
@@ -157,9 +145,7 @@ export const HOVER_ROT: Vec3[] = REST_ROT.map(([x, y, z]) => [
   z * HOVER_STRAIGHTEN,
 ]);
 
-/* ------------------------------------------------------------------ */
-/*  The flight arc                                                    */
-/* ------------------------------------------------------------------ */
+// Flight arc related
 
 /**
  * A card in flight follows a quadratic Bézier whose control point is offset

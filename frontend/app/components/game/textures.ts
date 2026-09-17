@@ -16,13 +16,13 @@ function preloadCardImages() {
 
 preloadCardImages();
 
-/** A card's file name: "NUMBER_7_7" -> "NUMBER_7". */
+// A card's file name: "NUMBER_7_7" -> "NUMBER_7".
 export function cardName(card: { id: string } | undefined | null): string {
   if (!card || !card.id) return 'censored';
   return card.id.slice(0, card.id.lastIndexOf('_'));
 }
 
-/** Path to a card's texture, or to the hidden card if it is unknown. */
+// Path to a card's texture, or to the hidden card if it is unknown.
 export function cardImage(card: { id: string } | undefined | null): string {
   return `/cards/${cardName(card)}.png`;
 }

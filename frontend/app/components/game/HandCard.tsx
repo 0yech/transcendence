@@ -32,17 +32,17 @@ const DENY_CONFIG = { tension: 1400, friction: 24 };
 const animatedVec3 = (value: SpringValue<Vec3>) => value as unknown as Vec3;
 
 type HandCardProps = {
-  /** position in the fan (0-3), which fixes the resting pose */
+  // position in the fan (0-3), which fixes the resting pose
   index: number;
-  /** flight targets, specific to this hand's seat */
+  //  flight targets, specific to this hand's seat
   frame: HandFrame;
   frontImage: string;
   phase: CardPhase;
-  /** take-off delay, in ms */
+  // take-off delay, in ms
   delay: number;
-  /** an opponent's hand is looked at but not clicked */
+  // an opponent's hand is looked at but not clicked
   interactive: boolean;
-  /** will the backend accept this move right now? */
+  // will the backend accept this move right now?
   playable: boolean;
   onArrived: () => void;
   onPlay: () => void;
@@ -68,7 +68,7 @@ export function HandCard({
   }>(() => ({
     position: REST_POS[index],
     rotation: REST_ROT[index],
-    arc: 1, // hors vol seul compte arcWeight(1) === 0
+    arc: 1, // arcWeight(1) === 0 when not flying
     config: SPRING_CONFIG,
   }));
 
