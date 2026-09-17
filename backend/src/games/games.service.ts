@@ -73,7 +73,7 @@ type GameWithPlayers = {
 @Injectable()
 export class GamesService {
   private readonly gameLocks = new Map<string, Promise<void>>();
-  private readonly turnDurationMs = 100;
+  private readonly turnDurationMs = 45_000;
   constructor(private readonly prisma: PrismaService) {}
 
   /**

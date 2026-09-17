@@ -51,7 +51,7 @@ export function Game() {
 
     const timeout = setTimeout(() => {
       navigate(`/game/${lobbyCode}`);
-    }, 100);
+    }, 1000);
 
     return () => clearTimeout(timeout);
   }, [gameState?.status, gameState?.winnerId, lobbyCode, navigate]);
