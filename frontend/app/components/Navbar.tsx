@@ -82,48 +82,91 @@ export function NavBar({ className, variant = 'primary', ...rest }: NavProps) {
           </li>
         )}
       </ul>
-      <div>
-        <Avatar
-          className={twMerge(
-            menuVisibility ? 'shadow-xl shadow-pink' : 'shadow-none',
-            'h-12 w-12 transition-all duration-500 ease-in-out',
-          )}
+      <div className="relative">
+        <button
+          type="button"
+          aria-label="Open account menu"
+          aria-expanded={menuVisibility}
+          aria-controls="account-menu"
+          className="rounded-full p-1 transition duration-300 hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-pink/80"
           onClick={() => {
             setMenuVisibility(!menuVisibility);
           }}
-          src={user?.avatarUrl}
-        ></Avatar>
+        >
+          <Avatar
+            className={twMerge(
+              menuVisibility
+                ? 'ring-2 ring-pink shadow-xl shadow-pink/60'
+                : 'ring-1 ring-light-pink/30 shadow-lg shadow-dark-blue/50',
+              'h-12 w-12 transition-all duration-300 ease-out',
+            )}
+            src={user?.avatarUrl}
+          />
+        </button>
         <ul
+          id="account-menu"
           className={twMerge(
-            'bg-dark-blue/10 shadow-2xl shadow-dark-blue/30 rounded-2xl fixed top-0 right-0 mt-18 transition-all duration-500 ease-in-out',
+            'absolute right-0 top-full mt-2 w-48 overflow-hidden rounded-2xl border border-light-pink/25 bg-linear-to-br from-dark-blue/60 via-dark-blue/50 to-mid-dark-blue/45 p-1.5 shadow-xl shadow-dark-blue/50 backdrop-blur-md transition-all duration-300 ease-out',
             menuVisibility
-              ? 'opacity-100 translate-y-0'
-              : 'pointer-events-none opacity-0 -translate-y-3',
+              ? 'scale-100 opacity-100 translate-y-0'
+              : 'pointer-events-none scale-95 opacity-0 -translate-y-2',
           )}
         >
           {user?.id ? (
-            <li>
-              <ButtonNavLink className="rounded-2xl" to="/profile">
-                Profile
-              </ButtonNavLink>
-            </li>
+            <>
+              <li className="mb-1.5 flex items-center gap-2 border-b border-light-pink/20 px-2.5 pb-2.5 pt-1.5">
+                <Avatar
+                  className="h-8 w-8 ring-1 ring-light-pink/40"
+                  src={user.avatarUrl}
+                />
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-bold text-light-pink">
+                    {user.username}
+                  </p>
+                  <p className="truncate text-[0.6rem] uppercase tracking-[0.16em] text-pink">
+                    {user.guild?.name ?? 'No guild'}
+                  </p>
+                </div>
+              </li>
+              <li>
+                <ButtonNavLink
+                  className="h-auto min-w-0 justify-start rounded-xl px-3 py-2 text-sm font-bold text-light-pink hover:bg-pink/20"
+                  to="/profile"
+                >
+                  Profile
+                </ButtonNavLink>
+              </li>
+              <li>
+                <ButtonNavLink
+                  className="h-auto min-w-0 justify-start rounded-xl px-3 py-2 text-sm font-bold text-light-pink hover:bg-pink/20"
+                  to="/settings"
+                >
+                  Settings
+                </ButtonNavLink>
+              </li>
+              <li className="mt-1.5 border-t border-light-pink/20 pt-1.5">
+                <LogoutButton />
+              </li>
+            </>
           ) : (
-            <li>
-              <ButtonNavLink className="rounded-2xl" to="/register">
-                Sign up
-              </ButtonNavLink>
-            </li>
-          )}
-          {user?.id ? (
-            <li className="rounded-2xl flex justify-center">
-              <LogoutButton />
-            </li>
-          ) : (
-            <li>
-              <ButtonNavLink className="rounded-2xl" to="/login">
-                Sign in
-              </ButtonNavLink>
-            </li>
+            <>
+              <li>
+                <ButtonNavLink
+                  className="h-auto min-w-0 justify-start rounded-xl px-3 py-2 text-sm font-bold text-light-pink hover:bg-pink/20"
+                  to="/register"
+                >
+                  Sign up
+                </ButtonNavLink>
+              </li>
+              <li>
+                <ButtonNavLink
+                  className="h-auto min-w-0 justify-start rounded-xl px-3 py-2 text-sm font-bold text-light-pink hover:bg-pink/20"
+                  to="/login"
+                >
+                  Sign in
+                </ButtonNavLink>
+              </li>
+            </>
           )}
         </ul>
       </div>

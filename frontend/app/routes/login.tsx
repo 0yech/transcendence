@@ -1,17 +1,16 @@
-import { ErrorMessage } from '~/pages/auth/errorMessage';
 import { LoginForm } from '~/pages/auth/login';
 import type { Route } from './+types/login';
-import { useNavigate, useSearchParams } from 'react-router';
+import { useNavigate } from 'react-router';
 import { OauthLoginOptions } from '~/pages/auth/oauth';
 import { StylisedLink } from '../components/StylisedLink';
 import { NavBar } from '~/components/Navbar';
 import { UseWebSocket } from '~/context/UseWebSocket';
 import { useEffect } from 'react';
-import apiFetch from '~/utils/api-fetch';
+import { ErrorMessage } from '~/pages/auth/errorMessage';
 
 export async function clientAction({ request }: Route.ClientActionArgs) {
   const data = await request.formData();
-  const response = await apiFetch('/api/auth/login', {
+  const response = await fetch('/api/auth/login', {
     method: 'POST',
     body: JSON.stringify(Object.fromEntries(data)),
     headers: new Headers({
@@ -28,12 +27,11 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
     }
   }
 
-  const resp = await apiFetch('/api/auth/me');
+  const resp = await fetch('/api/auth/me');
   if (resp.ok) {
     const userJson = await resp.json();
-    const lobbyResponse = await apiFetch('/api/lobbies/me');
+    const lobbyResponse = await fetch('/api/lobbies/me');
     if (lobbyResponse.ok) {
-      console.log(lobbyResponse);
       const lobbyText = await lobbyResponse.text();
       if (!lobbyText) return { user: userJson, lobbies: null };
 
@@ -46,7 +44,6 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
 export default function Login({ actionData }: Route.ComponentProps) {
   const { setUser, setCode } = UseWebSocket();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     if (actionData?.user) {
@@ -56,32 +53,6 @@ export default function Login({ actionData }: Route.ComponentProps) {
     }
   }, [actionData?.user, setUser, actionData?.lobbies, setCode, navigate]);
 
-  let errorMessage = null;
-  if (actionData?.errorMessage) {
-    errorMessage = actionData.errorMessage;
-  } else {
-    const errorType = searchParams.get('error');
-
-    if (errorType !== null) {
-      switch (errorType) {
-        case 'BASIC_AUTH':
-          errorMessage =
-            'Account was created with username and password. Please login using your username and password.';
-          break;
-        case 'DIFFERENT_PROVIDER':
-          errorMessage =
-            'Account was created with a different OAuth provider. Please login using your usual provider.';
-          break;
-        case 'MISSING_DATA':
-          errorMessage =
-            "The OAuth provider didn't send us important data. Make sure your account is complete. For example, on Google, make sure your email has been verified, and on GitHub, select a public email address.";
-          break;
-        default:
-          errorMessage = 'Unknown error. Try again? Or check the backend logs.';
-      }
-    }
-  }
-
   return (
     <>
       <title>Transcendence</title>
@@ -90,7 +61,7 @@ export default function Login({ actionData }: Route.ComponentProps) {
         <div className="w-fit p-5 rounded-4xl bg-dark-blue/20 shadow-xl shadow-dark-blue/30 h-fit flex flex-col items-center gap-2">
           <h1 className="text-2xl">Login to Transcendence</h1>
           <LoginForm />
-          {errorMessage ? <ErrorMessage message={errorMessage} /> : null}
+          <ErrorMessage message={actionData?.errorMessage} />
           <h1 className="text-1xl text-center">
             Don't have an account yet?{' '}
             <StylisedLink to="/register">Sign up</StylisedLink>

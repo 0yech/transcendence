@@ -5,11 +5,10 @@ import { redirect } from 'react-router';
 import { StylisedLink } from '~/components/StylisedLink';
 import { OauthLoginOptions } from '~/pages/auth/oauth';
 import { NavBar } from '~/components/Navbar';
-import apiFetch from '~/utils/api-fetch';
 
 export async function clientAction({ request }: Route.ActionArgs) {
   const data = await request.formData();
-  const response = await apiFetch('/api/auth/register', {
+  const response = await fetch('/api/auth/register', {
     method: 'POST',
     body: JSON.stringify(Object.fromEntries(data)),
     headers: new Headers({
@@ -44,7 +43,7 @@ export default function Register({ actionData }: Route.ComponentProps) {
         <div className="p-5 rounded-4xl bg-dark-blue/20 shadow-xl shadow-dark-blue/30 w-fit h-fit flex flex-col items-center gap-2">
           <h1 className="text-2xl text-center">Register to Transcendence</h1>
           <RegisterForm />
-          {errorMessage ? <ErrorMessage message={errorMessage} /> : null}
+          <ErrorMessage message={errorMessage} />
           <h1 className="text-1xl text-center">
             Already have an account?{' '}
             <StylisedLink to="/login">Sign in</StylisedLink>

@@ -6,7 +6,11 @@ export function ErrorMessage(props: { message: string }) {
 
   return (
     <>
-      <p className="text-red-500 font-bold">{errorMessage}</p>
+      {errorMessage ? (
+        <p className="mt-5 rounded-2xl bg-danger/20 px-4 py-3 text-danger">
+          {errorMessage}
+        </p>
+      ) : null}
     </>
   );
 }
