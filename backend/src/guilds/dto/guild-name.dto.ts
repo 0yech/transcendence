@@ -6,6 +6,10 @@ import { trimIfString } from '../../common/trim.util';
  * @brief Validates a guild name, used both to create and to rename a guild.
  *
  * Same rules as `validateGuildName()` in the guilds service.
+ *
+ * The guild forms mirror them as HTML attributes, so the browser can reject
+ * bad input without a round trip. Keep them in sync with
+ * `frontend/app/components/guilds/GuildCreation.tsx` and `GuildDetails.tsx`.
  */
 export class GuildNameDto {
   @IsNotEmpty({ message: 'Please choose a guild name.' })

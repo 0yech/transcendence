@@ -36,6 +36,12 @@ export function AddFriend({ error, success }: AddFriendProps) {
           >
             Username
           </label>
+          {/*
+            Deliberately no length or character rules: this looks up an
+            existing username, and those aren't consistently bounded. A rule
+            here would block sending invitations to accounts whose names
+            predate it, or that OAuth created.
+          */}
           <input
             id="friend-invite-username"
             name="username"

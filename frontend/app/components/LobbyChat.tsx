@@ -193,6 +193,10 @@ export default function LobbyChat({ code, canSend }: LobbyChatProps) {
 
       {canSend ? (
         <form onSubmit={sendMessage}>
+          {/*
+            This limit mirrors CreateMessageDto in
+            backend/src/chats/dto/create-message.dto.ts. Keep them in sync.
+          */}
           <input
             type="text"
             value={content}
