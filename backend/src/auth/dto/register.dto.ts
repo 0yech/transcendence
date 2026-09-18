@@ -12,8 +12,9 @@ export class RegisterDto {
 
   @IsNotEmpty({ message: 'Please choose a username.' })
   @IsString({ message: 'Your username must be text.' })
-  @Length(0, 32, {
-    message: 'Your username can be at most $constraint2 characters.',
+  @Length(3, 32, {
+    message:
+      'Your username must be between $constraint1 and $constraint2 characters.',
   })
   username!: string;
 
