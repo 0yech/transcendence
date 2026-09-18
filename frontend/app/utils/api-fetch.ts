@@ -1,5 +1,11 @@
 import { redirect } from 'react-router';
 
+export class UnauthenticatedError extends Error {}
+
+type AuthFailureBehavior = {
+  redirectOnUnauthorized?: boolean;
+};
+
 /**
  * @brief This function will fetch the resources at `input`, and if a 401 is
  * received back, will attempt to refresh the current session's token with the
@@ -12,6 +18,7 @@ import { redirect } from 'react-router';
 export default async function apiFetch(
   input: string | URL,
   options?: RequestInit,
+  { redirectOnUnauthorized = true }: AuthFailureBehavior = {},
 ) {
   const firstTry = await fetch(input, options);
 
@@ -22,12 +29,18 @@ export default async function apiFetch(
   const refreshResponse = await fetch('/api/auth/refresh', {
     method: 'POST',
   });
-  if (!refreshResponse.ok) throw redirect('/login');
+  if (!refreshResponse.ok) {
+    if (redirectOnUnauthorized) throw redirect('/login');
+    throw new UnauthenticatedError();
+  }
 
   const secondTry = await fetch(input, options);
 
   // Return anything other than unauthorized as is
-  if (secondTry.status === 401) throw redirect('/login');
+  if (secondTry.status === 401) {
+    if (redirectOnUnauthorized) throw redirect('/login');
+    throw new UnauthenticatedError();
+  }
 
   return secondTry;
 }

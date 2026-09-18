@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { WebsocketContext } from './WebSocketContext';
 import { useNavigate } from 'react-router';
-import apiFetch from '~/utils/api-fetch';
+import apiFetch, { UnauthenticatedError } from '~/utils/api-fetch';
 import type { InterfaceGameState, SelfUserInterface } from './WebSocketContext';
 
 /**
@@ -123,7 +123,7 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
         });
 
         socket.on('game:error', (e) => {
-          console.error('game:error', e);
+          console.log('game:error', e);
 
           const message =
             typeof e?.message === 'string' ? e.message : 'Game websocket error';
@@ -136,7 +136,7 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
          * more useful instead of silently waiting for the ACK timeout.
          */
         socket.on('exception', (e) => {
-          console.error('game websocket exception', e);
+          console.log('game websocket exception', e);
 
           let message = 'Game websocket exception';
 
@@ -152,7 +152,7 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
         });
 
         socket.on('connect_error', (error) => {
-          console.error('game websocket connect_error', error);
+          console.log('game websocket connect_error', error);
 
           rejectConnection(
             error instanceof Error
@@ -227,7 +227,9 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     async function initialize() {
       try {
-        const authResponse = await apiFetch('/api/auth/me');
+        const authResponse = await apiFetch('/api/auth/me', undefined, {
+          redirectOnUnauthorized: false,
+        });
         if (!authResponse.ok) return;
         const user = await authResponse.json();
         if (!user?.id) return;
@@ -243,7 +245,8 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
         setLobbyCode(lobby.code);
         await connect(lobby.code);
       } catch (error) {
-        console.error('Failed to restore websocket connection:', error);
+        if (error instanceof UnauthenticatedError) return;
+        console.log('Failed to restore websocket connection:', error);
       }
     }
 

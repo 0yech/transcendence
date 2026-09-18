@@ -6,7 +6,6 @@ import { UserProfile } from '~/components/userProfiles/userProfile';
 
 export async function clientLoader({ params }: { params: Params<string> }) {
   const { id } = params;
-  console.log('id: ' + id);
   const data = await apiFetch(`/api/users/public/id/${id}`);
   return data.json();
 }
@@ -14,9 +13,5 @@ export async function clientLoader({ params }: { params: Params<string> }) {
 export default function PublicProfileById({
   loaderData,
 }: Route.ComponentProps) {
-  const user: SelfUserInterface = loaderData;
-
-  console.log(user);
-
-  return <UserProfile user={user} />;
+  return <UserProfile user={loaderData as SelfUserInterface} />;
 }
