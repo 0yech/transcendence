@@ -59,15 +59,25 @@ Individual contributors talked with the entire group for every decision, ensurin
 
 ## Technical Stack
 
-TODO: add justifications for technical choices, such as frameworks and the database system
-
-> Tentative stack, might change as the project evolves
-
-- Front-end: React, ThreeJS for 3D
-- Back-end: NestJS
+- Frontend: React, ThreeJS for 3D
+- Backend: NestJS
 - Database: PostgreSQL with Prisma ORM
 - Tailwind CSS for styling
 - TypeScript throughout the codebase
+
+For the frontend, React was chosen for its sheer amount of documentation, other projects,
+and forum posts. ThreeJS is one of the major 3D-capable libraries, and was thus chosen
+for the 3D environment and shaders.
+
+For the backend, NestJS was the perfect choice for us. As it was our first web project,
+having a backend framework providing structure would be a great help, and indeed, it was.
+Controllers, services, all NestJS abstractions have been an amazing help to build a coherent backend.
+
+PostgreSQL was chosen for the database for its powerful features and ease of schema generation,
+as well as the Prisma ORM for its code API.
+
+Tailwind for styling gained us a lot of time that would have been spent on designing CSS stylesheets.
+Instead, Tailwind classes were used for styling, helping us keep a consistent style throughout the project.
 
 TypeScript was chosen to make learning JavaScript simpler. It's not going to
 make life easy at first, but it will save us a lot of time in the long run,
