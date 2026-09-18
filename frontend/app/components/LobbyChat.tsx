@@ -1,6 +1,22 @@
 import { useEffect, useState, type SyntheticEvent } from 'react';
-import { io } from 'socket.io-client';
+import { io, type Socket } from 'socket.io-client';
 import apiFetch from '~/utils/api-fetch';
+
+let chatSocket: Socket | null = null;
+
+/**
+ *
+ * @brief Ensures a user is connected to the chat (for kicked player purposes)
+ *
+ * Chat websocket connects when the lobby page shows, so when a user is kicked
+ * they need to reconnect. This function reconnects the user on lobbyjoin if not
+ * already connected
+ */
+export function ensureChatConnection() {
+  if (chatSocket && !chatSocket.connected) {
+    chatSocket.connect();
+  }
+}
 
 interface ChatMessage {
   id: string;
@@ -69,7 +85,7 @@ export default function LobbyChat({ code, canSend }: LobbyChatProps) {
       autoConnect: false,
       withCredentials: true,
     });
-
+    chatSocket = socket;
     const onMessageCreated = (message: ChatMessage) => {
       setMessages((current) => mergeMessages(current, [message]));
     };
@@ -125,6 +141,9 @@ export default function LobbyChat({ code, canSend }: LobbyChatProps) {
       socket.off('connect', joinLobby);
       socket.off('message:created', onMessageCreated);
       socket.disconnect();
+      if (chatSocket === socket) {
+        chatSocket === null;
+      }
     };
   }, [code]);
 
