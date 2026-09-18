@@ -8,7 +8,6 @@ import { useState, useEffect } from 'react';
 import type { UserInterfaceLobby } from '~/utils/lobbies';
 import LobbyChat from '~/components/LobbyChat';
 import { NavBar } from '~/components/Navbar';
-import { getUserById } from '~/utils/users';
 
 export async function clientLoader({ params }: { params: Params<string> }) {
   const { code } = params;
@@ -46,7 +45,9 @@ export async function clientLoader({ params }: { params: Params<string> }) {
 export default function PreGame({ loaderData }: Route.ComponentProps) {
   const { startGame } = UseWebSocket();
   const [useUsers, setUsers] = useState<UserInterfaceLobby[] | null>(null);
-  const [getLeaderId, setLeaderId] = useState<string>('');
+  const [currentLeaderId, setCurrentLeaderId] = useState<string>(
+    loaderData.leaderId,
+  );
   const [kickingUserId, setKickingUserId] = useState<string | null>(null);
 
   const {
@@ -54,13 +55,10 @@ export default function PreGame({ loaderData }: Route.ComponentProps) {
     code,
     active,
     private: isPrivate,
-    leaderId,
     createdAt,
     updatedAt,
     currentUserId,
   } = loaderData;
-
-  getUserById(leaderId).then((data) => setLeaderId(data.username));
 
   const navigate = useNavigate();
 
@@ -72,6 +70,10 @@ export default function PreGame({ loaderData }: Route.ComponentProps) {
       if (json && json.users) {
         setUsers(json.users);
       }
+
+      if (typeof json?.leaderId === 'string' && json.leaderId.length > 0) {
+        setCurrentLeaderId(json.leaderId);
+      }
     }
 
     const interval = setInterval(() => {
@@ -82,6 +84,7 @@ export default function PreGame({ loaderData }: Route.ComponentProps) {
   }, [code]);
 
   const users: UserInterfaceLobby[] = useUsers ?? loaderData.users ?? [];
+  const currentLeader = users.find((user) => user.id === currentLeaderId);
 
   const isMember =
     currentUserId !== null && users.some((user) => user.id === currentUserId);
@@ -151,14 +154,14 @@ export default function PreGame({ loaderData }: Route.ComponentProps) {
           <h2>Code: {code}</h2>
           <h2>active: {active}</h2>
           <h2>is Private: {isPrivate ? 'true' : 'false'}</h2>
-          <h2>leader: {getLeaderId}</h2>
+          <h2>leader: {currentLeader?.username}</h2>
           <h2>createdAt: {createdAt}</h2>
           <h2>updatedAt: {updatedAt}</h2>
 
           <h2>Users</h2>
           <DisplayUsers
             users={users}
-            leaderId={leaderId}
+            leaderId={currentLeaderId}
             currentUserId={currentUserId}
             kickingUserId={kickingUserId}
             onKick={handleKick}
