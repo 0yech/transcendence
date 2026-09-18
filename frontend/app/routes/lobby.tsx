@@ -43,8 +43,9 @@ export async function clientLoader({ params }: { params: Params<string> }) {
 export default function PreGame({ loaderData }: Route.ComponentProps) {
   const { startGame } = UseWebSocket();
   const [useUsers, setUsers] = useState<UserInterfaceLobby[] | null>(null);
-  const [currentLeaderId, setCurrentLeaderId] =
-  useState<string>(loaderData.leaderId);
+  const [currentLeaderId, setCurrentLeaderId] = useState<string>(
+    loaderData.leaderId,
+  );
   const [kickingUserId, setKickingUserId] = useState<string | null>(null);
 
   const {
@@ -81,9 +82,7 @@ export default function PreGame({ loaderData }: Route.ComponentProps) {
   }, [code]);
 
   const users: UserInterfaceLobby[] = useUsers ?? loaderData.users ?? [];
-  const currentLeader = users.find(
-    (user) => user.id === currentLeaderId,
-  );
+  const currentLeader = users.find((user) => user.id === currentLeaderId);
 
   const isMember =
     currentUserId !== null && users.some((user) => user.id === currentUserId);
