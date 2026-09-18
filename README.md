@@ -86,6 +86,8 @@ better tooling overall.
 
 ## Database Schema
 
+<img width="1667" height="1239" alt="image" src="https://github.com/user-attachments/assets/4a5a63c8-9378-455c-b455-b65074b84a01" />
+
 TODO
 
 ## Features List
