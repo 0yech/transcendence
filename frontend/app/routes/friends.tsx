@@ -80,6 +80,7 @@ async function getApiErrorMessage(
  * @return The friends page data.
  */
 export async function clientLoader(): Promise<FriendsLoaderData> {
+  await apiFetch('/api/auth/me');
   const [friends, invitations] = await Promise.all([
     getFriends(),
     getFriendInvitations(),

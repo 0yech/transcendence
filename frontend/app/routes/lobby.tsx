@@ -1,6 +1,6 @@
 import type { Route } from './+types/lobby';
-import apiFetch from '~/utils/api-fetch';
-import type { Params } from 'react-router';
+import apiFetch, { UnauthenticatedError } from '~/utils/api-fetch';
+import { redirect, type Params } from 'react-router';
 import { DisplayUsers, JoinLobby, LeaveLobby } from '~/utils/lobbies';
 import { useNavigate } from 'react-router';
 import { UseWebSocket } from '~/context/UseWebSocket';
@@ -13,18 +13,20 @@ import { getUserById } from '~/utils/users';
 export async function clientLoader({ params }: { params: Params<string> }) {
   const { code } = params;
 
-  const [lobbyResponse, userResponse] = await Promise.all([
-    apiFetch(`/api/lobbies/${code}`),
-    apiFetch('/api/auth/me'),
-  ]);
+  try {
+    const userResponse = await apiFetch('/api/auth/me', undefined, {
+      redirectOnUnauthorized: false,
+    });
+    const user = await userResponse.json();
 
-  const lobby = await lobbyResponse.json();
-  const user = await userResponse.json();
+    const lobbyResponse = await apiFetch(`/api/lobbies/${code}`);
+    const lobby = await lobbyResponse.json();
 
-  return {
-    ...lobby,
-    currentUserId: user.id,
-  };
+    return { ...lobby, currentUserId: user.id };
+  } catch (error) {
+    if (error instanceof UnauthenticatedError) throw redirect('/login');
+    throw error;
+  }
 }
 
 /**
