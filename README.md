@@ -2,11 +2,41 @@
 
 ## Description
 
-TODO
+ONO99, by 0yech, stellaaa.sh, tricaducee, and Miniflint, is an online multiplayer card game.
+Battle against your friends in a 3D environment, create guilds, and climb the ranks!
 
 ## Instructions
 
-TODO
+### Prerequisites
+
+To build the project, all you need is Docker and Docker Compose installed. On linux, make sure the buildx extension is installed, as well.
+
+### Environment Setup
+
+The project needs a complete `.env` file, a template of which is included in `.env.example`.
+
+- FRONTEND_ORIGIN (http://localhost:5173): the url the project will be found at, including the port if it isn't the standard http/https one.
+- DOMAIN (ono.42.fr): the domain the project will be found at.
+- FRONTEND_PORT (5173): set it to 443 if you want to use the standard HTTPS port. This says which port is used for the actual application.
+- BACKEND_PORT (3000): can stay 3000, or any port you'd like.
+- PRISMA_STUDIO_PORT (5555): for the development setup; sets the port the Prisma Studio interface is accessible at.
+- POSTGRES_USER (transcendence): standard user used in the database.
+- POSTGRES_PASSWORD (transcendence): password for the database's standard user.
+- POSTGRES_DB (transcendence): the name of the database to be created in PostgresSQL.
+- DATABASE_URL (postgresql://transcendence:transcendence@database:5432/transcendence?schema=public): used by Prisma to connect to the database. Shouldn't be changed unless you change the database port in the Docker Compose setup.
+- JWT_SECRET (transcendence): set it to a strong passphrase to keep your login tokens secure.
+- OAuth 2.0 CLIENT_ID and CLIENT_SECRET variables: set them to the values found in the respective providers' OAuth 2.0 panels.
+
+### Building the Project
+
+One command: `make` at the root of the directory. This will drop you into the Docker view of logs for all the containers, from which you can hit the `d` key on your keyboard to detach.
+
+Here are some other relevant commands:
+
+- `make up`: equivalent to `make`.
+- `make down`: when you're done playing for now.
+- `make clean`: when you're done for good; this cleans images and leftover volumes on your system. Careful, as this removes all data from the database!!
+- `make dev-up`/`make dev-down`: same as `make up` and `make down`, but for the development setup, with live refresh for changes. Used for development.
 
 ## Team Information
 
