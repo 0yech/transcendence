@@ -45,7 +45,14 @@ TODO
 
 ## Features List
 
-TODO
+Miniflint:
+handled all the frontend for:
+Allowing the user to modify their information
+Handled the Websocket connection for the game
+Added ranks based on points
+
+Backend:
+Point system for game statistic and stats
 
 ## Modules
 
@@ -159,11 +166,40 @@ TODO everyone should write their own sections, with notable challenges and how t
 - 0yech handled the database schema, game logic, and took care of managing GitHub issues throughout the project, assigning people according to the project's goals and priorities.
 - stellaaash took care of the auth and OAuth processes, and all of its backend capabilities, while helping 0yech oversee the project and take design decisions.
 - tricaducee worked on the amazing art found all over the project's front-end, and designed the web pages in tandem with Miniflint.
-- Miniflint handled much of the frontend components, and added backend routes and features as the project grew.
+- Miniflint handled much of the frontend components, added backend routes and features as the project grew.
+
+Miniflint:
+Connection between backend and frontend such as every fetch inside:
+1. `/lobbies`
+2. `/game/:code`
+3. `/game/:code/play`
+4. `/profile`
+5. `/settings`
+6. `/profile/byId`
+7. `/profile/byUser`
+Created the points system and attributing to the user and guild
+helped with the CSS on the frontend
+Problem encountered:
+i did not particularly had much problem with my side of the work except with tailwind and css. it was a torture for me to learn
+
+Challenge:
+Everything with the contextApi for the game. i had to think of something to not lose / reconnect to websocket if the user wanted to change/refresh the page. so he woulnd't be considered rage quitting the second he wanted to check someone's profile
+and i must admit the little clickable avatar on lobbies were pretty hard to do for me since its mostly tailwind
 
 ## Resources
 
-TODO add more resources from all members
+Miniflint:
+[react-router](https://reactrouter.com/)
+[stackoverflow](https://stackoverflow.com)
+[graphicart](https://www.graphicart.ch/fr/)
+and ai here and there for annoying bug fixes
+
+
+### AI Usage
+
+Miniflint:
+mostly used for debugging random piece of code such as websocketprovider doing console error if the user disconnected from the websocket and then tried to anonymously join the game
+i used ai to explain why it happened and tried to figure out by myself how to fix
 
 ### Frameworks
 
@@ -177,3 +213,4 @@ TODO add more resources from all members
 ### Data Validation
 
 - [class-validator](https://github.com/typestack/class-validator)
+
