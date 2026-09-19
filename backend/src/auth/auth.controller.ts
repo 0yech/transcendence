@@ -33,6 +33,7 @@ import { OAuthError } from './oauth-error.enum';
 import { OAuthException } from './oauth.exception';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { isPossiblyAnAvatar, MAX_AVATAR_BYTES } from 'src/users/avatar.util';
+import { OptionalJwtAuthGuard } from './optional-auth.guard';
 
 const cookieOptions: CookieOptions = {
   httpOnly: true,
@@ -298,18 +299,26 @@ Please delegate your role to one of your officers first!',
   /**
    * @brief Returns the incoming request's user's public information.
    */
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(OptionalJwtAuthGuard)
   @Get('me')
-  async getCurrentUser(@CurrentUser() user: JwtPayload) {
-    if (user === undefined || user.username === undefined) {
+  async getCurrentUser(
+    @CurrentUser() user: JwtPayload | undefined,
+    @Res() response: Response,
+  ) {
+    if (user === undefined) {
+      return response.status(HttpStatus.OK).json(null);
+    }
+
+    if (user.username === undefined) {
       throw new BadRequestException();
     }
 
     const currentUser = await this.usersService.findOnePublic(user.username);
+
     if (!currentUser) {
       throw new UnauthorizedException('User account was deleted.');
     }
 
-    return currentUser;
+    return response.status(HttpStatus.OK).json(currentUser);
   }
 }

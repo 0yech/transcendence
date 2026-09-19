@@ -7,10 +7,17 @@ import { jwtConstants } from './constants';
 import { GoogleStrategy } from './google.strategy';
 import { GithubStrategy } from './github.strategy';
 import { FortytwoStrategy } from './fortytwo.strategy';
+import { OptionalJwtAuthGuard } from './optional-auth.guard';
 
 @Module({
   controllers: [AuthController],
-  providers: [AuthService, GoogleStrategy, GithubStrategy, FortytwoStrategy],
+  providers: [
+    AuthService,
+    GoogleStrategy,
+    GithubStrategy,
+    FortytwoStrategy,
+    OptionalJwtAuthGuard,
+  ],
   imports: [
     UsersModule,
     JwtModule.register({
