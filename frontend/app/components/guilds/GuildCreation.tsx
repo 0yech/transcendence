@@ -63,11 +63,20 @@ export function GuildCreation({
                 Guild name
               </label>
 
+              {/*
+                These rules mirror GuildNameDto in
+                backend/src/guilds/dto/guild-name.dto.ts. Keep them in sync:
+                the backend is what actually enforces them.
+              */}
               <input
                 id="guild-name"
                 name="name"
                 type="text"
                 required
+                minLength={3}
+                maxLength={20}
+                pattern="[A-Za-z0-9 _-]+"
+                title="Letters, numbers, spaces, underscores and hyphens only."
                 disabled={isCreating}
                 className={textInputClass}
               />

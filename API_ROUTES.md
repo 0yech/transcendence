@@ -115,6 +115,7 @@ NestJS global validation is enabled.
 | `GET`    | `/api/guilds`                                   |             No | List guilds                                                     |
 | `GET`    | `/api/guilds/me`                                |            Yes | Get the authenticated user's guild                              |
 | `POST`   | `/api/guilds`                                   |            Yes | Create a guild                                                  |
+| `POST`   | `/api/guilds/rename`                            |            Yes | Rename the current guild                                        |
 | `POST`   | `/api/guilds/leave`                             |            Yes | Leave the current guild                                         |
 | `DELETE` | `/api/guilds`                                   |            Yes | Delete the current guild                                        |
 | `POST`   | `/api/guilds/invitations`                       |            Yes | Invite a user to the guild                                      |
@@ -779,13 +780,17 @@ Creates a lobby owned by the authenticated user.
 }
 ```
 
-| Field     | Type    | Required | Description                  |
-| --------- | ------- | -------: | ---------------------------- |
-| `private` | boolean |       No | Whether the lobby is private |
+### Validation
+
+| Field     | Type    | Rules                                            |
+| --------- | ------- | ------------------------------------------------ |
+| `private` | boolean | Optional, `true` or `false`. Defaults to `false` |
 
 **Success response:** Created lobby object.
 
-> The controller uses an inline TypeScript body type rather than a validated DTO, so these fields currently have no class-validator rules.
+**Possible errors:**
+
+- `400 Bad Request` — DTO validation failed.
 
 ## `POST /api/lobbies/:code/join`
 
@@ -869,11 +874,43 @@ Creates a guild.
 }
 ```
 
-| Field  | Type   | Required | Description |
-| ------ | ------ | -------: | ----------- |
-| `name` | string |      Yes | Guild name  |
+### Validation
+
+| Field  | Type   | Rules                                                                                |
+| ------ | ------ | ------------------------------------------------------------------------------------ |
+| `name` | string | Required, 3–20 characters after trimming. Letters, numbers, spaces, `_` and `-` only |
 
 **Success response:** Created guild object.
+
+## `POST /api/guilds/rename`
+
+Renames the authenticated user's guild.
+
+**Authentication:** Required
+
+**Request body**
+
+```json
+{
+  "name": "New Name"
+}
+```
+
+### Validation
+
+Same rules as `POST /api/guilds`.
+
+**Requirements:**
+
+- The authenticated user must be the guild `LEADER`.
+
+**Success response:** Updated guild object.
+
+**Possible errors:**
+
+- `400 Bad Request` — DTO validation failed, the user is not in a guild, or the name is already taken.
+- `403 Forbidden` — authenticated user is not the guild leader.
+- `404 Not Found` — authenticated user was not found.
 
 ## `POST /api/guilds/leave`
 
@@ -911,9 +948,11 @@ Invites a user to the authenticated user's guild.
 }
 ```
 
-| Field      | Type   | Required | Description                    |
-| ---------- | ------ | -------: | ------------------------------ |
-| `username` | string |      Yes | Username of the user to invite |
+### Validation
+
+| Field      | Type   | Rules                                               |
+| ---------- | ------ | --------------------------------------------------- |
+| `username` | string | Required, not blank. Surrounding spaces are trimmed |
 
 **Success response:** Created invitation or service-defined result.
 

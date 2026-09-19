@@ -184,6 +184,12 @@ export function GuildDetails({
                   Username
                 </label>
 
+                {/*
+                  Deliberately no length or character rules, matching
+                  InviteUserDto: this looks up an existing username, and those
+                  aren't consistently bounded. A rule here would block invites
+                  to accounts whose names predate it, or that OAuth created.
+                */}
                 <input
                   id="guild-invite-username"
                   name="username"
@@ -379,12 +385,21 @@ export function GuildDetails({
                   Guild name
                 </label>
 
+                {/*
+                  These rules mirror GuildNameDto in
+                  backend/src/guilds/dto/guild-name.dto.ts. Keep them in sync:
+                  the backend is what actually enforces them.
+                */}
                 <input
                   id="guild-name"
                   name="name"
                   type="text"
                   defaultValue={guild.name}
                   required
+                  minLength={3}
+                  maxLength={20}
+                  pattern="[A-Za-z0-9 _-]+"
+                  title="Letters, numbers, spaces, underscores and hyphens only."
                   className={textInputClass}
                 />
 
