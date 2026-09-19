@@ -167,6 +167,7 @@ export function JoinLobby({ code }: { code: string }) {
       console.log(repApi);
       const gameConnect = await connect(code);
       console.log(gameConnect);
+      ensureChatConnection();
     } catch (e) {
       console.error(e);
     }
