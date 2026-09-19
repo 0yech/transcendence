@@ -1,22 +1,7 @@
 import { useEffect, useState, type SyntheticEvent } from 'react';
 import { io, type Socket } from 'socket.io-client';
 import apiFetch from '~/utils/api-fetch';
-
-let chatSocket: Socket | null = null;
-
-/**
- *
- * @brief Ensures a user is connected to the chat (for kicked player purposes)
- *
- * Chat websocket connects when the lobby page shows, so when a user is kicked
- * they need to reconnect. This function reconnects the user on lobbyjoin if not
- * already connected
- */
-export function ensureChatConnection() {
-  if (chatSocket && !chatSocket.connected) {
-    chatSocket.connect();
-  }
-}
+import { setChatSocket } from '~/utils/chatSocket';
 
 interface ChatMessage {
   id: string;
@@ -85,7 +70,7 @@ export default function LobbyChat({ code, canSend }: LobbyChatProps) {
       autoConnect: false,
       withCredentials: true,
     });
-    chatSocket = socket;
+    setChatSocket(socket);
     const onMessageCreated = (message: ChatMessage) => {
       setMessages((current) => mergeMessages(current, [message]));
     };
@@ -99,8 +84,6 @@ export default function LobbyChat({ code, canSend }: LobbyChatProps) {
             setError('Could not join lobby chat');
             return;
           }
-
-          setConnected(true);
 
           try {
             const historyResponse = await apiFetch(
@@ -123,7 +106,13 @@ export default function LobbyChat({ code, canSend }: LobbyChatProps) {
       );
     };
 
-    socket.on('connect', joinLobby);
+    const onConnect = () => {
+      setConnected(true);
+      joinLobby();
+    };
+
+    socket.on('connect', onConnect);
+
     socket.on('message:created', onMessageCreated);
 
     socket.on('disconnect', () => {
@@ -138,12 +127,10 @@ export default function LobbyChat({ code, canSend }: LobbyChatProps) {
     socket.connect();
 
     return () => {
-      socket.off('connect', joinLobby);
+      socket.off('connect', onConnect);
       socket.off('message:created', onMessageCreated);
       socket.disconnect();
-      if (chatSocket === socket) {
-        chatSocket === null;
-      }
+      setChatSocket(null);
     };
   }, [code]);
 

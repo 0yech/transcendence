@@ -5,7 +5,6 @@ import apiFetch, { handleJoinLobby, handleLeaveLobby } from './api-fetch';
 import { UseWebSocket } from '~/context/UseWebSocket';
 import { Avatar } from '~/components/Avatar';
 import { Link } from 'react-router';
-import { ensureChatConnection } from '~/components/LobbyChat';
 import { NavBar } from '~/components/Navbar';
 import { twMerge } from 'tailwind-merge';
 import { UserPopUp } from '~/components/userProfiles/userProfile';
