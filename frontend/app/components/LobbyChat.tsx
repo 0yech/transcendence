@@ -1,5 +1,5 @@
 import { useEffect, useState, type SyntheticEvent } from 'react';
-import { io, type Socket } from 'socket.io-client';
+import { io } from 'socket.io-client';
 import apiFetch from '~/utils/api-fetch';
 import { setChatSocket } from '~/utils/chatSocket';
 
