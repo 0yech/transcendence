@@ -1,4 +1,9 @@
-import { HttpException, NotFoundException } from '@nestjs/common';
+import {
+  HttpException,
+  NotFoundException,
+  UseFilters,
+  UsePipes,
+} from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
 import { JwtService } from '@nestjs/jwt';
 import {
@@ -12,6 +17,11 @@ import {
 } from '@nestjs/websockets';
 import type { DefaultEventsMap, Server, Socket } from 'socket.io';
 import type { JwtPayload } from '../auth/jwt-payload.interface';
+import { WsHttpExceptionFilter } from '../common/filters/ws-exception.filter';
+import { buildValidationPipe } from '../common/validation-pipe';
+import { GameActionDto } from './dto/game-action.dto';
+import { PlayCardDto } from './dto/play-card.dto';
+import { PlaySlotDto } from './dto/play-slot.dto';
 import { GamesService } from './games.service';
 
 type GameSocket = Socket<
@@ -37,6 +47,10 @@ type GameState = {
 @WebSocketGateway({
   namespace: '/games',
 })
+@UseFilters(WsHttpExceptionFilter)
+// Gateways don't inherit the pipe from `main.ts`: `useGlobalPipes()` covers
+// HTTP routes only, so payloads would otherwise reach handlers unchecked.
+@UsePipes(buildValidationPipe())
 export class GamesGateway implements OnGatewayConnection {
   @WebSocketServer()
   private server!: Server;
@@ -94,10 +108,7 @@ export class GamesGateway implements OnGatewayConnection {
   @SubscribeMessage('game:join')
   async joinGame(
     @ConnectedSocket() client: GameSocket,
-    @MessageBody()
-    body: {
-      lobbyCode: string;
-    },
+    @MessageBody() body: GameActionDto,
   ) {
     return this.handleError(async () => {
       const user = this.getUser(client);
@@ -138,12 +149,9 @@ export class GamesGateway implements OnGatewayConnection {
   @SubscribeMessage('game:start')
   async startGame(
     @ConnectedSocket() client: GameSocket,
-    @MessageBody()
-    body: {
-      lobbyCode: string;
-    },
+    @MessageBody() body: GameActionDto,
   ) {
-    return this.runGameAction(client, body.lobbyCode, (lobbyCode, userId) =>
+    return this.runGameAction(client, body, (lobbyCode, userId) =>
       this.gamesService.startFromLobby(lobbyCode, userId),
     );
   }
@@ -158,13 +166,9 @@ export class GamesGateway implements OnGatewayConnection {
   @SubscribeMessage('game:play-card')
   async playCard(
     @ConnectedSocket() client: GameSocket,
-    @MessageBody()
-    body: {
-      lobbyCode: string;
-      cardId: string;
-    },
+    @MessageBody() body: PlayCardDto,
   ) {
-    return this.runGameAction(client, body.lobbyCode, (lobbyCode, userId) =>
+    return this.runGameAction(client, body, (lobbyCode, userId) =>
       this.gamesService.playCard(lobbyCode, userId, body.cardId),
     );
   }
@@ -183,13 +187,9 @@ export class GamesGateway implements OnGatewayConnection {
   @SubscribeMessage('game:play-slot')
   async playSlot(
     @ConnectedSocket() client: GameSocket,
-    @MessageBody()
-    body: {
-      lobbyCode: string;
-      slot: number;
-    },
+    @MessageBody() body: PlaySlotDto,
   ) {
-    return this.runGameAction(client, body.lobbyCode, (lobbyCode, userId) =>
+    return this.runGameAction(client, body, (lobbyCode, userId) =>
       this.gamesService.playSlot(lobbyCode, userId, body.slot),
     );
   }
@@ -204,12 +204,9 @@ export class GamesGateway implements OnGatewayConnection {
   @SubscribeMessage('game:unable')
   async unableToPlay(
     @ConnectedSocket() client: GameSocket,
-    @MessageBody()
-    body: {
-      lobbyCode: string;
-    },
+    @MessageBody() body: GameActionDto,
   ) {
-    return this.runGameAction(client, body.lobbyCode, (lobbyCode, userId) =>
+    return this.runGameAction(client, body, (lobbyCode, userId) =>
       this.gamesService.unableToPlay(lobbyCode, userId),
     );
   }
@@ -224,12 +221,9 @@ export class GamesGateway implements OnGatewayConnection {
   @SubscribeMessage('game:discard-four-ono99')
   async discardFourOno99(
     @ConnectedSocket() client: GameSocket,
-    @MessageBody()
-    body: {
-      lobbyCode: string;
-    },
+    @MessageBody() body: GameActionDto,
   ) {
-    return this.runGameAction(client, body.lobbyCode, (lobbyCode, userId) =>
+    return this.runGameAction(client, body, (lobbyCode, userId) =>
       this.gamesService.discardFourOno99(lobbyCode, userId),
     );
   }
@@ -273,18 +267,20 @@ export class GamesGateway implements OnGatewayConnection {
    * @brief Executes a game action and broadcasts the updated state.
    *
    * @param client Socket.IO client performing the action.
-   * @param rawLobbyCode Lobby code received from the client.
+   * @param body Payload received from the client. Read inside the
+   * `handleError` callback: reading it in the argument list would throw
+   * outside the try/catch when the client sends no payload at all.
    * @param action Service action to execute.
    * @returns Action acknowledgement.
    */
   private async runGameAction(
     client: GameSocket,
-    rawLobbyCode: string,
+    body: GameActionDto,
     action: (lobbyCode: string, userId: string) => Promise<GameState>,
   ) {
     return this.handleError(async () => {
       const user = this.getUser(client);
-      const lobbyCode = this.normalizeLobbyCode(rawLobbyCode);
+      const lobbyCode = this.normalizeLobbyCode(body?.lobbyCode);
 
       const game = await action(lobbyCode, user.sub);
 

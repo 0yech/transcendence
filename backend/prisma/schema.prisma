@@ -57,7 +57,7 @@ enum GameActionType {
 model User {
   id             String         @id @default(cuid())
   username       String         @unique @db.Citext
-  email          String         @unique
+  email          String         @unique @db.Citext
   hashedPassword String?
   oauthProvider  OAuthProvider?
   oauthProviderId String?

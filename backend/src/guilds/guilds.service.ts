@@ -66,7 +66,7 @@ export class GuildsService {
   }
 
   private validateGuildName(name: string): string {
-    const cleanName = name?.trim();
+    const cleanName = name.trim();
 
     if (!cleanName) {
       throw new BadRequestException('Guild name is required');
@@ -94,10 +94,6 @@ export class GuildsService {
    */
   async createGuild(userId: string, name: string) {
     const cleanName = this.validateGuildName(name);
-
-    if (!cleanName) {
-      throw new BadRequestException('Guild name is required');
-    }
 
     return this.prisma.$transaction(async (tx) => {
       const user = await tx.user.findUnique({
@@ -172,10 +168,6 @@ export class GuildsService {
    */
   async renameGuild(userId: string, name: string) {
     const cleanName = this.validateGuildName(name);
-
-    if (!cleanName) {
-      throw new BadRequestException('Guild name is required');
-    }
 
     return this.prisma.$transaction(async (tx) => {
       /*

@@ -3,6 +3,7 @@ import { LobbiesService } from './lobbies.service';
 import { JwtAuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { JwtPayload } from '../auth/jwt-payload.interface';
+import { CreateLobbyDto } from './dto/create-lobby.dto';
 
 @Controller('lobbies')
 export class LobbiesController {
@@ -10,10 +11,7 @@ export class LobbiesController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  createLobby(
-    @CurrentUser() user: JwtPayload,
-    @Body() body: { private?: boolean },
-  ) {
+  createLobby(@CurrentUser() user: JwtPayload, @Body() body: CreateLobbyDto) {
     return this.lobbiesService.createLobby(user.sub, body);
   }
 

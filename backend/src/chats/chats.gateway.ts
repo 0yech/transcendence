@@ -6,9 +6,14 @@ import {
   WebSocketServer,
   WsException,
 } from '@nestjs/websockets';
+import { UseFilters, UsePipes } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { DefaultEventsMap, Server, Socket } from 'socket.io';
+import { WsHttpExceptionFilter } from '../common/filters/ws-exception.filter';
+import { buildValidationPipe } from '../common/validation-pipe';
 import { PrismaService } from '../prisma/prisma.service';
+import { JoinLobbyDto } from './dto/join-lobby.dto';
+import { LeaveLobbyDto } from './dto/leave-lobby.dto';
 
 /**
  * @brief Represents a Socket.IO client with authenticated user data.
@@ -39,6 +44,10 @@ type AuthenticatedSocket = Socket<
  * Messages are created through the REST API. This gateway is responsible
  * only for socket authentication, room membership and message broadcasts.
  */
+@UseFilters(WsHttpExceptionFilter)
+// Gateways don't inherit the pipe from `main.ts`: `useGlobalPipes()` covers
+// HTTP routes only, so payloads would otherwise reach handlers unchecked.
+@UsePipes(buildValidationPipe())
 export class ChatsGateway {
   /**
    * Socket.IO server instance injected by NestJS.
@@ -106,7 +115,7 @@ export class ChatsGateway {
   @SubscribeMessage('lobby:join')
   async joinLobby(
     @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() body: { code: string },
+    @MessageBody() body: JoinLobbyDto,
   ) {
     const userId = client.data.userId;
 
@@ -167,7 +176,7 @@ export class ChatsGateway {
   @SubscribeMessage('lobby:leave')
   async leaveLobby(
     @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() body: { lobbyId: string },
+    @MessageBody() body: LeaveLobbyDto,
   ) {
     await client.leave(this.getLobbyRoom(body.lobbyId));
 

@@ -10,6 +10,23 @@ The backend uses Socket.IO for real-time game state, lobby chat delivery and fri
 
 For browser clients, the existing authentication cookie can be reused. Register server-event listeners before emitting the corresponding join event so that initial updates are not missed.
 
+## Payload validation
+
+Every client-to-server payload documented below is validated against a DTO class, the same way HTTP request bodies are.
+
+- A payload that breaks a rule is rejected before the handler runs: the acknowledgement is never called, and the server emits an `exception` event instead.
+- Fields that are not declared in the payload are rejected too, so send exactly the documented fields.
+- Missing payloads count as empty ones, so emitting an event with no payload is rejected rather than crashing the handler.
+
+```json
+{
+  "status": "error",
+  "message": ["A lobby code is required."]
+}
+```
+
+> Gateways do not inherit the global pipe configured in `main.ts`: `useGlobalPipes()` applies to HTTP routes only. Each gateway applies the validation pipe itself with `@UsePipes(buildValidationPipe())`, and `WsHttpExceptionFilter` converts the resulting error so the per-field messages survive.
+
 ## Game WebSocket
 
 **Namespace:** `/games`
