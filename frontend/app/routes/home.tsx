@@ -1,4 +1,3 @@
-// import { Welcome } from '../pages/welcome';
 import { useNavigate } from 'react-router';
 import { useState, useEffect } from 'react';
 import { NavBar } from '~/components/Navbar';

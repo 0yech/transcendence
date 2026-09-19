@@ -12,7 +12,6 @@ RUN npm run build
 FROM node:24-alpine AS development
 COPY ./package.json package-lock.json /app/
 COPY --from=development-dependencies-env /app/node_modules /app/node_modules
-COPY --from=build-env /app/build /app/build
 WORKDIR /app
 CMD ["npm", "run", "dev", "--", "--host"]
 
