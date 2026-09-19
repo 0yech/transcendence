@@ -1,5 +1,12 @@
 import { IsEmail, IsNotEmpty, IsString, Length } from 'class-validator';
 
+/**
+ * @brief Validates the payload used to register an account.
+ *
+ * The register form mirrors these lengths as HTML attributes, so the browser
+ * can reject bad input without a round trip. Keep them in sync with
+ * `frontend/app/pages/auth/register.tsx`.
+ */
 export class RegisterDto {
   @IsNotEmpty({ message: 'Please enter your email address.' })
   @IsString({ message: 'Your email address must be text.' })
@@ -12,8 +19,9 @@ export class RegisterDto {
 
   @IsNotEmpty({ message: 'Please choose a username.' })
   @IsString({ message: 'Your username must be text.' })
-  @Length(0, 32, {
-    message: 'Your username can be at most $constraint2 characters.',
+  @Length(3, 32, {
+    message:
+      'Your username must be between $constraint1 and $constraint2 characters.',
   })
   username!: string;
 

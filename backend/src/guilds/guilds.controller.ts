@@ -10,6 +10,8 @@ import {
 import { JwtAuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { JwtPayload } from '../auth/jwt-payload.interface';
+import { GuildNameDto } from './dto/guild-name.dto';
+import { InviteUserDto } from './dto/invite-user.dto';
 import { GuildsService } from './guilds.service';
 
 @Controller('guilds')
@@ -29,13 +31,13 @@ export class GuildsController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  createGuild(@CurrentUser() user: JwtPayload, @Body() body: { name: string }) {
+  createGuild(@CurrentUser() user: JwtPayload, @Body() body: GuildNameDto) {
     return this.guildsService.createGuild(user.sub, body.name);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('rename')
-  renameGuild(@CurrentUser() user: JwtPayload, @Body() body: { name: string }) {
+  renameGuild(@CurrentUser() user: JwtPayload, @Body() body: GuildNameDto) {
     return this.guildsService.renameGuild(user.sub, body.name);
   }
 
@@ -53,10 +55,7 @@ export class GuildsController {
 
   @UseGuards(JwtAuthGuard)
   @Post('invitations')
-  inviteUser(
-    @CurrentUser() user: JwtPayload,
-    @Body() body: { username: string },
-  ) {
+  inviteUser(@CurrentUser() user: JwtPayload, @Body() body: InviteUserDto) {
     return this.guildsService.inviteUser(user.sub, body.username);
   }
 

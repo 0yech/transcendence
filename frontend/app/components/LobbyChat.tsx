@@ -1,6 +1,7 @@
 import { useEffect, useState, type SyntheticEvent } from 'react';
 import { io } from 'socket.io-client';
 import apiFetch from '~/utils/api-fetch';
+import { setChatSocket } from '~/utils/chatSocket';
 import { getCurrentUser } from '~/utils/users';
 
 interface ChatMessage {
@@ -71,6 +72,8 @@ export default function LobbyChat({ code, canSend }: LobbyChatProps) {
       withCredentials: true,
     });
 
+    setChatSocket(socket);
+
     let active = true;
     let retriedAfterRejection = false;
 
@@ -88,7 +91,6 @@ export default function LobbyChat({ code, canSend }: LobbyChatProps) {
             return;
           }
 
-          setConnected(true);
           retriedAfterRejection = false;
 
           try {
@@ -112,7 +114,13 @@ export default function LobbyChat({ code, canSend }: LobbyChatProps) {
       );
     };
 
-    socket.on('connect', joinLobby);
+    const onConnect = () => {
+      setConnected(true);
+      joinLobby();
+    };
+
+    socket.on('connect', onConnect);
+
     socket.on('message:created', onMessageCreated);
 
     /*
@@ -149,9 +157,10 @@ export default function LobbyChat({ code, canSend }: LobbyChatProps) {
 
     return () => {
       active = false;
-      socket.off('connect', joinLobby);
+      socket.off('connect', onConnect);
       socket.off('message:created', onMessageCreated);
       socket.disconnect();
+      setChatSocket(null);
     };
   }, [code]);
 
@@ -220,6 +229,10 @@ export default function LobbyChat({ code, canSend }: LobbyChatProps) {
 
       {canSend ? (
         <form onSubmit={sendMessage}>
+          {/*
+            This limit mirrors CreateMessageDto in
+            backend/src/chats/dto/create-message.dto.ts. Keep them in sync.
+          */}
           <input
             type="text"
             value={content}

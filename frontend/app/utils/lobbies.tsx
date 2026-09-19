@@ -20,6 +20,7 @@ import {
   buttonCreate,
   buttonCreatePrivate,
 } from '~/styles/theme';
+import { ensureChatConnection } from './chatSocket';
 
 export interface UserInterfaceLobby {
   id: string;
@@ -167,6 +168,7 @@ export function JoinLobby({ code }: { code: string }) {
       console.log(repApi);
       const gameConnect = await connect(code);
       console.log(gameConnect);
+      ensureChatConnection();
     } catch (e) {
       console.error(e);
     }
