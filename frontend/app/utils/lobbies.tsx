@@ -20,6 +20,7 @@ import {
   buttonCreate,
   buttonCreatePrivate,
 } from '~/styles/theme';
+import { ensureChatConnection } from './chatSocket';
 
 export interface UserInterfaceLobby {
   id: string;
