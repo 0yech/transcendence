@@ -19,6 +19,8 @@ export async function clientLoader({ params }: { params: Params<string> }) {
     const user = await userResponse.json();
 
     const lobbyResponse = await apiFetch(`/api/lobbies/${code}`);
+    if (lobbyResponse.status === 404) throw redirect('/');
+
     const lobby = await lobbyResponse.json();
 
     return { ...lobby, currentUserId: user.id };
