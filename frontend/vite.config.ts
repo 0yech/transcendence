@@ -10,9 +10,7 @@ export default defineConfig({
   },
 
   optimizeDeps: {
-    entries: [
-      'app/**/*.{ts,tsx}',
-    ],
+    entries: ['app/**/*.{ts,tsx}'],
 
     include: [
       'three',
