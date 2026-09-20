@@ -36,8 +36,10 @@ export default defineConfig({
     },
 
     proxy: {
+      // Redirect all API requests to the backend
       '/api': `http://backend:${process.env.BACKEND_PORT}`,
 
+      // Proxy Socket.IO connections to the backend.
       '/socket.io': {
         target: `http://backend:${process.env.BACKEND_PORT}`,
         ws: true,
