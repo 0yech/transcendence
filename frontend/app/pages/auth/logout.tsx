@@ -1,8 +1,7 @@
 import { useFetcher } from 'react-router';
 import { ErrorMessage } from './errorMessage';
-import { Button } from '../../components/Button';
 
-export function LogoutButton() {
+export function LogoutButton({ className }: { className?: string }) {
   const fetcher = useFetcher();
   // We use fetcher.Form to prevent navigation to the /logout URL
 
@@ -13,11 +12,9 @@ export function LogoutButton() {
   return (
     <>
       <fetcher.Form method="post" action="/logout">
-        <div>
-          <Button variant="danger" type="submit">
-            Logout
-          </Button>
-        </div>
+        <button type="submit" className={className}>
+          Logout
+        </button>
       </fetcher.Form>
 
       {errorMessage ? <ErrorMessage message={errorMessage} /> : null}

@@ -42,65 +42,65 @@ const WavesPlane = () => {
   };
   const ctl = useControls({
     shaderControl: folder({
-      frequency: { value: 19.0, min: 0.0, max: 100.0 },
+      frequency: { value: 25.0, min: 0.0, max: 100.0 },
       amplitude: { value: 2.5, min: 0.0, max: 5.0 },
-      speed: { value: 0.4, min: 0.0, max: 5.0 },
+      speed: { value: 0.2, min: 0.0, max: 5.0 },
       noise: { value: 0.0, min: 0.0, max: 1.0 },
-      size: { value: 3.0, min: 0.5, max: 6.0 },
+      size: { value: 6.0, min: 0.5, max: 6.0 },
       vertexNumber: { value: 128, min: 1, max: 1024, step: 1 },
       wireframe: { value: false },
       rotation: folder({
-        x: { value: -0.6, min: -Math.PI, max: Math.PI },
+        x: { value: -1.6, min: -Math.PI, max: Math.PI },
         y: { value: 0.0, min: -Math.PI, max: Math.PI },
         z: { value: 0.0, min: -Math.PI, max: Math.PI },
       }),
       position: folder({
         px: { value: 0.0, min: -10.0, max: 10.0 },
-        py: { value: 6.0, min: -10.0, max: 10.0 },
-        pz: { value: -5.0, min: -10.0, max: 10.0 },
+        py: { value: -2.2, min: -10.0, max: 10.0 },
+        pz: { value: -1.6, min: -10.0, max: 10.0 },
       }),
       onde1: folder({
-        ondeX1: { value: 1.0, min: -100.0, max: 100.0 },
-        ondeY1: { value: 1.0, min: -100.0, max: 100.0 },
-        ondeSpeed1: { value: 1.0, min: -5.0, max: 5.0, step: 0.01 },
-        ondeFreq1: { value: 1.0, min: -5.0, max: 5.0, step: 0.01 },
+        ondeX1: { value: 0.27, min: -10.0, max: 10.0, step: 0.001 },
+        ondeY1: { value: -0.5, min: -10.0, max: 10.0, step: 0.001 },
+        ondeSpeed1: { value: 0.52, min: -5.0, max: 5.0, step: 0.001 },
+        ondeFreq1: { value: 1.414, min: -5.0, max: 5.0, step: 0.001 },
       }),
       onde2: folder({
-        ondeX2: { value: 0.0, min: -100.0, max: 100.0 },
-        ondeY2: { value: 1.0, min: -100.0, max: 100.0 },
-        ondeSpeed2: { value: 1.0, min: -5.0, max: 5.0, step: 0.01 },
-        ondeFreq2: { value: 1.0, min: -5.0, max: 5.0, step: 0.01 },
+        ondeX2: { value: -0.5, min: -10.0, max: 10.0, step: 0.001 },
+        ondeY2: { value: -1.6, min: -10.0, max: 10.0, step: 0.001 },
+        ondeSpeed2: { value: 0.39, min: -5.0, max: 5.0, step: 0.001 },
+        ondeFreq2: { value: 1.732, min: -5.0, max: 5.0, step: 0.001 },
       }),
       onde3: folder({
-        ondeX3: { value: 1.0, min: -100.0, max: 100.0 },
-        ondeY3: { value: 0.0, min: -100.0, max: 100.0 },
-        ondeSpeed3: { value: 1.0, min: -5.0, max: 5.0, step: 0.01 },
-        ondeFreq3: { value: 1.0, min: -5.0, max: 5.0, step: 0.01 },
+        ondeX3: { value: -0.31, min: -10.0, max: 10.0, step: 0.001 },
+        ondeY3: { value: 1.5, min: -10.0, max: 10.0, step: 0.001 },
+        ondeSpeed3: { value: 0.81, min: -5.0, max: 5.0, step: 0.001 },
+        ondeFreq3: { value: 2.236, min: -5.0, max: 5.0, step: 0.001 },
       }),
       onde4: folder({
-        ondeX4: { value: 0.0, min: -100.0, max: 100.0 },
-        ondeY4: { value: 0.0, min: -100.0, max: 100.0 },
-        ondeSpeed4: { value: 1.0, min: -5.0, max: 5.0, step: 0.01 },
-        ondeFreq4: { value: 1.0, min: -5.0, max: 5.0, step: 0.01 },
+        ondeX4: { value: -1.96, min: -10.0, max: 10.0, step: 0.001 },
+        ondeY4: { value: 4.86, min: -10.0, max: 10.0, step: 0.001 },
+        ondeSpeed4: { value: 1.09, min: -5.0, max: 5.0, step: 0.001 },
+        ondeFreq4: { value: 2.646, min: -5.0, max: 5.0, step: 0.001 },
       }),
       color0: folder({
-        c0: '#040231',
+        c0: '#777df2',
         p0: { value: 0.0, min: 0, max: 1, step: 0.01 },
       }),
       color1: folder({
-        c1: '#3f216f',
+        c1: '#ff91c8',
         p1: { value: 0.33, min: 0, max: 1, step: 0.01 },
       }),
       color2: folder({
-        c2: '#d568ff',
+        c2: '#ffb787',
         p2: { value: 0.59, min: 0, max: 1, step: 0.01 },
       }),
       color3: folder({
-        c3: '#ffb787',
+        c3: '#aafff0',
         p3: { value: 0.82, min: 0, max: 1, step: 0.01 },
       }),
       color4: folder({
-        c4: '#fff6c1',
+        c4: '#fff5aa',
         p4: { value: 1.0, min: 0, max: 1, step: 0.01 },
       }),
     }),
@@ -204,7 +204,7 @@ export function Background() {
           <ChromaticAberration
             offset={new Vector2(0.005, 0.005)}
             radialModulation
-            modulationOffset={0.015}
+            modulationOffset={0.005}
           />
         </EffectComposer>
       </Canvas>
