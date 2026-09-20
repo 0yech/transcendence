@@ -75,7 +75,7 @@ function CardMesh({
           radius={radius}
           bevelSize={bevelSize}
         />
-        <meshStandardMaterial color="white" roughness={0.6} metalness={0} />
+        <meshStandardMaterial color="#444444" roughness={0.6} metalness={0} />
       </mesh>
 
       {/* front face */}
