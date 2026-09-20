@@ -45,14 +45,25 @@ TODO
 
 ## Features List
 
-Miniflint:
-handled all the frontend for:
-Allowing the user to modify their information
-Handled the Websocket connection for the game
-Added ranks based on points
+### 0yech
+**Frontend**
+- A couple Guilds related elements.
 
-Backend:
-Point system for game statistic and stats
+**Backend**
+- Lobby logic.
+- Game logic with websockets.
+- Chat logic with websockets.
+- Guild system.
+- Prisma setup.
+
+### Miniflint
+**Frontend**
+- Allowing users to modify their informations.
+- Handled the Websocket connection for the game.
+- Added ranks based on points.
+
+**Backend**
+- Point system for game statistic and stats
 
 ## Modules
 
@@ -151,14 +162,6 @@ This shows the game's state in a 3D environment, similar to if you were playing 
 
 TODO implementation details and contributors
 
-#### Spectator mode - Minor +1
-
-Allows you to watch your friends lose catastrophically! Without being able to snoop at the other's cards, of course.
-
-TODO implementation details
-
-0yech
-
 ## Individual Contributions
 
 TODO everyone should write their own sections, with notable challenges and how they were overcome, what they did, how, etc
@@ -168,8 +171,24 @@ TODO everyone should write their own sections, with notable challenges and how t
 - tricaducee worked on the amazing art found all over the project's front-end, and designed the web pages in tandem with Miniflint.
 - Miniflint handled much of the frontend components, added backend routes and features as the project grew.
 
-Miniflint:
-Connection between backend and frontend such as every fetch inside:
+### 0yech
+Implemented most game related backend elements, including :
+1. `Lobby system`
+2. `Game logic`
+3. `Guild system`
+4. `Chat system`
+5. `Websocket/Socket.IO usage for real-time features`
+
+0yech is also responsible for the initial database schema with prisma. As well as bugfixing, testing and overseeing along the project to ensure the project/repository's quality.
+
+**Challenges**
+As the frontend team would join us later on for the project, one of the biggest challenges was building a reliable backend without much frontend elements. This required us to be cautious, as we had to build and envision features that could be used by the frontend team with little to no changes needed.
+
+**Problems encountered**
+As we were building a card game, that heavily relies on luck, testing many different cases was hard. What if no one has a playable hand ? What if someone sees their hand is really bad and decides to rage-quit in a game with many players ? A strict deadline also made the project harder.
+
+### Miniflint
+Implemented connection between backend and frontend such as every fetch in the following routes:
 1. `/lobbies`
 2. `/game/:code`
 3. `/game/:code/play`
@@ -177,18 +196,29 @@ Connection between backend and frontend such as every fetch inside:
 5. `/settings`
 6. `/profile/byId`
 7. `/profile/byUser`
-Created the points system and attributing to the user and guild
-helped with the CSS on the frontend
-Problem encountered:
-i did not particularly had much problem with my side of the work except with tailwind and css. it was a torture for me to learn
 
-Challenge:
-Everything with the contextApi for the game. i had to think of something to not lose / reconnect to websocket if the user wanted to change/refresh the page. so he woulnd't be considered rage quitting the second he wanted to check someone's profile
-and i must admit the little clickable avatar on lobbies were pretty hard to do for me since its mostly tailwind
+Created the points system and attributing to the user and guild.
+
+Helped with the CSS on the frontend.
+
+**Problem encountered**
+Did not encounter many problems in particular with their side of the work, except with tailwind and css. "It was a torture for me to learn".
+
+**Challenges**
+Everything related to the contextApi for the game. Had to come up with something to not lose / reconnect to websockets if a user wanted to change/refresh the page. That way they wouldn't be considered disconnected the moment they wanted to check someone's profile.
+
+"And I must admit the little clickable avatar on lobbies were pretty hard to do since it's mostly tailwind based".
 
 ## Resources
 
-Miniflint:
+**0yech**
+[NestJS docs](https://docs.nestjs.com)
+[RFC 6455: Websocket Protocol](https://datatracker.ietf.org/doc/html/rfc6455)
+[TypeScript docs](https://www.typescriptlang.org/docs/)
+[Conventional commits](https://www.conventionalcommits.org/en/v1.0.0/#summary)
+[Insomnia](https://insomnia.rest)
+
+**Miniflint**
 [react-router](https://reactrouter.com/)
 [stackoverflow](https://stackoverflow.com)
 [graphicart](https://www.graphicart.ch/fr/)
@@ -197,9 +227,12 @@ and ai here and there for annoying bug fixes
 
 ### AI Usage
 
-Miniflint:
-mostly used for debugging random piece of code such as websocketprovider doing console error if the user disconnected from the websocket and then tried to anonymously join the game
-i used ai to explain why it happened and tried to figure out by myself how to fix
+**0yech**
+Used for researching and demytifying Typescript/Nest and other modern web frameworks concepts, as being not very familiar with webapps besides stock PHP and older PHP MVC frameworks. AI was also used for finding causes behind bugs and adding more robust checks around many cases within backend elements.
+
+**Miniflint**
+Mostly used for debugging random piece of code such as WebSocketProvider throwing console errors if a user disconnected from the websocket and then tried to anonymously join the game.
+Used AI to explain why this would happen and tried to figure out themself how to fix it.
 
 ### Frameworks
 
