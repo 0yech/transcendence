@@ -266,8 +266,12 @@ export class GamesService {
    * @throws ForbiddenException If the user is not a player in the game.
    */
   async getGame(lobbyCode: string, userId: string) {
+  console.log('[GET GAME] 1. getGameByActiveLobbyCode');
     const game = await this.getActiveGameByLobbyCode(lobbyCode);
+  console.log('[GET GAME] 2. getGameByActiveLobbyCode OK: ', game);
+  console.log('[GET GAME] 3. Assert in game ');
     this.assertPlayerInGame(game, userId);
+  console.log('[GET GAME] 4. Assert in game OK');
 
     return this.toPublicGame(game, userId);
   }

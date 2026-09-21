@@ -282,6 +282,7 @@ model GamePlayer {
   pointWon           Int?
   eliminatedAt       DateTime?
   eliminatedPosition Int?
+  elo                Int  @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

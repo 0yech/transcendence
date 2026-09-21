@@ -137,22 +137,27 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
          * NestJS WsException can arrive on "exception".
          * more useful instead of silently waiting for the ACK timeout.
          */
-        socket.on('exception', (e) => {
-          console.log('game websocket exception', e);
+          socket.on('exception', (e) => {
+            console.error('[GAME WS] EXCEPTION RAW:', e);
+            console.error(
+              '[GAME WS] EXCEPTION JSON:',
+              JSON.stringify(e, null, 2),
+            );
 
-          let message = 'Game websocket exception';
+            let message = 'Game websocket exception';
 
-          if (typeof e === 'string') {
-            message = e;
-          } else if (typeof e?.message === 'string') {
-            message = e.message;
-          } else if (typeof e?.error === 'string') {
-            message = e.error;
-          }
+            if (typeof e === 'string') {
+              message = e;
+            } else if (typeof e?.message === 'string') {
+              message = e.message;
+            } else if (typeof e?.error === 'string') {
+              message = e.error;
+            }
 
-          rejectConnection(message);
-        });
+            console.error('[GAME WS] EXCEPTION MESSAGE:', message);
 
+            rejectConnection(message);
+          });
         socket.on('connect_error', (error) => {
           console.log('game websocket connect_error', error);
 
@@ -207,6 +212,8 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
          * wait until Socket.IO is actually connected before game:join.
          */
         socket.on('connect', () => {
+          console.log('[GAME WS] CONNECTED:', socket.id);
+          console.log('[GAME WS] JOINING LOBBY:', code);
           console.log('connected to /games websocket');
 
           socket.emit(
@@ -221,7 +228,7 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
                 lobbyCode?: string;
               } | null,
             ) => {
-              console.log('game:join ack', ack);
+              console.log('[GAME WS] JOIN ACK:', ack);
 
               const accepted = ack?.ok === true || ack?.success === true;
 

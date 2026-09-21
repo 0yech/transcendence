@@ -65,13 +65,13 @@ export interface SelfUserInterface {
   lobbyId: string | null;
   gamePlayers: SelfMatchHistory[];
   totalPts: number;
+  elo: number;
   guildId: string | null;
   guildRole: 'LEADER' | 'OFFICER' | 'MEMBER' | null;
   guild: {
     id: string;
     name: string;
   } | null;
-  elo: number;
   createdAt: string;
   updatedAt: string;
   deleted: boolean;
