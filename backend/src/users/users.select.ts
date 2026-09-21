@@ -8,6 +8,9 @@ export const publicViewUserSelect = {
   username: true,
   avatarUrl: true,
   lobbyId: true,
+  totalPts: true,
+  elo: true,
+
   gamePlayers: {
     select: {
       id: true,
@@ -30,7 +33,7 @@ export const publicViewUserSelect = {
     },
     take: 20,
   },
-  totalPts: true,
+
   guildId: true,
   guildRole: true,
   guild: {
@@ -40,6 +43,7 @@ export const publicViewUserSelect = {
     },
   },
   sentGuildInvitations: true,
+
   createdAt: true,
   deleted: true,
 } as const;
@@ -50,6 +54,9 @@ export const publicUserSelect = {
   email: true,
   avatarUrl: true,
   lobbyId: true,
+  totalPts: true,
+  elo: true,
+
   gamePlayers: {
     select: {
       id: true,
@@ -72,7 +79,7 @@ export const publicUserSelect = {
     },
     take: 20,
   },
-  totalPts: true,
+
   guildId: true,
   guildRole: true,
   guild: {
@@ -81,6 +88,7 @@ export const publicUserSelect = {
       name: true,
     },
   },
+
   createdAt: true,
   updatedAt: true,
   deleted: true,
@@ -90,7 +98,9 @@ export const lobbyUserSelect = {
   id: true,
   username: true,
   avatarUrl: true,
+  elo: true,
   totalPts: true,
+
   guildRole: true,
   guild: {
     select: {

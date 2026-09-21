@@ -64,7 +64,8 @@ export interface SelfUserInterface {
   avatarUrl: string | null;
   lobbyId: string | null;
   gamePlayers: SelfMatchHistory[];
-  totalPts: 0;
+  totalPts: number;
+  elo: number;
   guildId: string | null;
   guildRole: 'LEADER' | 'OFFICER' | 'MEMBER' | null;
   guild: {
