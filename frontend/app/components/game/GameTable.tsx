@@ -42,7 +42,7 @@ export function GameTable({
 
   const { lightColor, lightIntensity } = useControls({
     lightColor: 'white',
-    lightIntensity: { value: 1.0, min: 0.0, max: 5.0 },
+    lightIntensity: { value: 1.8, min: 0.0, max: 5.0 },
   });
 
   /*
@@ -72,7 +72,7 @@ export function GameTable({
 
   return (
     <div className="inset-0 fixed">
-      <Canvas camera={{ position: [0, 25, 35], fov: 50 }}>
+      <Canvas camera={{ position: [0, 18, 30], fov: 50 }}>
         <ambientLight intensity={0.2} />
         <directionalLight
           position={[0, 9, 20]}
