@@ -122,9 +122,11 @@ TODO
 
 > Bonus modules are between parentheses
 
+Total points: 15 mandatory (+ 6 bonus): 21 points
+
 ### 1. Web
 
-Total points: 5
+Total points: 5 (7)
 
 #### Use a framework for the backend and the frontend (React for frontend, NestJS for backend) - Major +2
 
@@ -135,19 +137,41 @@ It allowed us to keep a consistent structure, and understand backend concepts be
 
 0yech, stellaaash, tricaducee, Miniflint
 
-#### Real-time features using WebSockets (real-time chat) - Major +2
+#### (Real-time features using WebSockets (real-time chat) - Major +2)
 
 Having a chat system allows users to interact during games, using the same technology the game uses.
-TODO implementation details
+Same as the game logic, the backend is where all chat inputs go. Each client connects their socket
+to the backend, sends and retrieves messages from there directly.
 
-0yech
+0yech, stellaaash
+
+#### Allow users to interact with other users - Major +2
+
+For an online game, having friends, being able to have friendly banter with your opponents in a lobby,
+all of this is part of the charm.
+The chat system was implemented using WebSockets. The profile system displays information stored
+in the database, with profile pictures (image or url), email, username.
+The friends system was implemented using a many2many relationship in the database between users.
+
+0yech, tricaducee, Miniflint
 
 #### Use an ORM for the db (Prisma) - Minor +1
 
 Using an ORM for interacting with the database simplified things immensely for storing and updating data.
 Prisma was chosen for its simple, declarative system. It allowed us to use types with TypeScript, drastically limiting the error rate during development.
 
-0yech
+0yech, stellaaash, Miniflint
+
+### 2. Accessibility and Internationalization
+
+Total points: 1
+
+#### Support for additional browsers - Minor +1
+
+We want players to be able to use their favorite browser to play our game!
+The project has been following best practices for all browsers, and works flawlessly on Firefox as well as Google Chrome.
+
+0yech, stellaaash, tricaducee, Miniflint
 
 ### 3. User Management
 
@@ -163,6 +187,7 @@ stellaaash
 #### Game stats and match history - Minor +1
 
 Since this is a game, allowing users to look back on their performance and see areas of improvement, or people they struggle against, is useful.
+Achievements and progression were implemented using ranks system when you gain points, allowing users to climb the ranks as they score more wins.
 
 TODO implementation details and contributors
 
@@ -183,7 +208,7 @@ TODO implementation details
 
 ### 6. Gaming
 
-Total points: 7 (9)
+Total points: 6 (8)
 
 #### Complete web-based game (ONO card game) - Major +2
 
@@ -196,16 +221,15 @@ Essentially, the frontend only acts as an interface to the game, submitting and 
 #### Remote players - Major +2
 
 Allowing players to join from anywhere adds a lot of possibilities, and allows people from the entire world to play together.
-
-TODO implementation details
+Websockets are connected to the backend, which is the authoritative source. As long as a client (the frontend) can connect
+to the backend, they can play the game, from anywhere in the world.
 
 0yech, Miniflint
 
 #### More than two players - Major +2
 
 With a card game like this, the more, the merrier!
-
-TODO implementation details
+The game logic takes into account multiple players, with a hard limit of 6 players.
 
 0yech, Miniflint
 
@@ -213,7 +237,9 @@ TODO implementation details
 
 This shows the game's state in a 3D environment, similar to if you were playing around a table with your friends.
 
-TODO implementation details and contributors
+TODO implementation details
+
+tricaducee
 
 ## Individual Contributions
 
