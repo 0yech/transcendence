@@ -92,35 +92,31 @@ better tooling overall.
 
 <img width="1667" height="1239" alt="image" src="https://github.com/user-attachments/assets/4a5a63c8-9378-455c-b455-b65074b84a01" />
 
-TODO
-
 ## Features List
 
-### 0yech
-
-**Frontend**
-
-- A couple Guilds related elements.
-
-**Backend**
-
-- Lobby logic.
-- Game logic with websockets.
-- Chat logic with websockets.
-- Guild system.
-- Prisma setup.
-
-### Miniflint
-
-**Frontend**
-
-- Allowing users to modify their informations.
-- Handled the Websocket connection for the game.
-- Added ranks based on points.
-
-**Backend**
-
-- Point system for game statistic and stats
+- A fully flegged ONO99 implementation in the backend, implementing all the rules of the base game.
+The backend uses WebSockets to communicate game state updates to clients.
+0yech.
+- An interactive 3D client for the ONO99 game, with shaders and real-time animations.
+Listens to the backend's WebSockets layer.
+Allows people to play on remote networks.
+tricaducee, Miniflint.
+- A lobby system for allowing people to play together, and invite each other using unique codes.
+Features a password system as well.
+0yech, tricaducee, Miniflint.
+- A chat system in lobbies, using WebSockets for communication with the backend, which stores messages in the database.
+0yech, Miniflint.
+- A guilds system, including a ranking system for competing between groups of players.
+0yech, Miniflint.
+- Rankings with points and ranks, allowing for friendly competition between users and guilds.
+Miniflint.
+- A login and register system, allowing users to register with an email, username, and password.
+stellaaash.
+- OAuth 2.0, with Google, GitHub, and 42 logins.
+stellaaash.
+- A profile system, where users can update their personal information, and upload a profile picture.
+It also displays the player's statistics and progression through the ranks.
+stellaaash, Miniflint.
 
 ## Modules
 
