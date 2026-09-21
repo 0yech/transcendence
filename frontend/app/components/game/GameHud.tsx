@@ -22,19 +22,6 @@ const LABEL = 'text-mid-gray text-xs tracking-wider uppercase';
 
 const SEPARATOR = 'my-1 h-1 w-full rounded-full border-0 bg-mid-dark-blue/60';
 
-/*
- * LobbyChat is shared with the lobby page and has no styling of its own. We
- * frame it from the outside until it is styled for good: without this its
- * message list pushes the input field out of the panel.
- */
-const CHAT_FRAME = [
-  '[&>p:first-child]:text-mid-gray [&>p:first-child]:text-xs [&>p:first-child]:uppercase [&>p:first-child]:tracking-wider',
-  '[&_ul]:flex [&_ul]:max-h-40 [&_ul]:flex-col [&_ul]:gap-1 [&_ul]:overflow-y-auto [&_ul]:text-sm',
-  '[&_form]:flex [&_form]:gap-2 [&_form]:pt-1',
-  '[&_input]:bg-dark-blue/30 [&_input]:min-w-0 [&_input]:flex-1 [&_input]:rounded-full [&_input]:px-3 [&_input]:py-1',
-  '[&_form_button]:text-pink [&_form_button]:cursor-pointer [&_form_button]:disabled:opacity-40',
-].join(' ');
-
 function Panel({
   children,
   className,
@@ -94,57 +81,84 @@ export function GameHud({
   const total = gameState?.total ?? 0;
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-10 top-14 grid grid-rows-[auto_1fr_auto] gap-4 p-4">
-      {/* ----- top: state on the left, total in the middle ----- */}
-      <header className="grid grid-cols-[1fr_auto_1fr] items-start gap-4">
-        <Panel className="w-64">
-          <Stat
-            label="Turn"
-            value={
-              <span className={isMyTurn ? 'text-pink' : undefined}>
-                {isMyTurn
-                  ? 'You'
-                  : gameState?.currentPlayerId
-                    ? (users[gameState.currentPlayerId] ?? '—')
-                    : '—'}
-              </span>
-            }
-          />
+    <div className="pointer-events-none fixed inset-0 z-10 top-14">
+      <div className="flex justify-between items-start px-4">
+        <div className="flex flex-col justify-between gap-4">
+          <Panel className="w-64">
+            <Stat
+              label="Turn"
+              value={
+                <span className={isMyTurn ? 'text-pink' : undefined}>
+                  {isMyTurn
+                    ? 'You'
+                    : gameState?.currentPlayerId
+                      ? (users[gameState.currentPlayerId] ?? '—')
+                      : '—'}
+                </span>
+              }
+            />
 
-          {inProgress && gameState?.turnNumber !== undefined && (
-            <TurnTimer key={gameState.turnNumber} />
-          )}
+            {inProgress && gameState?.turnNumber !== undefined && (
+              <TurnTimer key={gameState.turnNumber} />
+            )}
 
-          <hr className={SEPARATOR} />
+            <hr className={SEPARATOR} />
 
-          <Stat label="Deck" value={gameState?.deckCount ?? '—'} />
-          <Stat
-            label="Direction"
-            value={gameState?.direction === 1 ? '→' : '←'}
-          />
-          <Stat label="Last played" value={lastDiscard?.label ?? '—'} />
+            <Stat label="Deck" value={gameState?.deckCount ?? '—'} />
+            <Stat
+              label="Direction"
+              value={gameState?.direction === 1 ? '→' : '←'}
+            />
+            <Stat label="Last played" value={lastDiscard?.label ?? '—'} />
 
-          {gameState?.winnerId && (
-            <>
-              <hr className={SEPARATOR} />
-              <Stat
-                label="Winner"
-                value={
-                  <span className="text-accept">
-                    {users[gameState.winnerId] ?? '—'}
-                  </span>
-                }
-              />
-            </>
-          )}
+            {gameState?.winnerId && (
+              <>
+                <hr className={SEPARATOR} />
+                <Stat
+                  label="Winner"
+                  value={
+                    <span className="text-accept">
+                      {users[gameState.winnerId] ?? '—'}
+                    </span>
+                  }
+                />
+              </>
+            )}
 
-          <hr className={SEPARATOR} />
+            <hr className={SEPARATOR} />
 
-          {/* Debugging readouts, to remove once the game has settled. */}
-          <Stat label="Turn number" value={gameState?.turnNumber ?? '—'} />
-          <Stat label="Pending plays" value={gameState?.pendingPlays ?? '—'} />
-        </Panel>
+            {/* Debugging readouts, to remove once the game has settled. */}
+            <Stat label="Turn number" value={gameState?.turnNumber ?? '—'} />
+            <Stat
+              label="Pending plays"
+              value={gameState?.pendingPlays ?? '—'}
+            />
+          </Panel>
+          <Panel className="w-64">
+            <span className={LABEL}>Actions</span>
 
+            {hasHand ? (
+              <>
+                <Button
+                  className="text-base disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+                  disabled={!canPlayFour}
+                  onClick={onPlayFour}
+                >
+                  Play four ONO99
+                </Button>
+                <Button
+                  variant="danger"
+                  className="text-base"
+                  onClick={onUnable}
+                >
+                  Unable to play
+                </Button>
+              </>
+            ) : (
+              <p className="text-mid-gray text-sm">Waiting for cards…</p>
+            )}
+          </Panel>
+        </div>
         <motion.div
           className="pointer-events-none flex flex-col items-center"
           initial={{ opacity: 0, y: -20 }}
@@ -161,40 +175,17 @@ export function GameHud({
             {total}
           </span>
         </motion.div>
-
-        <div />
-      </header>
-
-      {/* the middle column stays empty: that is the table */}
-      <div />
-
-      {/* ----- bottom: actions on the left, chat on the right ----- */}
-      <footer className="flex items-end justify-between gap-4">
-        <Panel className="w-64">
-          <span className={LABEL}>Actions</span>
-
-          {hasHand ? (
-            <>
-              <Button
-                className="text-base disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
-                disabled={!canPlayFour}
-                onClick={onPlayFour}
-              >
-                Play four ONO99
-              </Button>
-              <Button variant="danger" className="text-base" onClick={onUnable}>
-                Unable to play
-              </Button>
-            </>
-          ) : (
-            <p className="text-mid-gray text-sm">Waiting for cards…</p>
-          )}
-        </Panel>
-
-        <Panel className={twMerge('w-80', CHAT_FRAME)}>
-          <LobbyChat code={code} canSend={true} />
-        </Panel>
-      </footer>
+        {/*
+		  The overlay is pointer-events-none so clicks reach the canvas: the
+		  chat has to take them back, otherwise it can neither be scrolled nor
+		  typed into.
+		*/}
+        <LobbyChat
+          className="pointer-events-auto h-[calc(100vh-7rem)]"
+          code={code}
+          canSend={true}
+        />
+      </div>
     </div>
   );
 }

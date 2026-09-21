@@ -11,7 +11,7 @@ const baseStyle =
   'group flex lg:justify-between justify-end items-center h-fit lg:h-20 z-50 sticky w-full' as const;
 
 const navStyles = {
-  primary: 'text-black lg:text-white',
+  primary: 'text-white',
 } as const;
 
 type NavProps = {
@@ -37,7 +37,7 @@ export function NavBar({ className, variant = 'primary', ...rest }: NavProps) {
       className={twMerge(
         baseStyle,
         navStyles[variant],
-        menuVisibility ? 'bg-white lg:bg-white/0' : '',
+        menuVisibility ? 'bg-black/60 lg:bg-black/0' : '',
         className,
       )}
       {...rest}
@@ -125,7 +125,7 @@ export function NavBar({ className, variant = 'primary', ...rest }: NavProps) {
         <ul
           id="account-menu"
           className={twMerge(
-            'absolute right-0 top-full lg:mt-2 lg:w-48 w-full overflow-hidden lg:rounded-2xl lg:p-1.5 pb-5 bg-white lg:bg-white/10 text-black lg:text-white transition-all duration-300 ease-out',
+            'absolute right-0 top-full lg:mt-2 lg:w-48 w-full overflow-hidden lg:rounded-2xl lg:p-1.5 pb-5 bg-black/60 lg:bg-black/10 text-white transition-all duration-300 ease-out',
             menuVisibility
               ? 'scale-100 opacity-100 translate-y-0'
               : 'pointer-events-none scale-95 opacity-0 -translate-y-2',

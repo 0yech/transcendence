@@ -1,7 +1,11 @@
-import { useEffect, useState, type SyntheticEvent } from 'react';
+import { useEffect, useMemo, useState, type SyntheticEvent } from 'react';
 import { io } from 'socket.io-client';
 import apiFetch from '~/utils/api-fetch';
 import { setChatSocket } from '~/utils/chatSocket';
+import { Input } from './Input';
+import { cardStyle } from '~/styles/style';
+import { twMerge } from 'tailwind-merge';
+import { Button } from './Button';
 import { getCurrentUser } from '~/utils/users';
 
 interface ChatMessage {
@@ -17,9 +21,24 @@ interface ChatMessage {
 }
 
 interface LobbyChatProps {
+  className?: string;
   code: string;
   canSend: boolean;
 }
+
+/*
+  Written as full class names because Tailwind drops classes built at runtime
+  such as `text-${color}`.
+*/
+const AUTHOR_COLORS = [
+  'text-pink',
+  'text-mid-light-blue',
+  'text-green',
+  'text-yellow',
+  'text-orange',
+  'text-light-pink',
+  'text-green',
+];
 
 /**
  *
@@ -54,11 +73,37 @@ function mergeMessages(
  *
  * @returns lobby chat messages and message input
  */
-export default function LobbyChat({ code, canSend }: LobbyChatProps) {
+export default function LobbyChat({
+  className,
+  code,
+  canSend,
+}: LobbyChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [content, setContent] = useState('');
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  /**
+   *
+   * @brief give each author a color, handed out in the order they first speak
+   *
+   * messages are sorted by creation date, so every client walks them in the
+   * same order and ends up with the same colors
+   */
+  const authorColors = useMemo(() => {
+    const colors = new Map<string, string>();
+
+    for (const message of messages) {
+      if (!colors.has(message.author.id)) {
+        colors.set(
+          message.author.id,
+          AUTHOR_COLORS[colors.size % AUTHOR_COLORS.length],
+        );
+      }
+    }
+
+    return colors;
+  }, [messages]);
 
   /**
    *
@@ -214,34 +259,57 @@ export default function LobbyChat({ code, canSend }: LobbyChatProps) {
   }
 
   return (
-    <div>
+    <div
+      className={twMerge(
+        'flex flex-col backdrop-blur-xs gap-2 h-200 w-70',
+        className,
+      )}
+    >
       <p>Chat: {connected ? 'connected' : 'disconnected'}</p>
 
       {error && <p>{error}</p>}
 
-      <ul>
-        {messages.map((message) => (
+      <ul
+        className={twMerge(
+          cardStyle,
+          'overflow-y-auto gap-2 flex flex-col-reverse h-full whitespace-pre-wrap wrap-break-word overscroll-contain',
+        )}
+      >
+        {[...messages].reverse().map((message) => (
           <li key={message.id}>
-            <strong>{message.author.username}:</strong> {message.content}
+            <strong className={authorColors.get(message.author.id)}>
+              {message.author.username}:
+            </strong>
+            <br />
+            {'   '}
+            {message.content}
           </li>
         ))}
       </ul>
 
       {canSend ? (
-        <form onSubmit={sendMessage}>
+        <form className="flex flex-col gap-2" onSubmit={sendMessage}>
           {/*
             This limit mirrors CreateMessageDto in
             backend/src/chats/dto/create-message.dto.ts. Keep them in sync.
           */}
-          <input
+          <Input
+            variant="textarea"
+            className="w-full"
+            id="chat-input"
             type="text"
+            placeholder="Type your message here..."
             value={content}
             maxLength={500}
             onChange={(event) => setContent(event.target.value)}
           />
-          <button type="submit" disabled={!connected || !content.trim()}>
+          <Button
+            type="submit"
+            variant="accept"
+            disabled={!connected || !content.trim()}
+          >
             Send
-          </button>
+          </Button>
         </form>
       ) : (
         <p>Join the lobby to send messages.</p>

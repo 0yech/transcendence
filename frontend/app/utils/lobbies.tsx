@@ -174,12 +174,9 @@ export function JoinLobby({ code }: { code: string }) {
     }
   }
   return (
-    <button
-      className="rounded-full w-fit px-5 bg-green-500 hover:bg-green-700"
-      onClick={() => handleClickJoin(code)}
-    >
+    <Button variant="accept" onClick={() => handleClickJoin(code)}>
       Join this Lobby
-    </button>
+    </Button>
   );
 }
 
@@ -203,12 +200,9 @@ export function LeaveLobby() {
   }
 
   return (
-    <button
-      className="rounded-full w-fit px-5 bg-red-500 hover:bg-red-700"
-      onClick={() => handleClickLeave()}
-    >
+    <Button variant="danger" onClick={() => handleClickLeave()}>
       Leave This Lobby
-    </button>
+    </Button>
   );
 }
 
