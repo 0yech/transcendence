@@ -1,11 +1,13 @@
 import type { InputHTMLAttributes } from 'react';
 import { twMerge } from 'tailwind-merge';
 
-const BaseStyle = 'p-2 text-3xl w-80 text-center';
+const BaseStyle = 'p-2';
 
 const InputStyles = {
   primary:
-    'bg-linear-to-r from-dark-blue to-mid-dark-blue border border-light-blue rounded-full placeholder-mid-dark-blue',
+    'w-80 bg-linear-to-r from-dark-blue text-center text-3xl to-mid-dark-blue border border-light-blue rounded-full placeholder-mid-dark-blue',
+  textarea:
+    'bg-dark-blue/40 text-xl border border-light-blue min-h-10 rounded-xl placeholder-light-gray',
 } as const;
 
 type InputProps = InputHTMLAttributes<HTMLInputElement> & {

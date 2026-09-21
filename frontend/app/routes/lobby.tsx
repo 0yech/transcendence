@@ -2,12 +2,14 @@ import type { Route } from './+types/lobby';
 import apiFetch, { UnauthenticatedError } from '~/utils/api-fetch';
 import { redirect, type Params } from 'react-router';
 import { DisplayUsers, JoinLobby, LeaveLobby } from '~/utils/lobbies';
-import { useNavigate } from 'react-router';
 import { UseWebSocket } from '~/context/UseWebSocket';
 import { useState, useEffect } from 'react';
 import type { UserInterfaceLobby } from '~/utils/lobbies';
 import LobbyChat from '~/components/LobbyChat';
 import { NavBar } from '~/components/Navbar';
+import { Button } from '~/components/Button';
+import { cardStyle } from '~/styles/style';
+import { twMerge } from 'tailwind-merge';
 
 export async function clientLoader({ params }: { params: Params<string> }) {
   const { code } = params;
@@ -51,16 +53,11 @@ export default function PreGame({ loaderData }: Route.ComponentProps) {
   const [kickingUserId, setKickingUserId] = useState<string | null>(null);
 
   const {
-    id,
     code,
-    active,
     private: isPrivate,
-    createdAt,
-    updatedAt,
+    // createdAt,
     currentUserId,
   } = loaderData;
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     async function fetchUsers(code: string) {
@@ -120,57 +117,48 @@ export default function PreGame({ loaderData }: Route.ComponentProps) {
   return (
     <>
       <NavBar></NavBar>
-      <li>
-        <JoinLobby code={code} />
-      </li>
-
-      <li>
-        <LeaveLobby />
-      </li>
-
-      <li>
-        <button
-          className="rounded-full w-fit px-5 bg-pink-400 hover:bg-pink-600"
-          onClick={() => startGame()}
+      <div className="fixed top-0 left-0 h-dvh w-full flex justify-center items-center">
+        <div
+          className={twMerge(cardStyle, 'w-200 h-150 p-4 flex justify-between')}
         >
-          Start game
-        </button>
-      </li>
-
-      <li>
-        <button
-          className="rounded-full w-fit px-5 bg-blue-500 hover:bg-blue-700"
-          onClick={() => navigate('/')}
-        >
-          Home
-        </button>
-      </li>
-
-      <br />
-
-      <div className="flex flex-row">
-        <div>
-          <h2>lobby id: {id}</h2>
-          <h2>Code: {code}</h2>
-          <h2>active: {active}</h2>
-          <h2>is Private: {isPrivate ? 'true' : 'false'}</h2>
-          <h2>leader: {currentLeader?.username}</h2>
-          <h2>createdAt: {createdAt}</h2>
-          <h2>updatedAt: {updatedAt}</h2>
-
-          <h2>Users</h2>
-          <DisplayUsers
-            users={users}
-            leaderId={currentLeaderId}
-            currentUserId={currentUserId}
-            kickingUserId={kickingUserId}
-            onKick={handleKick}
-          />
-        </div>
-
-        <div>
+          <div className="flex flex-col justify-between items-between h-full w-full">
+            <div>
+              <h1 className="text-2xl font-bold uppercase">
+                LOBBY OF {currentLeader?.username}
+              </h1>
+              <h2>Lobby code: {code}</h2>
+              {isPrivate && <h2>This is a private lobby.</h2>}
+            </div>
+            <div>
+              <h2>Users</h2>
+              {/*<ul>
+    {users.map((user) => (
+      <li><UserPopUp user={user} /></li>
+    ))}
+		</ul>*/}
+              <DisplayUsers
+                users={users}
+                leaderId={currentLeaderId}
+                currentUserId={currentUserId}
+                kickingUserId={kickingUserId}
+                onKick={handleKick}
+              />
+              {/* <h2>createdAt: {createdAt}</h2> */}
+              {/* <h2>updatedAt: {updatedAt}</h2> */}
+            </div>
+            <div className="flex gap-4">
+              {currentLeaderId === currentUserId && users.length > 1 && (
+                <Button onClick={() => startGame()}>Start game</Button>
+              )}
+              {isMember ? <LeaveLobby /> : <JoinLobby code={code} />}
+            </div>
+          </div>
           {!isPrivate || isMember ? (
-            <LobbyChat code={code} canSend={isMember} />
+            <LobbyChat
+              className="w-100 h-full"
+              code={code}
+              canSend={isMember}
+            />
           ) : (
             <p>This lobby chat is private.</p>
           )}
