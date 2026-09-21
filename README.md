@@ -323,7 +323,7 @@ Did not encounter many problems in particular with their side of the work, excep
 
 ## Resources
 
-**0yech**
+### 0yech
 
 - [NestJS docs](https://docs.nestjs.com)
 - [RFC 6455: Websocket Protocol](https://datatracker.ietf.org/doc/html/rfc6455)
@@ -331,33 +331,33 @@ Did not encounter many problems in particular with their side of the work, excep
 - [Conventional commits](https://www.conventionalcommits.org/en/v1.0.0/#summary)
 - [Insomnia](https://insomnia.rest)
 
-**Miniflint**
+### stellaaash
+
+- [NestJS Documentation](https://docs.nestjs.com)
+- [RFC 8725 - JSON Web Token Best Current Practices](https://www.rfc-editor.org/rfc/rfc8725.html)
+- [OWASP - Session Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html)
+- [class-validator](https://github.com/typestack/class-validator)
+
+### Miniflint
 
 - [react-router](https://reactrouter.com/)
 - [stackoverflow](https://stackoverflow.com)
-- [graphicart](https://www.graphicart.ch/fr/)
+- [graphicart](https://grafikart.fr/)
 - And ai here and there for annoying bug fixes
 
-### AI Usage
+## AI Usage
 
-**0yech**
+### 0yech
 
 Used for researching and demytifying Typescript/Nest and other modern web frameworks concepts, as being not very familiar with webapps besides stock PHP and older PHP MVC frameworks. AI was also used for finding causes behind bugs and adding more robust checks around many cases within backend elements.
 
-**Miniflint**
+### stellaaash
+
+AI was used to learn the base concepts of the technologies we were learning. It was also used to coach and guide in the implementation of some features, including OAuth and the friends system.
+AI was used to build the code for the avatar upload feature.
+AI was used to prune dead code at the end of the project.
+
+### Miniflint
 
 Mostly used for debugging random piece of code such as WebSocketProvider throwing console errors if a user disconnected from the websocket and then tried to anonymously join the game.
 Used AI to explain why this would happen and tried to figure out themself how to fix it.
-
-### Frameworks
-
-- [NestJS Documentation](https://docs.nestjs.com)
-
-### Authentication
-
-- [RFC 8725 - JSON Web Token Best Current Practices](https://www.rfc-editor.org/rfc/rfc8725.html)
-- [OWASP - Session Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html)
-
-### Data Validation
-
-- [class-validator](https://github.com/typestack/class-validator)
