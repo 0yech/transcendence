@@ -1,7 +1,7 @@
 /**
  * Displays an error message on the login/register pages.
  */
-export function ErrorMessage(props: { message: string }) {
+export function ErrorMessage(props: { message?: string | null }) {
   const { message: errorMessage } = props;
 
   return (
