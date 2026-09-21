@@ -9,7 +9,7 @@ import { OAuthProvider } from 'src/generated/prisma/enums';
 import { OAuthError } from './oauth-error.enum';
 import { OAuthException } from './oauth.exception';
 
-const SESSION_LIFETIME_MS = 1000 * 60 * 60 * 24 * 14; // Two weeks
+export const SESSION_LIFETIME_MS = 1000 * 60 * 60 * 24 * 14; // Two weeks
 
 /**
  * @brief Represents a session currently active for a given user in the AuthService
