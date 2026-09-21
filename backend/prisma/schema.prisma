@@ -75,6 +75,7 @@ model User {
   lobby   Lobby?  @relation("LobbyUsers", fields: [lobbyId], references: [id], onDelete: SetNull)
 
   totalPts  Int        @default(0)
+  elo       Int        @default(1000)
   guildId   String?
   guild     Guild?     @relation("GuildMembers", fields: [guildId], references: [id], onDelete: SetNull)
   guildRole GuildRole?

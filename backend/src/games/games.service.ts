@@ -30,6 +30,7 @@ type GamePlayerWithUser = {
   seat: number;
   status: GamePlayerStatus;
   hand: unknown;
+  elo: number;
   eliminatedAt?: Date | null;
   createdAt?: Date;
   updatedAt?: Date;
@@ -599,6 +600,7 @@ export class GamesService {
 
     await this.updateUserPoints(player.userId, addedPts);
 
+    console.log(game.players);
     await this.prisma.gameAction.create({
       data: {
         gameId,
@@ -894,19 +896,9 @@ export class GamesService {
   async getReplay(gameId: string) {
     const game = await this.prisma.game.findUnique({
       where: { id: gameId },
+      
       include: {
-        players: {
-          orderBy: { seat: 'asc' },
-          include: {
-            user: {
-              select: {
-                id: true,
-                username: true,
-                avatarUrl: true,
-              },
-            },
-          },
-        },
+        ...this.gameInclude(),
         actions: {
           orderBy: { sequence: 'asc' },
         },
@@ -931,6 +923,7 @@ export class GamesService {
       players: game.players.map((player: GamePlayerWithUser) => ({
         userId: player.userId,
         seat: player.seat,
+        elo: player.elo,
         username: player.user?.username,
         avatarUrl: player.user?.avatarUrl,
       })),
@@ -1234,7 +1227,17 @@ export class GamesService {
         orderBy: {
           seat: 'asc' as const,
         },
-        include: {
+        select: {
+          id: true,
+          gameId: true,
+          userId: true,
+          seat: true,
+          status: true,
+          hand: true,
+          elo: true,
+          eliminatedAt: true,
+          createdAt: true,
+          updatedAt: true,
           user: {
             select: {
               id: true,
@@ -1246,7 +1249,6 @@ export class GamesService {
       },
     };
   }
-
   /**
    * @brief Ensures that a game is currently in progress.
    *
@@ -1342,7 +1344,7 @@ export class GamesService {
         seat: player.seat,
         status: player.status,
         handCount: Array.isArray(player.hand) ? player.hand.length : 0,
-
+        elo: player.elo,
         /**
          * Only the current authenticated player receives their own hand.
          */

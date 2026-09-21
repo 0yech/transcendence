@@ -64,13 +64,14 @@ export interface SelfUserInterface {
   avatarUrl: string | null;
   lobbyId: string | null;
   gamePlayers: SelfMatchHistory[];
-  totalPts: 0;
+  totalPts: number;
   guildId: string | null;
   guildRole: 'LEADER' | 'OFFICER' | 'MEMBER' | null;
   guild: {
     id: string;
     name: string;
   } | null;
+  elo: number;
   createdAt: string;
   updatedAt: string;
   deleted: boolean;
