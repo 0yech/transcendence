@@ -1,12 +1,30 @@
 import { LoginForm } from '~/pages/auth/login';
 import type { Route } from './+types/login';
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { OauthLoginOptions } from '~/pages/auth/oauth';
 import { StylisedLink } from '../components/StylisedLink';
 import { NavBar } from '~/components/Navbar';
 import { UseWebSocket } from '~/context/UseWebSocket';
 import { useEffect } from 'react';
 import { ErrorMessage } from '~/pages/auth/errorMessage';
+
+/**
+ * Turns the error type the back-end's OAuth callback filter redirects us to
+ * `/login?error=` with into something readable. The cases match the
+ * `OAuthError` enum on the back-end.
+ */
+function oauthErrorMessage(errorType: string) {
+  switch (errorType) {
+    case 'BASIC_AUTH':
+      return 'Account was created with username and password. Please login using your username and password.';
+    case 'DIFFERENT_PROVIDER':
+      return 'Account was created with a different OAuth provider. Please login using your usual provider.';
+    case 'MISSING_DATA':
+      return "The OAuth provider didn't send us important data. Make sure your account is complete. For example, on Google, make sure your email has been verified, and on GitHub, select a public email address.";
+    default:
+      return 'Unknown error. Try again? Or check the backend logs.';
+  }
+}
 
 export async function clientAction({ request }: Route.ClientActionArgs) {
   const data = await request.formData();
@@ -44,6 +62,7 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
 export default function Login({ actionData }: Route.ComponentProps) {
   const { setUser, connect } = UseWebSocket();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     if (!actionData?.user) return;
@@ -65,6 +84,13 @@ export default function Login({ actionData }: Route.ComponentProps) {
     void restoreSession();
   }, [actionData?.user, actionData?.lobbies, connect, navigate, setUser]);
 
+  // An error from the login form takes priority over a stale `?error=` that
+  // an earlier OAuth attempt left in the address bar.
+  const oauthErrorType = searchParams.get('error');
+  const errorMessage: string | undefined =
+    actionData?.errorMessage ??
+    (oauthErrorType === null ? undefined : oauthErrorMessage(oauthErrorType));
+
   return (
     <>
       <title>Transcendence</title>
@@ -73,7 +99,7 @@ export default function Login({ actionData }: Route.ComponentProps) {
         <div className="w-fit p-5 rounded-4xl bg-dark-blue/20 shadow-xl shadow-dark-blue/30 h-fit flex flex-col items-center gap-2">
           <h1 className="text-2xl">Login to Transcendence</h1>
           <LoginForm />
-          <ErrorMessage message={actionData?.errorMessage} />
+          <ErrorMessage message={errorMessage} />
           <h1 className="text-1xl text-center">
             Don't have an account yet?{' '}
             <StylisedLink to="/register">Sign up</StylisedLink>

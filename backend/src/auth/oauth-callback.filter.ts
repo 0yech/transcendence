@@ -27,7 +27,11 @@ export class OauthCallbackFilter implements ExceptionFilter {
       errorType = exception.errorType;
     } else if (exception instanceof HttpException) {
       // Those are things that could happen and aren't a crash, like the user
-      // clicking cancel on the OAuth provider's login screen
+      // clicking cancel on the OAuth provider's login screen. The user only
+      // gets a generic message, so log the real reason for debugging.
+      this.logger.warn(
+        'Handled exception during OAuth login: ' + exception.message,
+      );
       errorType = 'unknown';
     } else {
       // Unexpected exception, Prisma errors, or something like that
