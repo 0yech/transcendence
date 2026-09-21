@@ -47,7 +47,7 @@ export async function clientLoader({ params }: { params: Params<string> }) {
  * @returns the JSX for the lobby information
  */
 export default function PreGame({ loaderData }: Route.ComponentProps) {
-  const { startGame } = UseWebSocket();
+  const { startGame, connect } = UseWebSocket();
   const [useUsers, setUsers] = useState<UserInterfaceLobby[] | null>(null);
   const [currentLeaderId, setCurrentLeaderId] = useState<string>(
     loaderData.leaderId,
@@ -87,6 +87,14 @@ export default function PreGame({ loaderData }: Route.ComponentProps) {
 
   const isMember =
     currentUserId !== null && users.some((user) => user.id === currentUserId);
+
+  useEffect(() => {
+    if (!isMember) return;
+
+    connect(code).catch((error) => {
+      console.error('Failed to restore game websocket:', error);
+    });
+  }, [code, isMember, connect]);
 
   async function handleKick(memberId: string) {
     try {

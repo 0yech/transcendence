@@ -42,16 +42,28 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
 }
 
 export default function Login({ actionData }: Route.ComponentProps) {
-  const { setUser, setCode } = UseWebSocket();
+  const { setUser, connect } = UseWebSocket();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (actionData?.user) {
+    if (!actionData?.user) return;
+
+    async function restoreSession() {
       setUser(actionData.user);
-      if (actionData.lobbies) setCode(actionData.lobbies.code);
+
+      if (actionData.lobbies?.code) {
+        try {
+          await connect(actionData.lobbies.code);
+        } catch (error) {
+          console.error('Failed to restore websocket after login:', error);
+        }
+      }
+
       navigate('/');
     }
-  }, [actionData?.user, setUser, actionData?.lobbies, setCode, navigate]);
+
+    void restoreSession();
+  }, [actionData?.user, actionData?.lobbies, connect, navigate, setUser]);
 
   return (
     <>
