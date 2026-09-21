@@ -6,6 +6,7 @@ import { Input } from './Input';
 import { cardStyle } from '~/styles/style';
 import { twMerge } from 'tailwind-merge';
 import { Button } from './Button';
+import { getCurrentUser } from '~/utils/users';
 
 interface ChatMessage {
   id: string;
@@ -115,7 +116,12 @@ export default function LobbyChat({
       autoConnect: false,
       withCredentials: true,
     });
+
     setChatSocket(socket);
+
+    let active = true;
+    let retriedAfterRejection = false;
+
     const onMessageCreated = (message: ChatMessage) => {
       setMessages((current) => mergeMessages(current, [message]));
     };
@@ -129,6 +135,8 @@ export default function LobbyChat({
             setError('Could not join lobby chat');
             return;
           }
+
+          retriedAfterRejection = false;
 
           try {
             const historyResponse = await apiFetch(
@@ -160,8 +168,29 @@ export default function LobbyChat({
 
     socket.on('message:created', onMessageCreated);
 
-    socket.on('disconnect', () => {
+    /*
+     * The gateway only checks the access token when a socket connects, and
+     * hangs up on the sockets it rejects. socket.io reconnects on its own after
+     * a network drop, possibly with a token that expired meanwhile, but never
+     * after being hung up on. So refresh the session once and try again; if
+     * nobody is logged in anymore, stay disconnected.
+     */
+    socket.on('disconnect', async (reason) => {
       setConnected(false);
+
+      if (reason !== 'io server disconnect' || retriedAfterRejection) {
+        return;
+      }
+
+      retriedAfterRejection = true;
+      const user = await getCurrentUser();
+
+      // The panel may have been unmounted while refreshing.
+      if (!active || !user) {
+        return;
+      }
+
+      socket.connect();
     });
 
     socket.on('connect_error', () => {
@@ -172,6 +201,7 @@ export default function LobbyChat({
     socket.connect();
 
     return () => {
+      active = false;
       socket.off('connect', onConnect);
       socket.off('message:created', onMessageCreated);
       socket.disconnect();

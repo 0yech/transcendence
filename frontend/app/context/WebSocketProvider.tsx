@@ -4,6 +4,7 @@ import { io, Socket } from 'socket.io-client';
 import { WebsocketContext } from './WebSocketContext';
 import { useNavigate } from 'react-router';
 import apiFetch, { UnauthenticatedError } from '~/utils/api-fetch';
+import { getCurrentUser } from '~/utils/users';
 import type { InterfaceGameState, SelfUserInterface } from './WebSocketContext';
 
 /**
@@ -72,6 +73,7 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
         wsRef.current = socket;
 
         let settled = false;
+        let retriedAfterRejection = false;
 
         const timeout = setTimeout(() => {
           if (settled) {
@@ -161,8 +163,44 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
           );
         });
 
-        socket.on('disconnect', (reason) => {
+        /*
+         * The gateway only checks the access token when a socket connects, and
+         * hangs up on the sockets it rejects. socket.io reconnects on its own
+         * after a network drop, possibly with a token that expired meanwhile,
+         * but never after being hung up on.
+         *
+         * A game is played entirely over this socket, so no HTTP request runs
+         * meanwhile to refresh the session lazily. Without this, one blip past
+         * the access token's lifetime strands the player until they reload,
+         * and the server eliminates them on the next turn timeout. So refresh
+         * the session once and try again; if the session is gone for good,
+         * stay down and let the next navigation redirect to the login page.
+         */
+        socket.on('disconnect', async (reason) => {
           console.log('game websocket disconnected:', reason);
+
+          if (reason !== 'io server disconnect' || retriedAfterRejection) {
+            return;
+          }
+
+          retriedAfterRejection = true;
+          const user = await getCurrentUser();
+
+          // This socket may have been replaced or torn down while refreshing.
+          if (wsRef.current !== socket) {
+            return;
+          }
+
+          if (!user) {
+            return;
+          }
+
+          // Someone else logged in while we were away: this socket is stale.
+          if (userIdRef.current !== null && user.id !== userIdRef.current) {
+            return;
+          }
+
+          socket.connect();
         });
 
         /*
@@ -185,11 +223,23 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
             ) => {
               console.log('game:join ack', ack);
 
+              const accepted = ack?.ok === true || ack?.success === true;
+
+              /*
+               * A reconnect runs this handler again, long after the initial
+               * promise settled. A rejoin that succeeds proves the refreshed
+               * session works, so re-arm the one-shot retry for the next
+               * rejection instead of leaving it spent for the socket's life.
+               */
+              if (accepted) {
+                retriedAfterRejection = false;
+              }
+
               if (settled) {
                 return;
               }
 
-              if (!ack || (ack.ok !== true && ack.success !== true)) {
+              if (!accepted) {
                 rejectConnection('game:join rejected');
                 return;
               }
