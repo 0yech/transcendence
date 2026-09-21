@@ -2,7 +2,7 @@ export default function PrivacyPolicy() {
   return (
     <main className="mx-auto max-w-2xl space-y-4 p-6 pb-16">
       <h1 className="text-3xl font-semibold">Privacy Policy</h1>
-      <p className="text-sm">Last updated: 16.09.2026</p>
+      <p className="text-sm">Last updated: 21.09.2026</p>
 
       <p>
         This policy explains what personal data NONO99 collects, why we collect
@@ -102,8 +102,9 @@ export default function PrivacyPolicy() {
         <div>
           <dt className="font-medium">Your hand</dt>
           <dd>
-            We keep the cards you are holding while a game is running, so that
-            the game survives you closing the tab.
+            We keep the cards you are holding, so that the game survives you
+            closing the tab. They stay on record after the game is over, though
+            nobody else is shown them.
           </dd>
         </div>
         <div>
@@ -111,8 +112,8 @@ export default function PrivacyPolicy() {
           <dd>
             Every action you take in a game (what you played, on which turn, in
             what order) is recorded against your account and kept after the game
-            ends. Replays are public: anyone with a link to a finished game can
-            watch it, whether or not they have an account.
+            ends. Replays are public: anyone with a link to a finished or
+            abandoned game can watch it, whether or not they have an account.
           </dd>
         </div>
         <div>
@@ -126,6 +127,15 @@ export default function PrivacyPolicy() {
           <dt className="font-medium">Points</dt>
           <dd>
             The points you win in a game, your total, and what your guild has.
+          </dd>
+        </div>
+        <div>
+          <dt className="font-medium">Rating</dt>
+          <dd>
+            A rating that goes up when you win and down when you lose. We also
+            keep the rating you had at the start of every game you play, and
+            those stay on record. Other players can see your rating, and so can
+            anyone watching a replay.
           </dd>
         </div>
         <div>
@@ -147,8 +157,9 @@ export default function PrivacyPolicy() {
           <dt className="font-medium">Lobby codes</dt>
           <dd>
             Every lobby has a short code. A private lobby is kept off the public
-            list, but anyone who has its code can join it, so only pass the code
-            to people you want in the game.
+            list, but anyone who has its code can see who is in it, with or
+            without an account, and any player who has it can join. Only pass
+            the code to people you want in the game.
           </dd>
         </div>
         <div>
@@ -181,15 +192,18 @@ export default function PrivacyPolicy() {
           <dt className="font-medium">Friend invitations</dt>
           <dd>
             Invitations you send and invitations you receive, including who the
-            other person was and whether it was accepted, declined or cancelled.
-            These are kept after they have been dealt with.
+            other person was and whether it was accepted or declined. These are
+            kept after they have been dealt with, and stay even if you stop
+            being friends later.
           </dd>
         </div>
       </dl>
       <p>
-        Your friends can see which lobby you are currently in, and can join it,
-        a private one included. Nobody who is not your friend is told where you
-        are.
+        Your friends are shown when you are online, and can join the lobby you
+        are in, a private one included. We keep no record of when you were
+        online. Other players cannot follow you into a lobby that way, but any
+        signed-in player can see that you are in one, and if it is a public
+        lobby the list of open games shows who is in it to anyone at all.
       </p>
 
       <h3 className="pt-2 font-semibold">When you chat</h3>
@@ -245,12 +259,6 @@ export default function PrivacyPolicy() {
         running in the page.
       </p>
       <p>
-        Logging out ends your session immediately, and so does closing your
-        browser. Sessions do not last forever, and you may occasionally be
-        signed out earlier than you expected; if that happens, simply sign in
-        again.
-      </p>
-      <p>
         We use no analytics, advertising, or third-party tracking cookies.
         Because our cookies are strictly necessary to provide a service you
         asked for, we do not show a cookie consent banner. Blocking these
@@ -267,25 +275,27 @@ export default function PrivacyPolicy() {
           without the collected data.
         </li>
         <li>
-          <strong>Legitimate interests</strong>: server logs, and the measures
-          that keep accounts secure, so we can run the service and prevent
-          abuse.
+          <strong>Legitimate interests</strong>: server logs, so we can keep the
+          service running and look into faults and abuse.
         </li>
       </ul>
 
       <h2 className="pt-4 text-xl font-semibold">Who else sees your data</h2>
       <ul className="list-disc space-y-2 pl-5">
         <li>
-          <strong>Other users</strong>: your username and picture, the guild you
-          belong to and your role in it, your points and your record, your last
-          twenty games and how each one ended, any message you send in a lobby
-          you share with them, and the replay of any game you played together.
-          Your email address is never shown to other players.
+          <strong>Other users</strong>, once they are signed in: your username
+          and picture, the guild you belong to and your role in it, your points,
+          your rating and your record, your last twenty games and how each one
+          ended, the guild invitations you have sent, any message you send in a
+          lobby you share with them, and the replay of any game you played
+          together. Your email address is never shown to other players.
         </li>
         <li>
           <strong>Anyone at all</strong>, with no account needed: the list of
-          open games and guilds, along with the usernames and pictures of the
-          people in them, and the replay of any finished game.
+          open games and guilds, along with the usernames, pictures, points and
+          ratings of the people in them, a ranking of the top guilds and who
+          belongs to each, and the replay of any finished or abandoned game. A
+          private lobby's code gets them the same view of who is in it.
         </li>
         <li>
           <strong>Google</strong>: we load a font from Google on every page,
@@ -322,17 +332,20 @@ export default function PrivacyPolicy() {
 
       <h2 className="pt-4 text-xl font-semibold">How long we keep it</h2>
       <p>
-        We keep data indefinitely, and we never delete anything automatically.
-        In practice that only means for as long as the service is running. We
-        might wipe it without notice, as this is a student project.
+        We keep data for as long as the service is running, and nothing is
+        deleted on a timer. A few things you do erase data straight away:
+        replacing or removing your profile picture, removing a friend, and
+        deleting a guild you lead. We might wipe everything without notice, as
+        this is a student project.
       </p>
       <p>
-        A lobby closes by itself once it has been quiet for fifteen minutes.
-        Nothing in it is deleted when that happens, and its chat stays.
+        A lobby closes by itself fifteen minutes after it was opened, unless a
+        game is running or has just been played in it. Nothing in it is deleted,
+        but its chat cannot be opened again.
       </p>
       <p>
-        Server logs are the exception: they are short-lived, and are lost
-        whenever the service restarts.
+        Server logs are the exception: they sit on the machine running the site,
+        and are lost when we take the service down rather than on any schedule.
       </p>
 
       <h2 className="pt-4 text-xl font-semibold">Deleting your account</h2>
@@ -345,15 +358,18 @@ export default function PrivacyPolicy() {
         account can be deleted.
       </p>
       <p>
-        When that happens, you are signed out and can no longer sign in, your
-        profile page disappears, your username and email address are replaced
-        with a placeholder, and your profile picture is removed.
+        When that happens, you are signed out and can no longer sign in; on a
+        device you are still signed in on, it can take a few minutes to take
+        effect. Your profile page disappears, your username and email address
+        are replaced with a placeholder, and your profile picture is removed.
       </p>
       <p>
         Everything else stays. We keep your chat messages, the record and replay
         of every game you played, the guild invitations you sent and received,
-        your friends and the friend invitations you sent and received, and your
-        points. Other players still see all of it, under the placeholder name.
+        your friends and the friend invitations you sent and received, your
+        points and your rating. If you were in a guild, your account stays on
+        its member list. Other players still see all of it, under the
+        placeholder name.
       </p>
       <p>
         What we keep stays attached to your old account. Deleting is not the
@@ -397,7 +413,8 @@ export default function PrivacyPolicy() {
         </li>
       </ul>
       <p>
-        We do all of this by hand: email us at{' '}
+        You can change your username, your email address, your password and your
+        picture yourself, on the settings page. For anything else, email us at{' '}
         <a className="underline" href="mailto:aisling.fontaine@pm.me">
           aisling.fontaine@pm.me
         </a>{' '}
@@ -415,7 +432,10 @@ export default function PrivacyPolicy() {
       <p>
         Your account password is stored scrambled, in a form that cannot be
         turned back into the password, so nobody (including us) can read it.
-        Traffic between your browser and the site uses HTTPS.
+        Traffic between your browser and the site uses HTTPS. The certificate is
+        one we made ourselves rather than one bought from a recognised
+        authority, so your browser will warn you the first time you visit, and
+        you have to accept it to go on.
       </p>
       <p>
         This is a student project. Please do not store anything sensitive here,

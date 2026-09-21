@@ -2,7 +2,7 @@ export default function TermsOfService() {
   return (
     <main className="mx-auto max-w-2xl space-y-4 p-6 pb-16">
       <h1 className="text-3xl font-semibold">Terms of Service</h1>
-      <p className="text-sm">Last updated: 16.09.2026</p>
+      <p className="text-sm">Last updated: 21.09.2026</p>
 
       <p>
         These terms govern your use of NONO99, an online multiplayer card game.
@@ -103,7 +103,12 @@ export default function TermsOfService() {
         We may remove content that breaks these terms. We don't pre-screen what
         people post, and there are no private messages on this service. All chat
         happens in lobby channels; however, we will look at anything reported to
-        us.
+        us by email at{' '}
+        <a className="underline" href="mailto:aisling.fontaine@pm.me">
+          aisling.fontaine@pm.me
+        </a>
+        . There is no way to block another player, so tell us if somebody is
+        making the game unpleasant and we will deal with it.
       </p>
 
       <h2 className="pt-4 text-xl font-semibold">What we don't promise</h2>
@@ -161,10 +166,10 @@ export default function TermsOfService() {
 
       <h2 className="pt-4 text-xl font-semibold">Third-party sign-in</h2>
       <p>
-        If you sign in with 42 or another OAuth provider, that provider's own
-        terms apply to your relationship with them. We are not responsible for
-        their service, and losing access to that account may mean losing access
-        to yours.
+        If you sign in with 42, Google or GitHub, that provider's own terms
+        apply to your relationship with them. We are not responsible for their
+        service, and losing access to that account may mean losing access to
+        yours.
       </p>
 
       <h2 className="pt-4 text-xl font-semibold">Changes to these terms</h2>
