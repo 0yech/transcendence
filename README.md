@@ -5,6 +5,10 @@
 ONO99, by 0yech, stellaaa.sh, tricaducee, and Miniflint, is an online multiplayer card game.
 Battle against your friends in a 3D environment, create guilds, and climb the ranks!
 
+The goal for this project was to have a fun game playable by everyone. That means a simple game,
+with a clear interface, and many ways to have fun. This led to the chat and friends system, the guilds
+which allow you to compete in groups, as well as an immersive 3D environment where the game is played.
+
 ## Instructions
 
 ### Prerequisites
