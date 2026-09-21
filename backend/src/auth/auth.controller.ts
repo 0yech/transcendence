@@ -15,7 +15,7 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { AuthService } from './auth.service';
+import { AuthService, SESSION_LIFETIME_MS } from './auth.service';
 import { JwtAuthGuard } from './auth.guard';
 import { CurrentUser } from './current-user.decorator';
 import type { JwtPayload } from './jwt-payload.interface';
@@ -39,6 +39,26 @@ const cookieOptions: CookieOptions = {
   httpOnly: true,
   secure: true,
   sameSite: 'lax',
+};
+
+/**
+ * @brief Options for the refresh token cookie.
+ *
+ * @description Unlike the access token, this cookie has to outlive the browser
+ * being closed. A cookie set with neither `maxAge` nor `expires` is a session
+ * cookie, which the browser discards on shutdown, taking the only copy of the
+ * session with it. `maxAge` is derived from SESSION_LIFETIME_MS so the cookie
+ * and the session it unlocks expire together instead of being two numbers that
+ * can drift apart. Express expects milliseconds here, unlike the `Max-Age`
+ * attribute it emits, which is in seconds.
+ *
+ * These options are reused to clear the cookie: the attributes have to match
+ * for the browser to find it again, and `clearCookie` drops `maxAge` itself.
+ */
+const refreshCookieOptions: CookieOptions = {
+  ...cookieOptions,
+  path: '/api/auth',
+  maxAge: SESSION_LIFETIME_MS,
 };
 
 @Controller('auth')
@@ -72,12 +92,7 @@ export class AuthController {
       signInDto.password,
     );
     response.cookie('access_token', accessToken, cookieOptions);
-    response.cookie('refresh_token', refreshToken, {
-      httpOnly: cookieOptions.httpOnly,
-      secure: cookieOptions.secure,
-      sameSite: cookieOptions.sameSite,
-      path: '/api/auth',
-    });
+    response.cookie('refresh_token', refreshToken, refreshCookieOptions);
   }
 
   /**
@@ -95,12 +110,7 @@ export class AuthController {
     );
 
     response.cookie('access_token', accessToken, cookieOptions);
-    response.cookie('refresh_token', refreshToken, {
-      httpOnly: cookieOptions.httpOnly,
-      secure: cookieOptions.secure,
-      sameSite: cookieOptions.sameSite,
-      path: '/api/auth',
-    });
+    response.cookie('refresh_token', refreshToken, refreshCookieOptions);
     response.redirect(`${process.env.FRONTEND_ORIGIN}profile`);
   }
 
@@ -191,12 +201,7 @@ export class AuthController {
     const refreshToken = request.cookies['refresh_token'];
     await this.authService.signOut(refreshToken);
     response.clearCookie('access_token', cookieOptions);
-    response.clearCookie('refresh_token', {
-      httpOnly: cookieOptions.httpOnly,
-      secure: cookieOptions.secure,
-      sameSite: cookieOptions.sameSite,
-      path: '/api/auth',
-    });
+    response.clearCookie('refresh_token', refreshCookieOptions);
   }
 
   @HttpCode(HttpStatus.OK)
@@ -268,17 +273,8 @@ Please delegate your role to one of your officers first!',
     // Once account is removed, end the session
     const refreshToken = request.cookies['refresh_token'];
     await this.authService.signOut(refreshToken);
-    response.clearCookie('access_token', {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-    });
-    response.clearCookie('refresh_token', {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-      path: '/api/auth',
-    });
+    response.clearCookie('access_token', cookieOptions);
+    response.clearCookie('refresh_token', refreshCookieOptions);
   }
 
   /**
