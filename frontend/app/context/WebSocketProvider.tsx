@@ -137,27 +137,27 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
          * NestJS WsException can arrive on "exception".
          * more useful instead of silently waiting for the ACK timeout.
          */
-          socket.on('exception', (e) => {
-            console.error('[GAME WS] EXCEPTION RAW:', e);
-            console.error(
-              '[GAME WS] EXCEPTION JSON:',
-              JSON.stringify(e, null, 2),
-            );
+        socket.on('exception', (e) => {
+          console.error('[GAME WS] EXCEPTION RAW:', e);
+          console.error(
+            '[GAME WS] EXCEPTION JSON:',
+            JSON.stringify(e, null, 2),
+          );
 
-            let message = 'Game websocket exception';
+          let message = 'Game websocket exception';
 
-            if (typeof e === 'string') {
-              message = e;
-            } else if (typeof e?.message === 'string') {
-              message = e.message;
-            } else if (typeof e?.error === 'string') {
-              message = e.error;
-            }
+          if (typeof e === 'string') {
+            message = e;
+          } else if (typeof e?.message === 'string') {
+            message = e.message;
+          } else if (typeof e?.error === 'string') {
+            message = e.error;
+          }
 
-            console.error('[GAME WS] EXCEPTION MESSAGE:', message);
+          console.error('[GAME WS] EXCEPTION MESSAGE:', message);
 
-            rejectConnection(message);
-          });
+          rejectConnection(message);
+        });
         socket.on('connect_error', (error) => {
           console.log('game websocket connect_error', error);
 

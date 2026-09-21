@@ -23,6 +23,13 @@ import {
   removeFourOno99,
 } from './ono99.rules';
 
+type EloMatchProbabilities = {
+  [opponentId: string]: {
+    win: boolean;
+    expected: number;
+  };
+};
+
 type GamePlayerWithUser = {
   id: string;
   gameId?: string;
@@ -219,12 +226,15 @@ export class GamesService {
         discardPile: [],
 
         players: {
-          create: lobby.users.map((user: { id: string }, seat: number) => ({
-            userId: user.id,
-            seat,
-            status: 'ACTIVE',
-            hand: dealt.hands[seat] as Prisma.InputJsonValue,
-          })),
+          create: lobby.users.map(
+            (user: { id: string; elo: number }, seat: number) => ({
+              userId: user.id,
+              seat,
+              status: 'ACTIVE',
+              hand: dealt.hands[seat] as Prisma.InputJsonValue,
+              elo: user.elo,
+            }),
+          ),
         },
 
         actions: {
@@ -266,12 +276,8 @@ export class GamesService {
    * @throws ForbiddenException If the user is not a player in the game.
    */
   async getGame(lobbyCode: string, userId: string) {
-  console.log('[GET GAME] 1. getGameByActiveLobbyCode');
     const game = await this.getActiveGameByLobbyCode(lobbyCode);
-  console.log('[GET GAME] 2. getGameByActiveLobbyCode OK: ', game);
-  console.log('[GET GAME] 3. Assert in game ');
     this.assertPlayerInGame(game, userId);
-  console.log('[GET GAME] 4. Assert in game OK');
 
     return this.toPublicGame(game, userId);
   }
@@ -536,29 +542,74 @@ export class GamesService {
     return calc > 5 ? calc : 0;
   }
 
+  formulaEloRating(
+    currentOponentRating: number,
+    currentSelfRating: number,
+  ): number {
+    return 1 / (1 + 10 ** ((currentOponentRating - currentSelfRating) / 400));
+  }
   /**
    *
    * @param playerId id of the player to add points to and its guild
    * @param addedPts number of point to add to the player and guild
    */
-  async updateUserPoints(playerId: string, addedPts: number) {
-    const user = await this.prisma.user.findUnique({
+  async updateUserPoints(
+    playerId: string,
+    addedPts: number,
+    users: GamePlayerWithUser[],
+  ) {
+    const currentUser = await this.prisma.user.findUnique({
       where: { id: playerId },
+      select: {
+        elo: true,
+        guildId: true,
+        _count: {
+          select: {
+            gamePlayers: true,
+          },
+        },
+      },
     });
 
-    if (user) {
+    if (currentUser) {
+      const probabilityWin: EloMatchProbabilities = users
+        .filter((user) => user.userId !== playerId)
+        .reduce((tmp, user) => {
+          tmp[user.userId] = {
+            win: user.status === 'ELIMINATED',
+            expected: this.formulaEloRating(user.elo, currentUser.elo),
+          };
+          return tmp;
+        }, {} as EloMatchProbabilities);
+      let coeff = 0;
+      const MIN_GAME_COEFF = 20;
+      const MAX_GAME_COEFF = 40;
+      if (currentUser._count.gamePlayers < MIN_GAME_COEFF)
+        coeff = MAX_GAME_COEFF;
+      else if (currentUser._count.gamePlayers > MAX_GAME_COEFF)
+        coeff = MIN_GAME_COEFF;
+      else
+        coeff =
+          MAX_GAME_COEFF + MIN_GAME_COEFF - currentUser._count.gamePlayers;
+      let newEloRating = 0;
+      Object.entries(probabilityWin).forEach(([, data]) => {
+        newEloRating += coeff * ((data.win ? 1 : 0) - data.expected);
+      });
+      newEloRating =
+        currentUser.elo + newEloRating / Object.entries(probabilityWin).length;
       await this.prisma.user.update({
         where: { id: playerId },
         data: {
           totalPts: {
             increment: addedPts,
           },
+          elo: newEloRating,
         },
       });
     }
-    if (user && user.guildId) {
+    if (currentUser && currentUser.guildId) {
       await this.prisma.guild.update({
-        where: { id: user.guildId },
+        where: { id: currentUser.guildId },
         data: {
           points: {
             increment: addedPts,
@@ -602,9 +653,8 @@ export class GamesService {
       },
     });
 
-    await this.updateUserPoints(player.userId, addedPts);
+    await this.updateUserPoints(player.userId, addedPts, game.players);
 
-    console.log(game.players);
     await this.prisma.gameAction.create({
       data: {
         gameId,
@@ -900,7 +950,7 @@ export class GamesService {
   async getReplay(gameId: string) {
     const game = await this.prisma.game.findUnique({
       where: { id: gameId },
-      
+
       include: {
         ...this.gameInclude(),
         actions: {
@@ -1132,7 +1182,7 @@ export class GamesService {
       include: this.gameInclude(),
     });
 
-    await this.updateUserPoints(winnerId, addedPts);
+    await this.updateUserPoints(winnerId, addedPts, updated.players);
 
     return this.toPublicGame(updated, viewerId);
   }

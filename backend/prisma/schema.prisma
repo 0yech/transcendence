@@ -75,7 +75,7 @@ model User {
   lobby   Lobby?  @relation("LobbyUsers", fields: [lobbyId], references: [id], onDelete: SetNull)
 
   totalPts  Int        @default(0)
-  elo       Int        @default(1000)
+  elo       Float      @default(1000)
   guildId   String?
   guild     Guild?     @relation("GuildMembers", fields: [guildId], references: [id], onDelete: SetNull)
   guildRole GuildRole?
@@ -282,7 +282,7 @@ model GamePlayer {
   pointWon           Int?
   eliminatedAt       DateTime?
   eliminatedPosition Int?
-  elo                Int  @default(0)
+  elo                Float
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
