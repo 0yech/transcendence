@@ -189,7 +189,9 @@ stellaaash
 Since this is a game, allowing users to look back on their performance and see areas of improvement, or people they struggle against, is useful.
 Achievements and progression were implemented using ranks system when you gain points, allowing users to climb the ranks as they score more wins.
 
-TODO implementation details and contributors
+TODO implementation details and contributors (TODO : Edit when Elo is finished)
+
+0yech, Miniflint
 
 #### OAuth 2.0 - Minor +1
 
@@ -202,7 +204,7 @@ stellaaash
 
 Allowing users to form teams reinforces the fun part of playing a game, and creates healthy competition.
 
-TODO implementation details
+Guilds earn points whenever their players score points. A guild ranking is available so players can enjoy competing in pairs. (TODO : edit when elo is finished)
 
 0yech
 
