@@ -42,7 +42,6 @@ enum GameStatus {
 enum GamePlayerStatus {
   ACTIVE
   ELIMINATED
-  LEFT
   WINNER
 }
 
@@ -184,7 +183,6 @@ model Lobby {
   code     String
   active   Boolean @default(true)
   private  Boolean @default(false)
-  password String?
 
   users    User[]  @relation("LobbyUsers")
   leaderId String?
