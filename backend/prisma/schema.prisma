@@ -279,7 +279,7 @@ model GamePlayer {
 
   hand Json @default("[]")
 
-  pointWon           Int?
+  pointWon           Int        @default(0)
   eliminatedAt       DateTime?
   eliminatedPosition Int?
   elo                Float
