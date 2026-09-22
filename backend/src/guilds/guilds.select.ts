@@ -5,12 +5,13 @@ export const publicGuildMemberSelect = {
   guildRole: true,
   createdAt: true,
   updatedAt: true,
+  elo: true,
+  totalPts: true,
 } as const;
 
 export const publicGuildSelect = {
   id: true,
   name: true,
-  level: true,
   points: true,
   createdAt: true,
   updatedAt: true,
@@ -36,7 +37,6 @@ export const publicGuildInvitationSelect = {
     select: {
       id: true,
       name: true,
-      level: true,
       points: true,
     },
   },

@@ -53,6 +53,13 @@ export async function getCurrentUser(): Promise<SelfUserInterface | null> {
   }
 }
 
+export type HourlyProgressionRate = {
+  period: string;
+  elo: number;
+  games: number;
+  pointWon: number;
+};
+
 export type PlayerStats = {
   gamesPlayed: number;
   wins: number;
@@ -61,6 +68,7 @@ export type PlayerStats = {
   gamesWithPoints: number;
   scoredGameRate: number;
   lastPlayedAt: string | null;
+  hourlyProgression: HourlyProgressionRate[];
 };
 
 /**

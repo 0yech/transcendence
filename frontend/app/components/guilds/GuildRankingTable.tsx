@@ -1,14 +1,5 @@
 import { tableContainerClass } from '~/styles/theme';
-
-interface Guild {
-  id: string;
-  name: string;
-  level: number;
-  points: number;
-  _count: {
-    members: number;
-  };
-}
+import type { Guild } from './GuildDetails';
 
 interface Props {
   guilds: Guild[];
@@ -22,9 +13,9 @@ export function GuildRankingTable({ guilds }: Props) {
           <tr>
             <th className="px-5 py-4">Rank</th>
             <th className="px-5 py-4">Guild</th>
-            <th className="px-5 py-4">Level</th>
             <th className="px-5 py-4">Members</th>
             <th className="px-5 py-4 text-right">Points</th>
+            <th className="px-5 py-4 text-right">Average Elo</th>
           </tr>
         </thead>
 
@@ -41,13 +32,16 @@ export function GuildRankingTable({ guilds }: Props) {
                 {guild.name}
               </td>
               <td className="border-t border-light-pink/10 px-5 py-4">
-                {guild.level}
-              </td>
-              <td className="border-t border-light-pink/10 px-5 py-4">
                 {guild._count.members}
               </td>
               <td className="border-t border-light-pink/10 px-5 py-4 text-right text-xl font-black text-pink">
                 {guild.points}
+              </td>
+              <td className="border-t border-light-pink/10 px-5 py-4 text-right text-xl font-black text-pink">
+                {(
+                  guild.members.reduce((tmp, member) => tmp + member.elo, 0) /
+                  guild.members.length
+                ).toFixed(0)}
               </td>
             </tr>
           ))}

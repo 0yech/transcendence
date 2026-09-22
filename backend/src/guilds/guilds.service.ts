@@ -124,7 +124,6 @@ export class GuildsService {
       const guild = await tx.guild.create({
         data: {
           name: cleanName,
-          level: 1,
           points: 0,
         },
         select: {

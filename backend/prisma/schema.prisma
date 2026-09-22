@@ -146,7 +146,6 @@ model Avatar {
 model Guild {
   id     String @id @default(cuid())
   name   String @unique @db.Citext
-  level  Int    @default(1)
   points Int    @default(0)
 
   members     User[]            @relation("GuildMembers")
@@ -279,7 +278,7 @@ model GamePlayer {
 
   hand Json @default("[]")
 
-  pointWon           Int?
+  pointWon           Int        @default(0)
   eliminatedAt       DateTime?
   eliminatedPosition Int?
   elo                Float

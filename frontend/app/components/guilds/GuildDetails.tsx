@@ -19,12 +19,13 @@ export interface GuildMember {
   guildRole: 'LEADER' | 'OFFICER' | 'MEMBER' | null;
   createdAt: string;
   updatedAt: string;
+  totalPts: number;
+  elo: number;
 }
 
 export interface Guild {
   id: string;
   name: string;
-  level: number;
   points: number;
   createdAt: string;
   updatedAt: string;
@@ -140,13 +141,7 @@ export function GuildDetails({
           <h1 className="mt-1 wrap-break-word text-4xl font-black sm:text-6xl">
             {guild.name}
           </h1>
-          <dl className="mt-6 grid grid-cols-3 gap-3">
-            <div className={`${insetCardClass} p-4`}>
-              <dt className="text-xs font-bold uppercase tracking-wider text-light-pink">
-                Level
-              </dt>
-              <dd className="mt-1 text-3xl font-black">{guild.level}</dd>
-            </div>
+          <dl className="mt-6 grid grid-cols-2 gap-3">
             <div className={`${insetCardClass} p-4`}>
               <dt className="text-xs font-bold uppercase tracking-wider text-light-pink">
                 Points
@@ -229,6 +224,8 @@ export function GuildDetails({
                   <tr>
                     <th className="px-5 py-4">Username</th>
                     <th className="px-5 py-4">Role</th>
+                    <th className="px-5 py-4">Elo</th>
+                    <th className="px-5 py-4">Points</th>
 
                     {canManageGuild && <th className="px-5 py-4">Actions</th>}
                   </tr>
@@ -254,6 +251,16 @@ export function GuildDetails({
                         <td className="border-t border-light-pink/10 px-5 py-4">
                           <span className={accentPillClass}>
                             {member.guildRole}
+                          </span>
+                        </td>
+                        <td className="border-t border-light-pink/10 px-5 py-4">
+                          <span className={accentPillClass}>
+                            {member.elo.toFixed(0)}
+                          </span>
+                        </td>
+                        <td className="border-t border-light-pink/10 px-5 py-4">
+                          <span className={accentPillClass}>
+                            {member.totalPts}
                           </span>
                         </td>
 
@@ -398,7 +405,7 @@ export function GuildDetails({
                   required
                   minLength={3}
                   maxLength={20}
-                  pattern="[A-Za-z0-9 _-]+"
+                  pattern="[A-Za-z0-9 _\-]+"
                   title="Letters, numbers, spaces, underscores and hyphens only."
                   className={textInputClass}
                 />
