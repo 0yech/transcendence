@@ -5,7 +5,7 @@ const AvatarStyles = {
   primary: 'h-15 w-15 shrink-0 rounded-full object-cover',
 } as const;
 
-const srcEmpty = '/unknown.jpg';
+const srcEmpty = '/unknown.png';
 
 type AvatarProps = Omit<ImgHTMLAttributes<HTMLImageElement>, 'src'> & {
   variant?: keyof typeof AvatarStyles;

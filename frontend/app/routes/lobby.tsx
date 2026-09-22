@@ -8,8 +8,17 @@ import type { UserInterfaceLobby } from '~/utils/lobbies';
 import LobbyChat from '~/components/LobbyChat';
 import { NavBar } from '~/components/Navbar';
 import { Button } from '~/components/Button';
-import { cardStyle } from '~/styles/style';
+import {
+  cardStyle,
+  errorCardStyle,
+  textTitleStyle,
+  textTitle2Style,
+  textMaskStyle,
+  gradientAcceptStyle,
+  textParaStyle,
+} from '~/styles/style';
 import { twMerge } from 'tailwind-merge';
+import { StylisedLink } from '~/components/StylisedLink';
 
 export async function clientLoader({ params }: { params: Params<string> }) {
   const { code } = params;
@@ -54,12 +63,7 @@ export default function PreGame({ loaderData }: Route.ComponentProps) {
   );
   const [kickingUserId, setKickingUserId] = useState<string | null>(null);
 
-  const {
-    code,
-    private: isPrivate,
-    // createdAt,
-    currentUserId,
-  } = loaderData;
+  const { code, private: isPrivate, createdAt, currentUserId } = loaderData;
 
   useEffect(() => {
     async function fetchUsers(code: string) {
@@ -123,54 +127,82 @@ export default function PreGame({ loaderData }: Route.ComponentProps) {
       setKickingUserId(null);
     }
   }
+  const date = new Date(createdAt ? createdAt : '');
 
   return (
     <>
-      <NavBar></NavBar>
-      <div className="fixed top-0 left-0 h-dvh w-full flex justify-center items-center">
+      <NavBar className="fixed"></NavBar>
+      <div className="pt-30 pb-10 min-h-dvh w-full flex flex-col justify-start items-center">
+        <h1 className={twMerge(textTitleStyle, 'uppercase px-10')}>
+          LOBBY OF{' '}
+          <StylisedLink
+            variant="gradient"
+            className={twMerge('uppercase')}
+            to={`/profile/byUser/${currentLeader?.username}`}
+          >
+            {currentLeader?.username}
+          </StylisedLink>
+        </h1>
         <div
-          className={twMerge(cardStyle, 'w-200 h-150 p-4 flex justify-between')}
+          className={twMerge(
+            'md:w-200 w-100 md:h-150 h-300 p-4 flex flex-col md:flex-row justify-between gap-4',
+          )}
         >
-          <div className="flex flex-col justify-between items-between h-full w-full">
-            <div>
-              <h1 className="text-2xl font-bold uppercase">
-                LOBBY OF {currentLeader?.username}
-              </h1>
-              <h2>Lobby code: {code}</h2>
-              {isPrivate && <h2>This is a private lobby.</h2>}
-            </div>
-            <div>
-              <h2>Users</h2>
-              {/*<ul>
-    {users.map((user) => (
-      <li><UserPopUp user={user} /></li>
-    ))}
-		</ul>*/}
-              <DisplayUsers
-                users={users}
-                leaderId={currentLeaderId}
-                currentUserId={currentUserId}
-                kickingUserId={kickingUserId}
-                onKick={handleKick}
-              />
-              {/* <h2>createdAt: {createdAt}</h2> */}
-              {/* <h2>updatedAt: {updatedAt}</h2> */}
+          <div className="flex flex-col justify-between gap-2 w-full">
+            <div
+              className={twMerge(
+                cardStyle,
+                'flex flex-col justify-between h-115 w-full',
+              )}
+            >
+              <div>
+                <div className="flex justify-between">
+                  <h2 className={textTitle2Style}>
+                    Code:{' '}
+                    <span
+                      className={twMerge(textMaskStyle, gradientAcceptStyle)}
+                    >
+                      {code}
+                    </span>
+                  </h2>
+                  {isPrivate && (
+                    <h2 className={twMerge(errorCardStyle, 'h-fit w-fit')}>
+                      This is a private lobby.
+                    </h2>
+                  )}
+                </div>
+              </div>
+              <div>
+                <h2 className={twMerge(textTitle2Style, 'font-bold mb-2')}>
+                  Users
+                </h2>
+                <DisplayUsers
+                  avatarClassName="md:w-40 md:h-40 w-25 h-25"
+                  users={users}
+                  leaderId={currentLeaderId}
+                  currentUserId={currentUserId}
+                  kickingUserId={kickingUserId}
+                  onKick={handleKick}
+                />
+              </div>
+              <h2 className={textParaStyle}>
+                Created at:{' '}
+                {date.toLocaleTimeString('en-US', { timeStyle: 'long' })}
+              </h2>
             </div>
             <div className="flex gap-4">
               {currentLeaderId === currentUserId && users.length > 1 && (
-                <Button onClick={() => startGame()}>Start game</Button>
+                <Button className="py-4" onClick={() => startGame()}>
+                  Start game
+                </Button>
               )}
               {isMember ? <LeaveLobby /> : <JoinLobby code={code} />}
             </div>
           </div>
           {!isPrivate || isMember ? (
-            <LobbyChat
-              className="w-100 h-full"
-              code={code}
-              canSend={isMember}
-            />
+            <LobbyChat className="w-90 h-full" code={code} canSend={isMember} />
           ) : (
-            <p>This lobby chat is private.</p>
+            <p className={errorCardStyle}>This lobby chat is private.</p>
           )}
         </div>
       </div>

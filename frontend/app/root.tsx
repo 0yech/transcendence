@@ -15,6 +15,15 @@ import { Footer } from './components/Footer';
 import { PresenceProvider } from './context/PresenceProvider';
 
 export const links: Route.LinksFunction = () => [
+  {
+    rel: 'icon',
+    type: 'image/png',
+    sizes: '96x96',
+    href: '/favicon-96x96.png',
+  },
+  { rel: 'shortcut icon', href: '/favicon.ico' },
+  { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' },
+  { rel: 'manifest', href: '/site.webmanifest' },
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
   {
     rel: 'preconnect',
@@ -23,7 +32,7 @@ export const links: Route.LinksFunction = () => [
   },
   {
     rel: 'stylesheet',
-    href: 'https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap',
+    href: 'https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap',
   },
 ];
 

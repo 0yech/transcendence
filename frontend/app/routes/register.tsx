@@ -5,6 +5,8 @@ import { redirect } from 'react-router';
 import { StylisedLink } from '~/components/StylisedLink';
 import { OauthLoginOptions } from '~/pages/auth/oauth';
 import { NavBar } from '~/components/Navbar';
+import { cardStyle, Separator } from '~/styles/style';
+import { twMerge } from 'tailwind-merge';
 
 export async function clientAction({ request }: Route.ActionArgs) {
   const data = await request.formData();
@@ -40,7 +42,12 @@ export default function Register({ actionData }: Route.ComponentProps) {
       <title>Register to Transcendence</title>
       <NavBar className="fixed"></NavBar>
       <div className="w-full h-dvh flex justify-center items-center">
-        <div className="p-5 rounded-4xl bg-dark-blue/20 shadow-xl shadow-dark-blue/30 w-fit h-fit flex flex-col items-center gap-2">
+        <div
+          className={twMerge(
+            'w-fit h-fit flex flex-col items-center gap-2',
+            cardStyle,
+          )}
+        >
           <h1 className="text-2xl text-center">Register to Transcendence</h1>
           <RegisterForm />
           <ErrorMessage message={errorMessage} />
@@ -48,7 +55,7 @@ export default function Register({ actionData }: Route.ComponentProps) {
             Already have an account?{' '}
             <StylisedLink to="/login">Sign in</StylisedLink>
           </h1>
-          <hr className="w-70 my-2 border-0 h-1 rounded-full bg-mid-dark-blue" />
+          <Separator />
           <OauthLoginOptions />
         </div>
       </div>

@@ -1,6 +1,5 @@
 import { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { useControls } from 'leva';
 import { Card } from './Card';
 import { OpponentHand } from './OpponentHand';
 import { PlayerHand } from './PlayerHand';
@@ -18,6 +17,10 @@ import { OrbitControls } from '@react-three/drei';
  * Players are spread at regular intervals, the local one always at angle 0
  * facing the camera. With two players the opponent therefore sits opposite.
  */
+/** Lighting of the table, tweak it here. */
+const LIGHT_COLOR = 'white';
+const LIGHT_INTENSITY = 1.0;
+
 type GameTableProps = {
   cards: CardState[];
   /** the discard top to show, frozen while a card is in flight */
@@ -39,11 +42,6 @@ export function GameTable({
 }: GameTableProps) {
   const { gameState, userId } = UseWebSocket();
   const lastPlay = useLastPlay();
-
-  const { lightColor, lightIntensity } = useControls({
-    lightColor: 'white',
-    lightIntensity: { value: 1.0, min: 0.0, max: 5.0 },
-  });
 
   /*
    * Seats follow the backend order, rotated so the local player falls at angle
@@ -76,8 +74,8 @@ export function GameTable({
         <ambientLight intensity={0.2} />
         <directionalLight
           position={[0, 9, 20]}
-          color={lightColor}
-          intensity={lightIntensity}
+          color={LIGHT_COLOR}
+          intensity={LIGHT_INTENSITY}
         />
         <Suspense fallback={null}>
           <Card

@@ -2,22 +2,27 @@ import type { AnchorHTMLAttributes, ReactNode } from 'react';
 import { Link, NavLink, type LinkProps, type NavLinkProps } from 'react-router';
 import { twMerge } from 'tailwind-merge';
 import { motion, type HTMLMotionProps } from 'motion/react';
+import {
+  gradientAcceptHoverStyle,
+  gradientAcceptStyle,
+  gradientStyle,
+  gradientHoverStyle,
+  gradientDangerHoverStyle,
+  gradientDangerStyle,
+} from '~/styles/style';
 
 const buttonStyles = {
-  primary:
-    'bg-linear-to-r from-blue to-pink hover:bg-linear-to-r hover:from-pink hover:to-orange hover:shadow-lg hover:shadow-mid-light-pink',
-  accept:
-    'bg-linear-to-r from-blue to-accept hover:bg-linear-to-r hover:from-mid-dark-blue hover:to-accept-active hover:shadow-lg hover:shadow-green',
-  danger:
-    'bg-linear-to-r from-mid-dark-orange to-danger hover:bg-linear-to-r hover:from-dark-orange hover:to-danger-active hover:shadow-lg hover:shadow-orange',
+  primary: `${gradientStyle} ${gradientHoverStyle} hover:shadow-lg hover:shadow-mid-light-pink`,
+  accept: `${gradientAcceptStyle} ${gradientAcceptHoverStyle} hover:shadow-lg hover:shadow-green`,
+  danger: `${gradientDangerStyle} ${gradientDangerHoverStyle} hover:shadow-lg hover:shadow-orange`,
   oauth: 'justify-start hover:shadow-lg hover:shadow-mid-light-pink',
 } as const;
 
 const baseStyle =
-  'text-xl flex justify-center items-center p-2 rounded-full hover:cursor-pointer hover:scale-105 active:scale-95 transition-all duration-500 ease-out';
+  'flex font-bold justify-center items-center p-2 rounded-full border border-white hover:cursor-pointer hover:scale-105 active:scale-95 transition-all duration-500 ease-out';
 
 const motionStyle =
-  'text-xl flex justify-center items-center p-2 rounded-full hover:cursor-pointer transition-colors';
+  'text-xl flex justify-center items-center font-bold p-2 rounded-full border border-white border-2 hover:cursor-pointer transition-colors';
 
 type ButtonProps = HTMLMotionProps<'button'> & {
   children: ReactNode;
@@ -87,7 +92,7 @@ export function ButtonLinkIn({
 }
 
 export const navButtonHoverStyle =
-  'hover:text-light-pink hover:drop-shadow-[0_0_8px_rgba(255,145,200,0.7)]';
+  'hover:text-pink border border-white/0 hover:border-pink hover:py-2';
 
 const buttonNavStyles = {
   primary: navButtonHoverStyle,
@@ -96,7 +101,7 @@ const buttonNavStyles = {
 } as const;
 
 export const navButtonBaseStyle =
-  'text-4xl font-bold rounded-b-xl text-xl h-full min-w-40 flex justify-center items-center hover:cursor-pointer transition-all duration-500 ease-out' as const;
+  'text-4xl font-bold rounded-xl text-xl h-full min-w-40 flex justify-center items-center hover:cursor-pointer transition-all duration-500 ease-out' as const;
 
 export const navButtonActiveStyle =
   'bg-clip-text text-transparent bg-linear-to-r from-blue via-pink to-mid-dark-pink drop-shadow-[0_0_10px_rgba(255,145,200,0.8)]';

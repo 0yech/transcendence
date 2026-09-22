@@ -7,6 +7,8 @@ import { NavBar } from '~/components/Navbar';
 import { UseWebSocket } from '~/context/UseWebSocket';
 import { useEffect } from 'react';
 import { ErrorMessage } from '~/pages/auth/errorMessage';
+import { cardStyle, Separator } from '~/styles/style';
+import { twMerge } from 'tailwind-merge';
 
 /**
  * Turns the error type the back-end's OAuth callback filter redirects us to
@@ -67,12 +69,15 @@ export default function Login({ actionData }: Route.ComponentProps) {
   useEffect(() => {
     if (!actionData?.user) return;
 
-    async function restoreSession() {
-      setUser(actionData.user);
+    const user = actionData.user;
+    const lobbies = actionData.lobbies;
 
-      if (actionData.lobbies?.code) {
+    async function restoreSession() {
+      setUser(user);
+
+      if (lobbies?.code) {
         try {
-          await connect(actionData.lobbies.code);
+          await connect(lobbies.code);
         } catch (error) {
           console.error('Failed to restore websocket after login:', error);
         }
@@ -96,7 +101,12 @@ export default function Login({ actionData }: Route.ComponentProps) {
       <title>Transcendence</title>
       <NavBar className="fixed"></NavBar>
       <div className="w-full h-dvh flex justify-center items-center">
-        <div className="w-fit p-5 rounded-4xl bg-dark-blue/20 shadow-xl shadow-dark-blue/30 h-fit flex flex-col items-center gap-2">
+        <div
+          className={twMerge(
+            'w-fit h-fit flex flex-col items-center gap-2',
+            cardStyle,
+          )}
+        >
           <h1 className="text-2xl">Login to Transcendence</h1>
           <LoginForm />
           <ErrorMessage message={errorMessage} />
@@ -104,7 +114,7 @@ export default function Login({ actionData }: Route.ComponentProps) {
             Don't have an account yet?{' '}
             <StylisedLink to="/register">Sign up</StylisedLink>
           </h1>
-          <hr className="w-70 my-2 border-0 h-1 rounded-full bg-mid-dark-blue" />
+          <Separator />
           <OauthLoginOptions />
         </div>
       </div>

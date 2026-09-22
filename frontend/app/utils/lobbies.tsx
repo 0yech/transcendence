@@ -21,6 +21,7 @@ import {
   buttonCreatePrivate,
 } from '~/styles/theme';
 import { ensureChatConnection } from './chatSocket';
+import { cardStyle, textDiscretStyle } from '~/styles/style';
 
 export interface UserInterfaceLobby {
   id: string;
@@ -62,43 +63,63 @@ export function DisplayUsers({
   leaderId,
   currentUserId,
   kickingUserId,
+  avatarClassName,
   onKick,
 }: {
   users: UserInterfaceLobby[] | null;
   leaderId?: string;
   currentUserId?: string | null;
   kickingUserId?: string | null;
+  avatarClassName?: string | null;
   onKick?: (userId: string) => void;
 }) {
   const isLeader = currentUserId === leaderId;
+  // past 3 users, wrap onto a second row instead of stretching a single line
+  const wraps = (users?.length ?? 0) > 3;
 
   return (
-    <ul className="flex flex-col gap-3">
+    <ul
+      className={twMerge(
+        'w-fit p-1',
+        wraps
+          ? 'grid grid-cols-3 gap-y-3 [&>li:not(:nth-child(3n+1))]:-ml-2'
+          : 'flex -space-x-2',
+      )}
+    >
       {users?.map((user) => (
-        <li key={user.id}>
-          <div className="flex items-center gap-3">
+        <li key={user.id} className="group relative hover:z-30">
+          <Link to={`/profile/byUser/${user.username}`}>
             <Avatar
               src={user.avatarUrl}
               alt={user.username}
-              className="h-10 w-10"
+              className={twMerge(
+                'h-20 w-20 ring-2 ring-white transition-transform duration-300 hover:scale-110',
+                avatarClassName,
+              )}
             />
+          </Link>
 
-            <p className="font-semibold">{user.username}</p>
-
-            {user.id === leaderId && (
-              <span className="text-sm opacity-60">Leader</span>
-            )}
-
-            {isLeader && user.id !== currentUserId && onKick && (
-              <Button
-                variant="danger"
-                className="ml-auto px-4 py-1 text-sm"
-                disabled={kickingUserId === user.id}
-                onClick={() => onKick(user.id)}
-              >
-                {kickingUserId === user.id ? 'Kicking...' : 'Kick'}
-              </Button>
-            )}
+          {/* hover card: shown while the mouse is over the avatar or the card itself.
+              top-full + pt-2 keeps the gap visual only, so the mouse never leaves the group. */}
+          <div className="absolute left-0 top-full z-20 hidden w-56 group-hover:block">
+            <div className={twMerge(cardStyle, 'bg-dark-blue/80')}>
+              <Link to={`/profile/byUser/${user.username}`}>
+                <UserPopUp user={user} />
+              </Link>
+              {user.id === leaderId && (
+                <p className={textDiscretStyle}>Leader</p>
+              )}
+              {isLeader && user.id !== currentUserId && onKick && (
+                <Button
+                  variant="danger"
+                  className="w-full px-4 py-1 mt-1 text-sm"
+                  disabled={kickingUserId === user.id}
+                  onClick={() => onKick(user.id)}
+                >
+                  {kickingUserId === user.id ? 'Kicking...' : 'Kick'}
+                </Button>
+              )}
+            </div>
           </div>
         </li>
       ))}
@@ -174,7 +195,11 @@ export function JoinLobby({ code }: { code: string }) {
     }
   }
   return (
-    <Button variant="accept" onClick={() => handleClickJoin(code)}>
+    <Button
+      variant="accept"
+      className="py-4"
+      onClick={() => handleClickJoin(code)}
+    >
       Join this Lobby
     </Button>
   );
@@ -200,8 +225,12 @@ export function LeaveLobby() {
   }
 
   return (
-    <Button variant="danger" onClick={() => handleClickLeave()}>
-      Leave This Lobby
+    <Button
+      variant="danger"
+      className="py-4"
+      onClick={() => handleClickLeave()}
+    >
+      Leave this Lobby
     </Button>
   );
 }
@@ -401,7 +430,7 @@ export default function DisplayLobbies() {
                                     hoveredUserId === user.id
                                       ? 'pointer-events-auto opacity-100'
                                       : 'pointer-events-none opacity-0',
-                                    'absolute left-0 top-11 z-20 w-56 rounded-2xl bg-dark-blue/90 text-shadow-lg shadow-xl shadow-dark-blue/50 backdrop-blur-xs transition-all duration-300',
+                                    'absolute left-0 top-11 z-20 w-56 p-2 rounded-2xl bg-dark-blue/90 text-shadow-lg shadow-xl shadow-dark-blue/50 backdrop-blur-xs transition-all duration-300',
                                   )}
                                 >
                                   <UserPopUp user={user} />
