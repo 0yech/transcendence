@@ -2,7 +2,7 @@ import { NavBar } from '~/components/Navbar';
 import type { SelfUserInterface } from '~/context/WebSocketContext';
 import type { Route } from './+types/settings';
 import apiFetch from '~/utils/api-fetch';
-import { Form } from 'react-router';
+import { Form, redirect } from 'react-router';
 import { Input } from '~/components/Input';
 import { Button } from '~/components/Button';
 import { ErrorMessage } from '~/pages/auth/errorMessage';
@@ -31,7 +31,7 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
   const formData = await request.formData();
   const intent = formData.get('_intent');
 
-  if (intent !== 'update-settings') {
+  if (intent !== 'update-settings' && intent !== 'delete-account') {
     return { error: 'Unknown settings action.' };
   }
 
@@ -42,27 +42,46 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
     }
   });
 
-  const response = await apiFetch('/api/auth/update', {
-    method: 'POST',
-    body: formData,
-  });
+  if (intent === 'update-settings') {
+    const response = await apiFetch('/api/auth/update', {
+      method: 'POST',
+      body: formData,
+    });
+    if (!response.ok) {
+      const body = (await response
+        .json()
+        .catch(() => null)) as ApiErrorBody | null;
+      const message = body?.message;
 
-  if (!response.ok) {
-    const body = (await response
-      .json()
-      .catch(() => null)) as ApiErrorBody | null;
-    const message = body?.message;
+      return {
+        error: String(
+          Array.isArray(message)
+            ? message.join(' ')
+            : (message ?? 'Unable to save account settings.'),
+        ),
+      };
+    }
+    return { success: 'Account settings saved.' };
+  } else if (intent === 'delete-account') {
+    const response = await apiFetch('/api/auth/remove-account', {
+      method: 'POST',
+    });
+    if (!response.ok) {
+      const body = (await response
+        .json()
+        .catch(() => null)) as ApiErrorBody | null;
+      const message = body?.message;
 
-    return {
-      error: String(
-        Array.isArray(message)
-          ? message.join(' ')
-          : (message ?? 'Unable to save account settings.'),
-      ),
-    };
+      return {
+        error: String(
+          Array.isArray(message)
+            ? message.join(' ')
+            : (message ?? 'Unable to delete the account.'),
+        ),
+      };
+    }
+    throw redirect('/');
   }
-
-  return { success: 'Account settings saved.' };
 }
 
 export default function Settings({
@@ -137,6 +156,15 @@ export default function Settings({
               value="update-settings"
             >
               save
+            </Button>
+            <Button
+              className="text-3xl w-80"
+              variant="danger"
+              type="submit"
+              name="_intent"
+              value="delete-account"
+            >
+              delete account
             </Button>
           </Form>
           <ErrorMessage message={actionData?.error ? actionData.error : ''} />
