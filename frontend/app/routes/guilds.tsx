@@ -1,7 +1,8 @@
 import type { Route } from './+types/guilds';
 import { GuildRankingTable } from '../components/guilds/GuildRankingTable';
 import { NavBar } from '~/components/Navbar';
-import { eyebrowClass, pageShellClass, primaryCardClass } from '~/styles/theme';
+import { cardStyle, textTitleStyle } from '~/styles/style';
+import { twMerge } from 'tailwind-merge';
 import apiFetch from '~/utils/api-fetch';
 
 export async function clientLoader() {
@@ -18,22 +19,16 @@ export default function Guilds({ loaderData }: Route.ComponentProps) {
   return (
     <>
       <title>Guild Rankings</title>
-      <NavBar></NavBar>
+      <NavBar className="fixed"></NavBar>
 
-      <main className={pageShellClass}>
-        <div
-          className={`${primaryCardClass} mx-auto flex w-full max-w-5xl flex-col gap-5`}
-        >
-          <div>
-            <p className={eyebrowClass}>Community</p>
-            <h1 className="text-4xl font-black sm:text-6xl">Guild Rankings</h1>
-            <p className="mt-2 opacity-70">
-              See which guilds are leading the competition.
-            </p>
-          </div>
+      <main className="pt-30 pb-10 px-4 min-h-dvh w-full flex flex-col items-center">
+        <h1 className={twMerge(textTitleStyle, 'uppercase mb-5 text-center')}>
+          Guild Rankings
+        </h1>
 
+        <section className={twMerge(cardStyle, 'w-full max-w-5xl')}>
           <GuildRankingTable guilds={loaderData} />
-        </div>
+        </section>
       </main>
     </>
   );

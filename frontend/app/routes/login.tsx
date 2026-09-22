@@ -7,7 +7,12 @@ import { NavBar } from '~/components/Navbar';
 import { UseWebSocket } from '~/context/UseWebSocket';
 import { useEffect } from 'react';
 import { ErrorMessage } from '~/pages/auth/errorMessage';
-import { cardStyle, Separator } from '~/styles/style';
+import {
+  cardStyle,
+  Separator,
+  textTitle2Style,
+  textParaStyle,
+} from '~/styles/style';
 import { twMerge } from 'tailwind-merge';
 
 /**
@@ -107,13 +112,12 @@ export default function Login({ actionData }: Route.ComponentProps) {
             cardStyle,
           )}
         >
-          <h1 className="text-2xl">Login to Transcendence</h1>
+          <h1 className={twMerge(textTitle2Style, 'font-bold')}>Login</h1>
           <LoginForm />
           <ErrorMessage message={errorMessage} />
-          <h1 className="text-1xl text-center">
-            Don't have an account yet?{' '}
-            <StylisedLink to="/register">Sign up</StylisedLink>
-          </h1>
+          <p className={twMerge(textParaStyle, 'text-center')}>
+            No account yet? <StylisedLink to="/register">Sign up</StylisedLink>
+          </p>
           <Separator />
           <OauthLoginOptions />
         </div>

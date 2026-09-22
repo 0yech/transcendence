@@ -1,5 +1,6 @@
 import { useFetcher } from 'react-router';
 import { ErrorMessage } from './errorMessage';
+import { Button } from '~/components/Button';
 
 export function LogoutButton({ className }: { className?: string }) {
   const fetcher = useFetcher();
@@ -12,9 +13,9 @@ export function LogoutButton({ className }: { className?: string }) {
   return (
     <>
       <fetcher.Form method="post" action="/logout">
-        <button type="submit" className={className}>
+        <Button variant="danger" type="submit" className={className}>
           Logout
-        </button>
+        </Button>
       </fetcher.Form>
 
       {errorMessage ? <ErrorMessage message={errorMessage} /> : null}

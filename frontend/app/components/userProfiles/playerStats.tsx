@@ -4,18 +4,27 @@ import {
   type PlayerStats as PlayerStatsData,
 } from '~/utils/users';
 import {
-  accentInsetCardClass,
-  eyebrowClass,
-  insetCardClass,
-  primaryCardClass,
-  sectionTitleClass,
-  statLabelClass,
-} from '~/styles/theme';
+  cardStyle,
+  cardDarkStyle,
+  textTitle2Style,
+  textDiscretStyle,
+} from '~/styles/style';
+import { twMerge } from 'tailwind-merge';
+import { statLabelStyle } from './userProfile';
 import { EloProgressionChart } from './playerChart';
 
 type PlayerStatsProps = {
   userId?: string;
 };
+
+/** Placeholder shown while loading, or when the request failed. */
+function Placeholder({ children }: { children: string }) {
+  return (
+    <p className={twMerge(cardDarkStyle, textDiscretStyle, 'text-center')}>
+      {children}
+    </p>
+  );
+}
 
 /**
  * @brief Displays lifetime statistics for a player profile.
@@ -51,77 +60,56 @@ export function PlayerStats({ userId }: PlayerStatsProps) {
     ? new Date(stats.lastPlayedAt)
     : null;
 
-  console.log(stats);
   return (
     <>
-      <section className={primaryCardClass}>
-        <div>
-          <p className={eyebrowClass}>Rating</p>
-          <h2 className={`mt-1 ${sectionTitleClass}`}>Player elo</h2>
-        </div>
+      <section className={cardStyle}>
+        <h2 className={twMerge(textTitle2Style, 'font-bold mb-2')}>Elo</h2>
 
         {hasError ? (
-          <div className={`${insetCardClass} mt-5 p-5 text-center opacity-60`}>
-            Unable to load player elo.
-          </div>
+          <Placeholder>Unable to load player elo.</Placeholder>
         ) : !stats ? (
-          <div className={`${insetCardClass} mt-5 p-5 text-center opacity-60`}>
-            Loading rating...
-          </div>
+          <Placeholder>Loading...</Placeholder>
         ) : (
           <EloProgressionChart progression={stats.hourlyProgression} />
         )}
       </section>
 
-      <section className={primaryCardClass}>
-        <div>
-          <p className={eyebrowClass}>Performance</p>
-          <h2 className={`mt-1 ${sectionTitleClass}`}>Player Stats</h2>
-        </div>
+      <section className={cardStyle}>
+        <h2 className={twMerge(textTitle2Style, 'font-bold mb-2')}>Stats</h2>
 
         {hasError ? (
-          <div className={`${insetCardClass} mt-5 p-5 text-center opacity-60`}>
-            Unable to load player stats.
-          </div>
+          <Placeholder>Unable to load player stats.</Placeholder>
         ) : !stats ? (
-          <div className={`${insetCardClass} mt-5 p-5 text-center opacity-60`}>
-            Loading stats...
-          </div>
+          <Placeholder>Loading...</Placeholder>
         ) : (
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <div className={`${accentInsetCardClass} p-5`}>
-              <p className={statLabelClass}>Win rate</p>
-
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className={cardDarkStyle}>
+              <p className={statLabelStyle}>Win rate</p>
               <p className="mt-1 text-3xl font-black text-pink">
                 {stats.winRate.toFixed(1)}%
               </p>
-
-              <p className="mt-2 text-sm font-semibold opacity-60">
+              <p className={textDiscretStyle}>
                 {stats.wins}W / {stats.losses}L
               </p>
             </div>
 
-            <div className={`${insetCardClass} p-5`}>
-              <p className={statLabelClass}>Scored games</p>
-
-              <p className="mt-1 text-3xl font-black">
+            <div className={cardDarkStyle}>
+              <p className={statLabelStyle}>Scored games</p>
+              <p className="mt-1 text-3xl font-black text-blue">
                 {stats.scoredGameRate.toFixed(1)}%
               </p>
-
-              <p className="mt-2 text-sm font-semibold opacity-60">
+              <p className={textDiscretStyle}>
                 {stats.gamesWithPoints} / {stats.gamesPlayed}
               </p>
             </div>
 
-            <div className={`${insetCardClass} p-5`}>
-              <p className={statLabelClass}>Games played</p>
-
+            <div className={cardDarkStyle}>
+              <p className={statLabelStyle}>Games played</p>
               <p className="mt-1 text-3xl font-black">{stats.gamesPlayed}</p>
             </div>
 
-            <div className={`${insetCardClass} p-5`}>
-              <p className={statLabelClass}>Last played</p>
-
+            <div className={cardDarkStyle}>
+              <p className={statLabelStyle}>Last played</p>
               <p className="mt-1 text-base font-bold">
                 {lastPlayedAt
                   ? lastPlayedAt.toLocaleString('en-US', {

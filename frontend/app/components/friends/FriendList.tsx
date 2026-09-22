@@ -3,10 +3,12 @@ import { Avatar } from '~/components/Avatar';
 import { Button, ButtonLinkIn } from '~/components/Button';
 import { usePresence } from '~/context/UsePresence';
 import {
-  accentPillClass,
-  insetCardClass,
-  primaryCardClass,
-} from '~/styles/theme';
+  cardStyle,
+  cardDarkStyle,
+  errorCardStyle,
+  textDiscretStyle,
+} from '~/styles/style';
+import { twMerge } from 'tailwind-merge';
 
 import type { Friend } from '~/utils/friends';
 
@@ -33,18 +35,11 @@ export function FriendList({ friends, error }: FriendListProps) {
   const isSubmitting = navigation.state === 'submitting';
 
   return (
-    <section className={primaryCardClass}>
-      <div className="flex items-baseline justify-between gap-4">
-        <h2 className="text-3xl font-black sm:text-4xl">Friends</h2>
-        <span className={accentPillClass}>{friends.length}</span>
-      </div>
-
+    <section className={cardStyle}>
       {friends.length === 0 ? (
-        <p className="mt-4 opacity-60">
-          You have no friends yet. Invite someone by their username.
-        </p>
+        <p className={textDiscretStyle}>No friends yet.</p>
       ) : (
-        <ul className="mt-5 flex flex-col gap-4">
+        <ul className="flex flex-col gap-4">
           {friends.map((friend) => {
             const lobby = friend.lobby;
             const isJoinable = lobby !== null && lobby.active;
@@ -54,7 +49,10 @@ export function FriendList({ friends, error }: FriendListProps) {
             return (
               <li
                 key={friend.id}
-                className={`flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between ${insetCardClass}`}
+                className={twMerge(
+                  cardDarkStyle,
+                  'flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between',
+                )}
               >
                 <div className="flex min-w-0 items-center gap-4">
                   <div className="relative shrink-0">
@@ -69,9 +67,10 @@ export function FriendList({ friends, error }: FriendListProps) {
                     <span
                       aria-hidden="true"
                       title={status}
-                      className={`absolute bottom-0 right-0 h-4 w-4 rounded-full ring-2 ring-dark-blue ${
-                        online ? 'bg-accept' : 'bg-mid-gray'
-                      }`}
+                      className={twMerge(
+                        'absolute bottom-0 right-0 h-4 w-4 rounded-full ring-2 ring-dark-blue',
+                        online ? 'bg-accept' : 'bg-mid-gray',
+                      )}
                     />
                     <span className="sr-only">{status}</span>
                   </div>
@@ -83,10 +82,10 @@ export function FriendList({ friends, error }: FriendListProps) {
                     >
                       {friend.username}
                     </Link>
-                    <p className="mt-1 text-light-gray">
+                    <p className={textDiscretStyle}>
                       {friend.guild ? friend.guild.name : 'No guild'}
                       <span className="mx-2 opacity-40">|</span>
-                      <span className="font-bold text-pink">
+                      <span className="font-bold text-blue">
                         {friend.totalPts} pts
                       </span>
                       <span className="mx-2 opacity-40">|</span>
@@ -106,7 +105,7 @@ export function FriendList({ friends, error }: FriendListProps) {
                       Join lobby ({lobby._count.users}/6)
                     </ButtonLinkIn>
                   ) : (
-                    <span className="italic opacity-60">Not in a lobby</span>
+                    <span className={textDiscretStyle}>Not in a lobby</span>
                   )}
 
                   <Form
@@ -138,7 +137,7 @@ export function FriendList({ friends, error }: FriendListProps) {
         </ul>
       )}
 
-      {error && <p className="mt-4 font-bold text-danger">{error}</p>}
+      {error && <p className={twMerge(errorCardStyle, 'mt-4')}>{error}</p>}
     </section>
   );
 }

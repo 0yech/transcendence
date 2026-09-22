@@ -133,7 +133,7 @@ export default function PreGame({ loaderData }: Route.ComponentProps) {
     <>
       <NavBar className="fixed"></NavBar>
       <div className="pt-30 pb-10 min-h-dvh w-full flex flex-col justify-start items-center">
-        <h1 className={twMerge(textTitleStyle, 'uppercase px-10')}>
+        <h1 className={twMerge(textTitleStyle, 'uppercase px-10 text-center')}>
           LOBBY OF{' '}
           <StylisedLink
             variant="gradient"
@@ -187,7 +187,7 @@ export default function PreGame({ loaderData }: Route.ComponentProps) {
               </div>
               <h2 className={textParaStyle}>
                 Created at:{' '}
-                {date.toLocaleTimeString('en-US', { timeStyle: 'long' })}
+                {date.toLocaleTimeString('en-US', { hour12: false })}
               </h2>
             </div>
             <div className="flex gap-4">

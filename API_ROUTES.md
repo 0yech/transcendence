@@ -448,7 +448,7 @@ curl -i \
 
 # Users
 
-##  `GET /api/users/:id`
+## `GET /api/users/:id`
 
 Return the username of the id and username of the user
 
@@ -466,12 +466,12 @@ Return the username of the id and username of the user
 
 **Success status:** `200 OK`
 
-**Success body:** 
+**Success body:**
 
-| Parameter  | Type   | Description                     |
-| ---------- | ------ | ------------------------------- |
-| `id`       | string | The user's id.                  |
-| `username` | string | The user's username.            |
+| Parameter  | Type   | Description          |
+| ---------- | ------ | -------------------- |
+| `id`       | string | The user's id.       |
+| `username` | string | The user's username. |
 
 **Possible errors**
 
@@ -486,8 +486,7 @@ curl -i \
   "http://localhost:3000/api/users/:id"
 ```
 
-
-##  `GET /api/users/public/:id/stats`
+## `GET /api/users/public/:id/stats`
 
 Return the stats of the id and username of the user
 
@@ -509,7 +508,6 @@ Return the stats of the id and username of the user
 
 ```json
 {
-  
   "gamesPlayed": 28,
   "wins": 28,
   "losses": 0,
@@ -529,8 +527,8 @@ Return the stats of the id and username of the user
       "elo": 980.82222,
       "games": 5,
       "pointWon": 10
-    },
-  ],
+    }
+  ]
 }
 ```
 
@@ -539,16 +537,15 @@ Return the stats of the id and username of the user
 - `401 Unauthorized` — missing, expired, or invalid access token.
 - `404 Not Found` — the user does not exist or has been deleted. both are identical to not reveal if the user has existed or not
 
-
-##  `GET /api/users/username/:username`
-
-TODO
-
-##  `GET /api/users/public/id/:id`
+## `GET /api/users/username/:username`
 
 TODO
 
-##  `GET /api/users/public/username/:username`
+## `GET /api/users/public/id/:id`
+
+TODO
+
+## `GET /api/users/public/username/:username`
 
 TODO
 

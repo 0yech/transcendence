@@ -5,7 +5,7 @@ export default function Privacy() {
   return (
     <>
       <title>Privacy Policy</title>
-      <NavBar></NavBar>
+      <NavBar className="fixed"></NavBar>
       <PrivacyPolicy />
     </>
   );

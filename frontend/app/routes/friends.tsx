@@ -12,7 +12,8 @@ import { FriendList } from '~/components/friends/FriendList';
 import { FriendInvitations } from '~/components/friends/FriendInvitations';
 import { AddFriend } from '~/components/friends/AddFriend';
 import { NavBar } from '~/components/Navbar';
-import { eyebrowClass, pageContentClass, pageShellClass } from '~/styles/theme';
+import { textTitleStyle } from '~/styles/style';
+import { twMerge } from 'tailwind-merge';
 
 type FriendActionIntent =
   | 'invite-friend'
@@ -253,18 +254,12 @@ export default function Friends({
   return (
     <>
       <title>Friends</title>
-      <NavBar></NavBar>
+      <NavBar className="fixed"></NavBar>
 
-      <main className={pageShellClass}>
-        <div className={pageContentClass}>
-          <div>
-            <p className={eyebrowClass}>Community</p>
-            <h1 className="text-4xl font-black sm:text-6xl">Friends</h1>
-            <p className="mt-2 opacity-70">
-              Keep track of your friends and jump straight into their lobby.
-            </p>
-          </div>
+      <main className="pt-30 pb-10 px-4 min-h-dvh w-full flex flex-col items-center">
+        <h1 className={twMerge(textTitleStyle, 'uppercase mb-5')}>Friends</h1>
 
+        <div className="w-full max-w-5xl flex flex-col gap-4">
           <FriendList friends={friends} error={friendError} />
 
           <FriendInvitations

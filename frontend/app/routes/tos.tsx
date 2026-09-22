@@ -5,7 +5,7 @@ export default function Terms() {
   return (
     <>
       <title>Terms of Service</title>
-      <NavBar></NavBar>
+      <NavBar className="fixed"></NavBar>
       <TermsOfService />
     </>
   );

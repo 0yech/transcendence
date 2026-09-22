@@ -11,7 +11,18 @@ import {
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import type { PlayerStats } from '~/utils/users';
-import { insetCardClass } from '~/styles/theme';
+import { cardDarkStyle, textDiscretStyle } from '~/styles/style';
+import { twMerge } from 'tailwind-merge';
+
+/*
+  Chart.js needs plain color values, so the palette of app.css is repeated
+  here. Keep --color-pink and --color-blue in sync with these two.
+*/
+const ELO_COLOR = '#ff91c8';
+const POINTS_COLOR = '#777df2';
+const TEXT_COLOR = 'rgba(255, 255, 255, 0.65)';
+const GRID_COLOR = 'rgba(255, 255, 255, 0.07)';
+const TICK_FONT = { size: 11, weight: 600 } as const;
 
 ChartJS.register(
   CategoryScale,
@@ -67,10 +78,10 @@ export function EloProgressionChart({ progression }: EloProgressionChartProps) {
       {
         label: 'Elo',
         data: finalEloData,
-        borderColor: '#ec4899',
-        backgroundColor: 'rgba(236, 72, 153, 0.10)',
-        pointBackgroundColor: '#ec4899',
-        pointBorderColor: '#ec4899',
+        borderColor: ELO_COLOR,
+        backgroundColor: 'rgba(255, 145, 200, 0.10)',
+        pointBackgroundColor: ELO_COLOR,
+        pointBorderColor: ELO_COLOR,
         pointRadius: 3,
         pointHoverRadius: 5,
         borderWidth: 2,
@@ -82,10 +93,10 @@ export function EloProgressionChart({ progression }: EloProgressionChartProps) {
       {
         label: 'Points Won',
         data: finalPointsData,
-        borderColor: '#a78bfa',
-        backgroundColor: 'rgba(167, 139, 250, 0.08)',
-        pointBackgroundColor: '#a78bfa',
-        pointBorderColor: '#a78bfa',
+        borderColor: POINTS_COLOR,
+        backgroundColor: 'rgba(119, 125, 242, 0.08)',
+        pointBackgroundColor: POINTS_COLOR,
+        pointBorderColor: POINTS_COLOR,
         borderDash: [5, 5],
         pointRadius: 2,
         pointHoverRadius: 4,
@@ -109,11 +120,8 @@ export function EloProgressionChart({ progression }: EloProgressionChartProps) {
       legend: {
         display: true,
         labels: {
-          color: 'rgba(255, 255, 255, 0.65)',
-          font: {
-            size: 12,
-            weight: 600,
-          },
+          color: TEXT_COLOR,
+          font: TICK_FONT,
           usePointStyle: true,
           pointStyle: 'circle',
         },
@@ -154,11 +162,8 @@ export function EloProgressionChart({ progression }: EloProgressionChartProps) {
         },
         ticks: {
           maxTicksLimit: 8,
-          color: 'rgba(255, 255, 255, 0.45)',
-          font: {
-            size: 11,
-            weight: 600,
-          },
+          color: TEXT_COLOR,
+          font: TICK_FONT,
         },
       },
       yElo: {
@@ -168,23 +173,17 @@ export function EloProgressionChart({ progression }: EloProgressionChartProps) {
           display: false,
         },
         grid: {
-          color: 'rgba(255, 255, 255, 0.07)',
+          color: GRID_COLOR,
         },
         ticks: {
-          color: '#ec4899',
-          font: {
-            size: 11,
-            weight: 600,
-          },
+          color: ELO_COLOR,
+          font: TICK_FONT,
         },
         title: {
           display: true,
           text: 'Elo',
-          color: '#ec4899',
-          font: {
-            size: 11,
-            weight: 600,
-          },
+          color: ELO_COLOR,
+          font: TICK_FONT,
         },
         beginAtZero: true,
       },
@@ -198,20 +197,14 @@ export function EloProgressionChart({ progression }: EloProgressionChartProps) {
           drawOnChartArea: false,
         },
         ticks: {
-          color: '#a78bfa',
-          font: {
-            size: 11,
-            weight: 600,
-          },
+          color: POINTS_COLOR,
+          font: TICK_FONT,
         },
         title: {
           display: true,
           text: 'Points won',
-          color: '#a78bfa',
-          font: {
-            size: 11,
-            weight: 600,
-          },
+          color: POINTS_COLOR,
+          font: TICK_FONT,
         },
         beginAtZero: true,
       },
@@ -220,14 +213,14 @@ export function EloProgressionChart({ progression }: EloProgressionChartProps) {
 
   if (!progression.length) {
     return (
-      <div className={`${insetCardClass} mt-5 p-8 text-center opacity-60`}>
+      <p className={twMerge(cardDarkStyle, textDiscretStyle, 'text-center')}>
         No rating history yet.
-      </div>
+      </p>
     );
   }
 
   return (
-    <div className={`${insetCardClass} mt-5 p-4 sm:p-5`}>
+    <div className={cardDarkStyle}>
       <div className="h-64 sm:h-80">
         <Line data={data} options={options} />
       </div>
