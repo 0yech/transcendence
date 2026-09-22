@@ -3,7 +3,11 @@ import { io } from 'socket.io-client';
 import apiFetch from '~/utils/api-fetch';
 import { setChatSocket } from '~/utils/chatSocket';
 import { Input } from './Input';
-import { cardStyle } from '~/styles/style';
+import {
+  errorCardStyle,
+  textCardStyle,
+  textDiscretStyle,
+} from '~/styles/style';
 import { twMerge } from 'tailwind-merge';
 import { Button } from './Button';
 import { getCurrentUser } from '~/utils/users';
@@ -36,8 +40,7 @@ const AUTHOR_COLORS = [
   'text-green',
   'text-yellow',
   'text-orange',
-  'text-light-pink',
-  'text-green',
+  'text-blue',
 ];
 
 /**
@@ -259,19 +262,21 @@ export default function LobbyChat({
   }
 
   return (
-    <div
-      className={twMerge(
-        'flex flex-col backdrop-blur-xs gap-2 h-200 w-70',
-        className,
-      )}
-    >
-      <p>Chat: {connected ? 'connected' : 'disconnected'}</p>
+    <div className={twMerge('flex flex-col gap-2 h-200 w-70', className)}>
+      <p className={textDiscretStyle}>
+        Chat:{' '}
+        {connected ? (
+          <span className="text-accept">connected</span>
+        ) : (
+          <span className="text-danger">disconnected</span>
+        )}
+      </p>
 
-      {error && <p>{error}</p>}
+      {error && <p className={errorCardStyle}>{error}</p>}
 
       <ul
         className={twMerge(
-          cardStyle,
+          textCardStyle,
           'overflow-y-auto gap-2 flex flex-col-reverse h-full whitespace-pre-wrap wrap-break-word overscroll-contain',
         )}
       >
@@ -312,7 +317,7 @@ export default function LobbyChat({
           </Button>
         </form>
       ) : (
-        <p>Join the lobby to send messages.</p>
+        <p className={errorCardStyle}>Join the lobby to send messages.</p>
       )}
     </div>
   );

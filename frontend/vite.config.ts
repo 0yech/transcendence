@@ -18,7 +18,6 @@ export default defineConfig({
       '@react-three/drei',
       '@react-three/postprocessing',
       'postprocessing',
-      'leva',
       'motion',
       '@react-spring/three',
     ],

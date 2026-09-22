@@ -24,7 +24,6 @@
     "eslint-plugin-react-refresh": "^0.5.3",
     "globals": "^17.7.0",
     "isbot": "^5.1.36",
-    "leva": "^0.10.1",
     "motion": "^13.2.0",
     "postprocessing": "^6.39.4",
     "react": "~19.2.7",

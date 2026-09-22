@@ -1,7 +1,5 @@
 @import 'tailwindcss';
 
-@tailwind utilities;
-
 @font-face {
   font-family: 'Achron';
   src:
@@ -12,11 +10,45 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'ASIXFOUNDERItalic';
+  src:
+    url('/fonts/ASIXFOUNDERItalic.woff2') format('woff2'),
+    url('/fonts/ASIXFOUNDERItalic.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'ASIXFOUNDERRegular';
+  src:
+    url('/fonts/ASIXFOUNDERRegular.woff2') format('woff2'),
+    url('/fonts/ASIXFOUNDERRegular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Acrylic';
+  src:
+    url('/fonts/Acrylic.woff2') format('woff2'),
+    url('/fonts/Acrylic.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   --font-sans:
-    'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Montserrat', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
     'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-  --font-display: 'Achron', ui-serif, system-ui, serif;
+  --font-achron: 'Achron', ui-sans-serif, system-ui, sans-serif;
+  --font-asixfounder:
+    'ASIXFOUNDERRegular', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'ASIXFOUNDERItalic', ui-sans-serif, system-ui, sans-serif;
+  --font-number: 'Acrylic', ui-sans-serif, system-ui, sans-serif;
   --color-danger: #ff7575;
   --color-danger-active: #ff5959;
   --color-accept: #92ff8f;

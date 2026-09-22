@@ -17,6 +17,14 @@ import {
   statLabelClass,
 } from '~/styles/theme';
 import { PlayerStats } from './playerStats';
+import { twMerge } from 'tailwind-merge';
+import {
+  gradientAccentHoverStyle,
+  gradientAccentStyle,
+  textMaskStyle,
+  textParaStyle,
+  textTitleStyle,
+} from '~/styles/style';
 
 interface UserPopUpProps {
   user: UserInterfaceLobby;
@@ -31,16 +39,22 @@ export function UserPopUp({ user }: UserPopUpProps) {
     ? `${userRole} of ${user.guild.name}`
     : 'No guild';
   return (
-    <div className="flex flex-col m-2 justify-between">
+    <div className="flex flex-col mt-2 justify-between">
       <div className="flex justify-between flex-row h-1/2 w-full">
-        <div className="flex font-bold hover:text-pink hover:underline hover:decoration-pink">
+        <div
+          className={twMerge(
+            textTitleStyle,
+            'text-2xl md:text-2xl',
+            textMaskStyle,
+            gradientAccentStyle,
+            gradientAccentHoverStyle,
+          )}
+        >
           {user.username}
         </div>
-        <div className="flex ">{user.totalPts}</div>
+        <div className={textParaStyle}>{user.totalPts}</div>
       </div>
-      <div className="flex underline text-light-gray font-extralight italic">
-        {guildTitle}
-      </div>
+      <div className={textParaStyle}>{guildTitle}</div>
     </div>
   );
 }
