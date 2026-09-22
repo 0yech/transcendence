@@ -391,7 +391,7 @@ export function GuildDetails({
                   required
                   minLength={3}
                   maxLength={20}
-                  pattern="[A-Za-z0-9 _-]+"
+                  pattern="[A-Za-z0-9 _\-]+"
                   title="Letters, numbers, spaces, underscores and hyphens only."
                   className={textInputClass}
                 />
