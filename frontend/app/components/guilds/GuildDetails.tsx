@@ -19,6 +19,8 @@ export interface GuildMember {
   guildRole: 'LEADER' | 'OFFICER' | 'MEMBER' | null;
   createdAt: string;
   updatedAt: string;
+  totalPts: number;
+  elo: number;
 }
 
 export interface Guild {
@@ -229,6 +231,8 @@ export function GuildDetails({
                   <tr>
                     <th className="px-5 py-4">Username</th>
                     <th className="px-5 py-4">Role</th>
+                    <th className="px-5 py-4">Elo</th>
+                    <th className="px-5 py-4">Points</th>
 
                     {canManageGuild && <th className="px-5 py-4">Actions</th>}
                   </tr>
@@ -254,6 +258,16 @@ export function GuildDetails({
                         <td className="border-t border-light-pink/10 px-5 py-4">
                           <span className={accentPillClass}>
                             {member.guildRole}
+                          </span>
+                        </td>
+                        <td className="border-t border-light-pink/10 px-5 py-4">
+                          <span className={accentPillClass}>
+                            {member.elo.toFixed(0)}
+                          </span>
+                        </td>
+                        <td className="border-t border-light-pink/10 px-5 py-4">
+                          <span className={accentPillClass}>
+                            {member.totalPts}
                           </span>
                         </td>
 
