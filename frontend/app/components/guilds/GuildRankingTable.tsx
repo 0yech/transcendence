@@ -13,7 +13,6 @@ export function GuildRankingTable({ guilds }: Props) {
           <tr>
             <th className="px-5 py-4">Rank</th>
             <th className="px-5 py-4">Guild</th>
-            <th className="px-5 py-4">Level</th>
             <th className="px-5 py-4">Members</th>
             <th className="px-5 py-4 text-right">Points</th>
             <th className="px-5 py-4 text-right">Average Elo</th>
@@ -31,9 +30,6 @@ export function GuildRankingTable({ guilds }: Props) {
               </td>
               <td className="border-t border-light-pink/10 px-5 py-4 text-xl font-bold">
                 {guild.name}
-              </td>
-              <td className="border-t border-light-pink/10 px-5 py-4">
-                {guild.level}
               </td>
               <td className="border-t border-light-pink/10 px-5 py-4">
                 {guild._count.members}

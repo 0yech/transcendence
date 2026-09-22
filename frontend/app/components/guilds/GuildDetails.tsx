@@ -26,7 +26,6 @@ export interface GuildMember {
 export interface Guild {
   id: string;
   name: string;
-  level: number;
   points: number;
   createdAt: string;
   updatedAt: string;
@@ -142,13 +141,7 @@ export function GuildDetails({
           <h1 className="mt-1 wrap-break-word text-4xl font-black sm:text-6xl">
             {guild.name}
           </h1>
-          <dl className="mt-6 grid grid-cols-3 gap-3">
-            <div className={`${insetCardClass} p-4`}>
-              <dt className="text-xs font-bold uppercase tracking-wider text-light-pink">
-                Level
-              </dt>
-              <dd className="mt-1 text-3xl font-black">{guild.level}</dd>
-            </div>
+          <dl className="mt-6 grid grid-cols-2 gap-3">
             <div className={`${insetCardClass} p-4`}>
               <dt className="text-xs font-bold uppercase tracking-wider text-light-pink">
                 Points
