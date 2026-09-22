@@ -595,8 +595,7 @@ export class GamesService {
       Object.entries(probabilityWin).forEach(([, data]) => {
         newEloRating += coeff * ((data.win ? 1 : 0) - data.expected);
       });
-      newEloRating =
-        currentUser.elo + newEloRating;
+      newEloRating = currentUser.elo + newEloRating;
       await this.prisma.user.update({
         where: { id: playerId },
         data: {
