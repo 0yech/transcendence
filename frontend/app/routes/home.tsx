@@ -1,5 +1,3 @@
-// import { Welcome } from '../pages/welcome';
-// import { useNavigate } from 'react-router';
 import { useState, useEffect, useRef } from 'react';
 import type { Group } from 'three';
 import { NavBar } from '~/components/Navbar';
@@ -10,25 +8,6 @@ import apiFetch from '~/utils/api-fetch';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Card } from '~/components/game/Card';
 import { OrbitControls } from '@react-three/drei';
-
-// export function HomeButton() {
-//   const navigate = useNavigate();
-//   return (
-//     <button
-//       onClick={() => {
-//         navigate('/');
-//       }}
-//     >
-//       Home
-//     </button>
-//   );
-// }
-
-/**
- *
- * @brief create a useState for home page. loads it and pass it to Welcome component
- *
- */
 
 function SpinningCard() {
   const groupRef = useRef<Group>(null);
@@ -85,7 +64,6 @@ export default function Home() {
         </div>
         {userCurr?.id ? (
           <div className="flex gap-6 mb-30">
-            {/* <ButtonLinkIn className='text-5xl font-black p-6' to="/lobbies">Join Lobby</ButtonLinkIn> */}
             <ButtonLinkIn
               className="text-5xl font-black border-4 border-white p-6"
               to={

@@ -106,8 +106,6 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
          * can emit game:state while handling game:join.
          */
         socket.on('game:state', (e) => {
-          console.log('game:state', e);
-
           setGameState(e);
 
           // A lobby keeps its socket connection between games. Re-arm the
@@ -125,8 +123,6 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
         });
 
         socket.on('game:error', (e) => {
-          console.log('game:error', e);
-
           const message =
             typeof e?.message === 'string' ? e.message : 'Game websocket error';
 
@@ -159,8 +155,6 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
           rejectConnection(message);
         });
         socket.on('connect_error', (error) => {
-          console.log('game websocket connect_error', error);
-
           rejectConnection(
             error instanceof Error
               ? error.message
@@ -182,8 +176,6 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
          * stay down and let the next navigation redirect to the login page.
          */
         socket.on('disconnect', async (reason) => {
-          console.log('game websocket disconnected:', reason);
-
           if (reason !== 'io server disconnect' || retriedAfterRejection) {
             return;
           }
@@ -212,10 +204,6 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
          * wait until Socket.IO is actually connected before game:join.
          */
         socket.on('connect', () => {
-          console.log('[GAME WS] CONNECTED:', socket.id);
-          console.log('[GAME WS] JOINING LOBBY:', code);
-          console.log('connected to /games websocket');
-
           socket.emit(
             'game:join',
             {
@@ -228,8 +216,6 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
                 lobbyCode?: string;
               } | null,
             ) => {
-              console.log('[GAME WS] JOIN ACK:', ack);
-
               const accepted = ack?.ok === true || ack?.success === true;
 
               /*
@@ -444,10 +430,6 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
    * @brief collection of useful function such as check easily if connected to a ws, if game started or the id
    *
    */
-  function isConnected(): string | null {
-    return codeLink.current;
-  }
-
   function gameStarted(): boolean {
     return useGameState?.status === 'IN_PROGRESS';
   }
@@ -456,26 +438,13 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
     return userIdRef.current;
   }
 
-  function setUserId(id: string): void {
-    userIdRef.current = id;
-  }
-
   function setUser(user: SelfUserInterface): void {
     userRef.current = user;
     userIdRef.current = userRef.current.id;
   }
 
-  function getUser(): SelfUserInterface | null {
-    return userRef.current;
-  }
-
   function getCode(): string | null {
     return lobbyCode;
-  }
-
-  function setCode(code: string) {
-    codeLink.current = code;
-    setLobbyCode(code);
   }
 
   return (
@@ -487,15 +456,11 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
         playSlot: playCard,
         playFour: playFour,
         unable: unable,
-        isConnected: isConnected,
         gameStarted: gameStarted,
         userId: userId,
-        setUserId: setUserId,
         setUser: setUser,
         gameState: useGameState,
-        getUser: getUser,
         getCode: getCode,
-        setCode: setCode,
       }}
     >
       {children}

@@ -126,15 +126,6 @@ export function GameHud({
                 />
               </>
             )}
-
-            <Separator />
-
-            {/* Debugging readouts, to remove once the game has settled. */}
-            <Stat label="Turn number" value={gameState?.turnNumber ?? '—'} />
-            <Stat
-              label="Pending plays"
-              value={gameState?.pendingPlays ?? '—'}
-            />
           </Panel>
           <Panel className="w-64">
             <span className={twMerge(textDiscretStyle, LABEL)}>Actions</span>
