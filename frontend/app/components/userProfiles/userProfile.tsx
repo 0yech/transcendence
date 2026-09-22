@@ -103,9 +103,16 @@ export function UserProfile({ user }: { user: SelfUserInterface | null }) {
                       ? `${user.guildRole} of ${user.guild.name.toUpperCase()}`
                       : 'No guild'}
                   </h1>
-                  <p className="mt-2 text-lg font-bold text-light-pink">
-                    {user?.username ?? 'Loading profile'}
-                  </p>
+                  <div className="mt-2 text-lg">
+                    <span className="font-bold text-light-pink">
+                      {user?.username ?? 'Loading profile'}
+                    </span>
+                    <span className="italic text-gray-500">
+                      {user?.elo
+                        ? ` (${(Math.round(user?.elo * 100) / 100).toFixed(0)})`
+                        : 'Loading profile'}
+                    </span>
+                  </div>
                 </div>
               </div>
 
