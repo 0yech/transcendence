@@ -16,6 +16,7 @@ export interface Friend {
   avatarUrl: string | null;
   totalPts: number;
   guildRole: string | null;
+  elo: number;
   guild: {
     id: string;
     name: string;

@@ -32,6 +32,7 @@ export interface UserInterfaceLobby {
     name: string;
   } | null;
   totalPts: number | null;
+  elo: number;
 }
 
 interface ChatInterface {
