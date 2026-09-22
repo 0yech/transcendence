@@ -101,7 +101,7 @@ export default function Settings({
           </p>
           <h1 className="mt-1 text-4xl font-black">Settings</h1>
           <Form
-            className="flex flex-col gap-3"
+            className="flex flex-col items-center pt-8 gap-3"
             method="POST"
             encType="multipart/form-data"
           >
@@ -111,6 +111,7 @@ export default function Settings({
               id="username"
               placeholder={user.username}
               autoComplete="username"
+              labelClassName=""
             >
               Username
             </Input>
