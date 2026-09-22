@@ -25,7 +25,7 @@ services:
     depends_on:
       database:
         condition: service_healthy
-    command: 'sh -c "npx prisma db push && npx prisma generate && npm run start:prod"'
+    command: 'sh -c "npx prisma db push && npm run start:prod"'
     environment:
       - FRONTEND_ORIGIN=${FRONTEND_ORIGIN}
       - FRONTEND_PORT=${FRONTEND_PORT}

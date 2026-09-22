@@ -18,6 +18,9 @@ FROM node:24-alpine AS build-env
 COPY . /app/
 COPY --from=development-dependencies-env /app/node_modules /app/node_modules
 WORKDIR /app
+# The Prisma client is generated into src/generated/prisma (not node_modules), so it
+# has to be produced here. generate never connects, so a placeholder is enough.
+RUN DATABASE_URL="postgresql://placeholder" npm run prisma:generate
 RUN ["npm", "run", "build"]
 
 FROM node:24-alpine AS production
