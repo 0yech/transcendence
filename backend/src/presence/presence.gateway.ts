@@ -2,9 +2,8 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
   WebSocketGateway,
-  WebSocketServer,
 } from '@nestjs/websockets';
-import { DefaultEventsMap, Server, Socket } from 'socket.io';
+import { DefaultEventsMap, Socket } from 'socket.io';
 import { PresenceService } from './presence.service';
 import { JwtPayload } from 'src/auth/jwt-payload.interface';
 import { JwtService } from '@nestjs/jwt';
@@ -26,9 +25,6 @@ type PresenceSocket = Socket<
 export class PresenceGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
-  @WebSocketServer()
-  private server!: Server;
-
   constructor(
     private readonly presenceService: PresenceService,
     private readonly jwtService: JwtService,
