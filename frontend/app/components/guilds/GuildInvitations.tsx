@@ -16,7 +16,6 @@ export interface GuildInvitation {
   guild: {
     id: string;
     name: string;
-    level: number;
     points: number;
   };
   sender: GuildMember;
@@ -63,7 +62,6 @@ export function GuildInvitations({
             <thead className="text-sm uppercase tracking-wider text-light-pink">
               <tr>
                 <th className="px-5 py-4">Guild</th>
-                <th className="px-5 py-4">Level</th>
                 <th className="px-5 py-4">Points</th>
                 <th className="px-5 py-4">Invited by</th>
                 <th className="px-5 py-4">Actions</th>
@@ -76,9 +74,6 @@ export function GuildInvitations({
                   <tr key={invitation.id} className="hover:bg-pink/10">
                     <td className="border-t border-light-pink/10 px-5 py-4 text-xl font-bold">
                       {invitation.guild.name}
-                    </td>
-                    <td className="border-t border-light-pink/10 px-5 py-4">
-                      {invitation.guild.level}
                     </td>
                     <td className="border-t border-light-pink/10 px-5 py-4 font-bold text-pink">
                       {invitation.guild.points}
