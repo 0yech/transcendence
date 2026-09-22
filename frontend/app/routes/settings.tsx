@@ -156,7 +156,7 @@ export default function Settings({
               name="_intent"
               value="update-settings"
             >
-              save
+              Save
             </Button>
             <Button
               className="text-3xl w-80"
@@ -164,8 +164,17 @@ export default function Settings({
               type="submit"
               name="_intent"
               value="delete-account"
+              onClick={(event) => {
+                const confirmed = window.confirm(
+                  'Are you sure you want to delete your account? This action cannot be undone.',
+                );
+
+                if (!confirmed) {
+                  event.preventDefault();
+                }
+              }}
             >
-              delete account
+              Delete account
             </Button>
           </Form>
           <ErrorMessage message={actionData?.error ? actionData.error : ''} />
