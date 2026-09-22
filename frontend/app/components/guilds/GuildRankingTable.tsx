@@ -3,7 +3,6 @@ import { tableContainerClass } from '~/styles/theme';
 interface Guild {
   id: string;
   name: string;
-  level: number;
   points: number;
   _count: {
     members: number;
@@ -22,7 +21,6 @@ export function GuildRankingTable({ guilds }: Props) {
           <tr>
             <th className="px-5 py-4">Rank</th>
             <th className="px-5 py-4">Guild</th>
-            <th className="px-5 py-4">Level</th>
             <th className="px-5 py-4">Members</th>
             <th className="px-5 py-4 text-right">Points</th>
           </tr>
@@ -39,9 +37,6 @@ export function GuildRankingTable({ guilds }: Props) {
               </td>
               <td className="border-t border-light-pink/10 px-5 py-4 text-xl font-bold">
                 {guild.name}
-              </td>
-              <td className="border-t border-light-pink/10 px-5 py-4">
-                {guild.level}
               </td>
               <td className="border-t border-light-pink/10 px-5 py-4">
                 {guild._count.members}
