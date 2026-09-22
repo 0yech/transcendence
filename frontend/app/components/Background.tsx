@@ -31,7 +31,6 @@ const ctl = {
   frequency: 25.0,
   amplitude: 2.5,
   speed: 0.2,
-  noise: 0.0,
   size: 6.0,
   vertexNumber: 128,
   wireframe: false,
@@ -101,7 +100,6 @@ const WavesPlane = () => {
       uFrequency: { value: 1.0 },
       uAmplitude: { value: 0.0 },
       uTime: { value: 0.0 },
-      uNoise: { value: 0.0 },
       uCursor: { value: new Vector2(0.5, 0.5) },
       uColors: {
         value: [
@@ -131,7 +129,6 @@ const WavesPlane = () => {
     const u = mat.current.uniforms;
     u.uFrequency.value = ctl.frequency;
     u.uAmplitude.value = ctl.amplitude;
-    u.uNoise.value = ctl.noise;
     u.uTime.value += delta * ctl.speed;
     const col = u.uColors.value as Vector4[];
     const hex = [ctl.c0, ctl.c1, ctl.c2, ctl.c3, ctl.c4];
@@ -187,7 +184,6 @@ export function Background() {
 
   return (
     <div className="inset-0 fixed -z-50">
-      {/* eventSource={document.body} eventPrefix="client" */}
       <Canvas eventSource={source} eventPrefix="client">
         <WavesPlane />
         <EffectComposer>

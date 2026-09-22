@@ -89,14 +89,10 @@ interface InterfaceWSConnection {
   playSlot: (slot: number) => Promise<boolean>;
   playFour: () => Promise<boolean>;
   unable: () => Promise<boolean>;
-  isConnected: () => string | null;
   gameStarted: () => boolean;
   userId: () => string | null;
-  setUserId: (id: string) => void;
   setUser: (user: SelfUserInterface) => void;
-  getUser: () => SelfUserInterface | null;
   getCode: () => string | null;
-  setCode: (code: string) => void;
   gameState: InterfaceGameState | null;
 }
 

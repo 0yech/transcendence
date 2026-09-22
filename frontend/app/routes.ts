@@ -7,7 +7,6 @@ export default [
   route('settings', 'routes/settings.tsx'),
   route('logout', 'routes/logout.tsx'),
   route('lobbies', 'routes/display-lobby.tsx'),
-  route('remove-account', 'routes/remove-account.tsx'),
   route('profile', 'routes/profile.tsx'),
   route('guilds', 'routes/guilds.tsx'),
   route('guilds/me', 'routes/my-guild.tsx'),

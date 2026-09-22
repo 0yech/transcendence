@@ -20,10 +20,6 @@ export const textParaStyle = 'text-md font-book text-white italic';
 
 export const textDiscretStyle = 'text-md font-thin text-mid-light-gray italic';
 
-export const textPlaceolderStyle = 'text-md font-thin';
-
-export const textDisplayStyle = 'text-7xl font-display';
-
 export const gradientAcceptStyle =
   'bg-linear-to-r from-mid-light-blue to-accept';
 
@@ -46,8 +42,6 @@ export const gradientAccentHoverStyle =
   'hover:bg-linear-to-r hover:from-pink hover:to-mid-dark-pink';
 
 export const textMaskStyle = 'bg-clip-text text-transparent';
-
-export const textMaskHoverStyle = 'hover:bg-clip-text hover:text-transparent';
 
 export function Separator({ className }: { className?: string }) {
   return (

@@ -93,7 +93,7 @@ NestJS global validation is enabled.
 | `POST`   | `/api/auth/refresh`                             | Refresh cookie | Issue a new access-token cookie                                 |
 | `GET`    | `/api/auth/me`                                  |            Yes | Return the authenticated user's public profile                  |
 | `GET`    | `/api/users/:id`                                |            Yes | Get a user's identity by id                                     |
-| `GET`    | `/api/users/public/:id/stats`                   |            Yes | get a user's stats                                              |
+| `GET`    | `/api/users/public/id/:id/stats`                |            Yes | get a user's stats                                              |
 | `GET`    | `/api/users/username/:username`                 |            Yes | Get a user's identity by username                               |
 | `GET`    | `/api/users/public/id/:id`                      |            Yes | Get a user's public profile by id                               |
 | `GET`    | `/api/users/public/username/:username`          |            Yes | Get a user's public profile by username                         |
@@ -486,7 +486,7 @@ curl -i \
   "http://localhost:3000/api/users/:id"
 ```
 
-## `GET /api/users/public/:id/stats`
+## `GET /api/users/public/id/:id/stats`
 
 Return the stats of the id and username of the user
 

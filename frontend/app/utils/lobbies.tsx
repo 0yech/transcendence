@@ -176,10 +176,8 @@ export function JoinLobby({ code }: { code: string }) {
   const { connect } = UseWebSocket();
   async function handleClickJoin(code: string) {
     try {
-      const repApi = await handleJoinLobby(code);
-      console.log(repApi);
-      const gameConnect = await connect(code);
-      console.log(gameConnect);
+      await handleJoinLobby(code);
+      await connect(code);
       ensureChatConnection();
     } catch (e) {
       console.error(e);
