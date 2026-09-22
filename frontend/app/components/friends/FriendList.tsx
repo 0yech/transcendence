@@ -89,6 +89,10 @@ export function FriendList({ friends, error }: FriendListProps) {
                       <span className="font-bold text-pink">
                         {friend.totalPts} pts
                       </span>
+                      <span className="mx-2 opacity-40">|</span>
+                      <span className="font-bold text-gray-500">
+                        {friend.elo.toFixed(0)} elo
+                      </span>
                     </p>
                   </div>
                 </div>
