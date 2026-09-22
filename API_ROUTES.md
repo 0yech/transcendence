@@ -93,6 +93,7 @@ NestJS global validation is enabled.
 | `POST`   | `/api/auth/refresh`                             | Refresh cookie | Issue a new access-token cookie                                 |
 | `GET`    | `/api/auth/me`                                  |            Yes | Return the authenticated user's public profile                  |
 | `GET`    | `/api/users/:id`                                |            Yes | Get a user's identity by id                                     |
+| `GET`    | `/api/users/public/:id/stats`                   |            Yes | get a user's stats                                              |
 | `GET`    | `/api/users/username/:username`                 |            Yes | Get a user's identity by username                               |
 | `GET`    | `/api/users/public/id/:id`                      |            Yes | Get a user's public profile by id                               |
 | `GET`    | `/api/users/public/username/:username`          |            Yes | Get a user's public profile by username                         |
@@ -446,6 +447,110 @@ curl -i \
 ---
 
 # Users
+
+##  `GET /api/users/:id`
+
+Return the username of the id and username of the user
+
+**Authentication:** Required (`access_token` cookie)
+
+> Despite the `public/` in the path, this route is behind `JwtAuthGuard` like the rest of the controller, so a logged-out visitor gets a `401` and a broken image. This matches its `public/id/:id` and `public/username/:username` siblings.
+
+### Path parameters
+
+| Parameter | Type   | Description                     |
+| --------- | ------ | ------------------------------- |
+| `id`      | string | The user's id (not a username). |
+
+**Body:** None
+
+**Success status:** `200 OK`
+
+**Success body:** 
+
+| Parameter  | Type   | Description                     |
+| ---------- | ------ | ------------------------------- |
+| `id`       | string | The user's id.                  |
+| `username` | string | The user's username.            |
+
+**Possible errors**
+
+- `401 Unauthorized` — missing, expired, or invalid access token.
+- `404 Not Found` — the user does not exist or has been deleted. both are identical to not reveal if the user has existed or not
+
+### Example
+
+```bash
+curl -i \
+  -b cookies.txt \
+  "http://localhost:3000/api/users/:id"
+```
+
+
+##  `GET /api/users/public/:id/stats`
+
+Return the stats of the id and username of the user
+
+**Authentication:** Required (`access_token` cookie)
+
+> Despite the `public/` in the path, this route is behind `JwtAuthGuard` like the rest of the controller, so a logged-out visitor gets a `401` and a broken image. This matches its `public/id/:id` and `public/username/:username` siblings.
+
+### Path parameters
+
+| Parameter | Type   | Description                     |
+| --------- | ------ | ------------------------------- |
+| `id`      | string | The user's id (not a username). |
+
+**Body:** None
+
+**Success status:** `200 OK`
+
+**Success body:** An json object containing the stats of the player such as winrate, lossrate and hourly elo during the last 24 hours etc
+
+```json
+{
+  
+  "gamesPlayed": 28,
+  "wins": 28,
+  "losses": 0,
+  "winRate": 100,
+  "gamesWithPoints": 28,
+  "scoredGameRate": 100,
+  "lastPlayedAt": "2026-09-22T00:01:28.919Z",
+  "hourlyProgression": [
+    {
+      "period": "2026-09-21T23:00:00.000Z",
+      "elo": 1000,
+      "games": 1,
+      "pointWon": 0
+    },
+    {
+      "period": "2026-09-21T00:00:00.000Z",
+      "elo": 980.82222,
+      "games": 5,
+      "pointWon": 10
+    },
+  ],
+}
+```
+
+**Possible errors**
+
+- `401 Unauthorized` — missing, expired, or invalid access token.
+- `404 Not Found` — the user does not exist or has been deleted. both are identical to not reveal if the user has existed or not
+
+
+##  `GET /api/users/username/:username`
+
+TODO
+
+##  `GET /api/users/public/id/:id`
+
+TODO
+
+##  `GET /api/users/public/username/:username`
+
+TODO
 
 ## `GET /api/users/public/avatar/:id`
 
