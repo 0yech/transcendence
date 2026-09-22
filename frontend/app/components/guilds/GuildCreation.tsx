@@ -1,13 +1,14 @@
-import { Form, Link, useNavigation } from 'react-router';
+import { Form, useNavigation } from 'react-router';
 import { Button } from '~/components/Button';
+import { Input } from '~/components/Input';
+import { StylisedLink } from '~/components/StylisedLink';
 import {
-  accentLinkClass,
-  eyebrowClass,
-  pageContentClass,
-  pageShellClass,
-  primaryCardClass,
-  textInputClass,
-} from '~/styles/theme';
+  cardStyle,
+  errorCardStyle,
+  textTitleStyle,
+  textTitle2Style,
+} from '~/styles/style';
+import { twMerge } from 'tailwind-merge';
 
 import { GuildInvitations, type GuildInvitation } from './GuildInvitations';
 
@@ -39,64 +40,53 @@ export function GuildCreation({
     navigation.formData?.get('_intent') === 'create-guild';
 
   return (
-    <main className={pageShellClass}>
-      <div className={pageContentClass}>
-        <section className={primaryCardClass}>
-          <p className={eyebrowClass}>Guild hall</p>
-          <h1 className="mt-1 text-4xl font-black sm:text-6xl">My Guild</h1>
-          <p className="mt-3 opacity-70">You are not currently in a guild.</p>
-        </section>
+    <main className="pt-30 pb-10 px-4 min-h-dvh w-full flex flex-col items-center">
+      <h1 className={twMerge(textTitleStyle, 'uppercase mb-5')}>My Guild</h1>
 
+      <div className="w-full max-w-5xl flex flex-col gap-4">
         <GuildInvitations invitations={invitations} error={invitationError} />
 
-        <section className={primaryCardClass}>
-          <h2 className="text-3xl font-black sm:text-4xl">Create a guild</h2>
+        <section className={cardStyle}>
+          <h2 className={twMerge(textTitle2Style, 'font-bold mb-2')}>
+            Create a guild
+          </h2>
 
-          <Form
-            method="post"
-            className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-end"
-          >
+          <Form method="post" className="flex flex-col gap-3 sm:flex-row">
             <input type="hidden" name="_intent" value="create-guild" />
 
-            <div className="flex flex-1 flex-col gap-2">
-              <label htmlFor="guild-name" className="font-bold text-light-pink">
-                Guild name
-              </label>
+            {/*
+              These rules mirror GuildNameDto in
+              backend/src/guilds/dto/guild-name.dto.ts. Keep them in sync:
+              the backend is what actually enforces them.
+            */}
+            <Input
+              variant="textarea"
+              className="flex-1 text-base"
+              id="guild-name"
+              name="name"
+              type="text"
+              placeholder="Guild name"
+              required
+              minLength={3}
+              maxLength={20}
+              pattern="[A-Za-z0-9 _\-]+"
+              title="Letters, numbers, spaces, underscores and hyphens only."
+              disabled={isCreating}
+            >
+              Guild name
+            </Input>
 
-              {/*
-                These rules mirror GuildNameDto in
-                backend/src/guilds/dto/guild-name.dto.ts. Keep them in sync:
-                the backend is what actually enforces them.
-              */}
-              <input
-                id="guild-name"
-                name="name"
-                type="text"
-                required
-                minLength={3}
-                maxLength={20}
-                pattern="[A-Za-z0-9 _\-]+"
-                title="Letters, numbers, spaces, underscores and hyphens only."
-                disabled={isCreating}
-                className={textInputClass}
-              />
-            </div>
-
-            <Button type="submit" disabled={isCreating} className="px-6 py-3">
-              {isCreating ? 'Creating...' : 'Create guild'}
+            <Button type="submit" disabled={isCreating} className="px-6 py-2">
+              {isCreating ? 'Creating...' : 'Create'}
             </Button>
           </Form>
 
           {creationError && (
-            <p className="mt-4 font-bold text-danger">{creationError}</p>
+            <p className={twMerge(errorCardStyle, 'mt-4')}>{creationError}</p>
           )}
         </section>
 
-        <nav>
-          <Link to="/guilds" className={accentLinkClass}>
-            View guild rankings
-          </Link>
-        </nav>
+        <StylisedLink to="/guilds">View guild rankings</StylisedLink>
       </div>
     </main>
   );

@@ -1,16 +1,29 @@
-import { Form, Link, useNavigation } from 'react-router';
+import { Form, useNavigation } from 'react-router';
 import { Button } from '~/components/Button';
+import { Input } from '~/components/Input';
+import { StylisedLink } from '~/components/StylisedLink';
 import {
-  accentLinkClass,
-  accentPillClass,
-  eyebrowClass,
-  insetCardClass,
-  pageContentClass,
-  pageShellClass,
-  primaryCardClass,
-  tableContainerClass,
-  textInputClass,
-} from '~/styles/theme';
+  cardStyle,
+  cardDarkStyle,
+  errorCardStyle,
+  textTitleStyle,
+  textTitle2Style,
+  textDiscretStyle,
+} from '~/styles/style';
+import { twMerge } from 'tailwind-merge';
+
+/* Table styles, shared by every table of the site. */
+const thStyle =
+  'px-5 py-4 text-sm font-bold uppercase tracking-wider text-light-pink';
+const tdStyle = 'border-t border-gray px-5 py-4';
+
+/* Small rounded badge used inside the members table. */
+const pillStyle =
+  'rounded-full bg-pink/20 px-3 py-1 text-sm font-bold text-light-pink';
+
+/* Label above a big number. */
+const statLabelStyle =
+  'text-xs font-bold uppercase tracking-wider text-light-pink';
 
 export interface GuildMember {
   id: string;
@@ -134,100 +147,97 @@ export function GuildDetails({
   });
 
   return (
-    <main className={pageShellClass}>
-      <div className={pageContentClass}>
-        <section className={primaryCardClass}>
-          <p className={eyebrowClass}>Guild hall</p>
-          <h1 className="mt-1 wrap-break-word text-4xl font-black sm:text-6xl">
-            {guild.name}
-          </h1>
-          <dl className="mt-6 grid grid-cols-2 gap-3">
-            <div className={`${insetCardClass} p-4`}>
-              <dt className="text-xs font-bold uppercase tracking-wider text-light-pink">
-                Points
-              </dt>
-              <dd className="mt-1 text-3xl font-black text-pink">
-                {guild.points}
-              </dd>
-            </div>
-            <div className={`${insetCardClass} p-4`}>
-              <dt className="text-xs font-bold uppercase tracking-wider text-light-pink">
-                Members
-              </dt>
-              <dd className="mt-1 text-3xl font-black">
-                {guild._count.members}
-              </dd>
-            </div>
-          </dl>
-        </section>
+    <main className="pt-30 pb-10 px-4 min-h-dvh w-full flex flex-col items-center">
+      <h1
+        className={twMerge(
+          textTitleStyle,
+          'uppercase mb-5 text-center wrap-break-word',
+        )}
+      >
+        {guild.name}
+      </h1>
+
+      <div className="w-full max-w-5xl flex flex-col gap-4">
+        <dl className="grid grid-cols-2 gap-4">
+          <div className={cardDarkStyle}>
+            <dt className={statLabelStyle}>Points</dt>
+            <dd className="mt-1 text-3xl font-black text-blue">
+              {guild.points}
+            </dd>
+          </div>
+          <div className={cardDarkStyle}>
+            <dt className={statLabelStyle}>Members</dt>
+            <dd className="mt-1 text-3xl font-black text-pink">
+              {guild._count.members}
+            </dd>
+          </div>
+        </dl>
 
         {canManageGuild && (
-          <section className={primaryCardClass}>
-            <h2 className="text-3xl font-black sm:text-4xl">Invite a user</h2>
+          <section className={cardStyle}>
+            <h2 className={twMerge(textTitle2Style, 'font-bold mb-2')}>
+              Invite a user
+            </h2>
 
-            <Form
-              method="post"
-              className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-end"
-            >
+            <Form method="post" className="flex flex-col gap-3 sm:flex-row">
               <input type="hidden" name="_intent" value="invite-user" />
 
-              <div className="flex flex-1 flex-col gap-2">
-                <label
-                  htmlFor="guild-invite-username"
-                  className="font-bold text-light-pink"
-                >
-                  Username
-                </label>
-
-                {/*
-                  Deliberately no length or character rules, matching
-                  InviteUserDto: this looks up an existing username, and those
-                  aren't consistently bounded. A rule here would block invites
-                  to accounts whose names predate it, or that OAuth created.
-                */}
-                <input
-                  id="guild-invite-username"
-                  name="username"
-                  type="text"
-                  required
-                  className={textInputClass}
-                />
-              </div>
+              {/*
+                Deliberately no length or character rules, matching
+                InviteUserDto: this looks up an existing username, and those
+                aren't consistently bounded. A rule here would block invites
+                to accounts whose names predate it, or that OAuth created.
+              */}
+              <Input
+                variant="textarea"
+                className="flex-1 text-base"
+                id="guild-invite-username"
+                name="username"
+                type="text"
+                placeholder="Username"
+                required
+              >
+                Username
+              </Input>
 
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-6 py-3"
+                className="px-6 py-2"
               >
                 Invite
               </Button>
             </Form>
 
             {inviteError && (
-              <p className="mt-4 font-bold text-danger">{inviteError}</p>
+              <p className={twMerge(errorCardStyle, 'mt-4')}>{inviteError}</p>
             )}
             {inviteSuccess && (
-              <p className="mt-4 font-bold text-accept">{inviteSuccess}</p>
+              <p className="mt-4 rounded-xl border border-accept bg-accept/20 p-2 text-accept">
+                {inviteSuccess}
+              </p>
             )}
           </section>
         )}
 
-        <section className={primaryCardClass}>
-          <h2 className="text-3xl font-black sm:text-4xl">Members</h2>
+        <section className={cardStyle}>
+          <h2 className={twMerge(textTitle2Style, 'font-bold mb-2')}>
+            Members
+          </h2>
 
           {guild.members.length === 0 ? (
-            <p className="mt-4 opacity-60">No members.</p>
+            <p className={textDiscretStyle}>No members.</p>
           ) : (
-            <div className={`mt-5 ${tableContainerClass}`}>
+            <div className={twMerge(cardDarkStyle, 'p-0 overflow-x-auto')}>
               <table className="w-full min-w-175 text-left">
-                <thead className="text-sm uppercase tracking-wider text-light-pink">
+                <thead>
                   <tr>
-                    <th className="px-5 py-4">Username</th>
-                    <th className="px-5 py-4">Role</th>
-                    <th className="px-5 py-4">Elo</th>
-                    <th className="px-5 py-4">Points</th>
+                    <th className={thStyle}>Username</th>
+                    <th className={thStyle}>Role</th>
+                    <th className={thStyle}>Elo</th>
+                    <th className={thStyle}>Points</th>
 
-                    {canManageGuild && <th className="px-5 py-4">Actions</th>}
+                    {canManageGuild && <th className={thStyle}>Actions</th>}
                   </tr>
                 </thead>
 
@@ -243,29 +253,26 @@ export function GuildDetails({
                     const canDemote =
                       isLeader && member.guildRole === 'OFFICER';
                     const canTransfer = isLeader && !isCurrentUser;
+
                     return (
                       <tr key={member.id} className="hover:bg-pink/10">
-                        <td className="border-t border-light-pink/10 px-5 py-4 text-xl font-bold">
+                        <td className={twMerge(tdStyle, 'text-xl font-bold')}>
                           {member.username}
                         </td>
-                        <td className="border-t border-light-pink/10 px-5 py-4">
-                          <span className={accentPillClass}>
-                            {member.guildRole}
-                          </span>
+                        <td className={tdStyle}>
+                          <span className={pillStyle}>{member.guildRole}</span>
                         </td>
-                        <td className="border-t border-light-pink/10 px-5 py-4">
-                          <span className={accentPillClass}>
+                        <td className={tdStyle}>
+                          <span className={pillStyle}>
                             {member.elo.toFixed(0)}
                           </span>
                         </td>
-                        <td className="border-t border-light-pink/10 px-5 py-4">
-                          <span className={accentPillClass}>
-                            {member.totalPts}
-                          </span>
+                        <td className={tdStyle}>
+                          <span className={pillStyle}>{member.totalPts}</span>
                         </td>
 
                         {canManageGuild && (
-                          <td className="border-t border-light-pink/10 px-5 py-4">
+                          <td className={tdStyle}>
                             <div className="flex flex-wrap gap-2">
                               {canKick && (
                                 <Form method="post">
@@ -289,6 +296,7 @@ export function GuildDetails({
                                   </Button>
                                 </Form>
                               )}
+
                               {canPromote && (
                                 <Form method="post">
                                   <input
@@ -296,13 +304,11 @@ export function GuildDetails({
                                     name="_intent"
                                     value="promote-member"
                                   />
-
                                   <input
                                     type="hidden"
                                     name="memberId"
                                     value={member.id}
                                   />
-
                                   <Button
                                     type="submit"
                                     disabled={isSubmitting}
@@ -320,13 +326,11 @@ export function GuildDetails({
                                     name="_intent"
                                     value="demote-member"
                                   />
-
                                   <input
                                     type="hidden"
                                     name="memberId"
                                     value={member.id}
                                   />
-
                                   <Button
                                     type="submit"
                                     disabled={isSubmitting}
@@ -344,13 +348,11 @@ export function GuildDetails({
                                     name="_intent"
                                     value="transfer-guild"
                                   />
-
                                   <input
                                     type="hidden"
                                     name="memberId"
                                     value={member.id}
                                   />
-
                                   <Button
                                     type="submit"
                                     disabled={isSubmitting}
@@ -370,34 +372,32 @@ export function GuildDetails({
               </table>
             </div>
           )}
+
           {memberActionError && (
-            <p className="mt-4 font-bold text-danger">{memberActionError}</p>
+            <p className={twMerge(errorCardStyle, 'mt-4')}>
+              {memberActionError}
+            </p>
           )}
         </section>
-        {/* Shows guild deletion when leader, quitting guild when member/officier
-          Might want to change the alert confirm method
-      */}
-        <section className={primaryCardClass}>
-          <h2 className="text-3xl font-black sm:text-4xl">Guild actions</h2>
+
+        <section className={cardStyle}>
+          <h2 className={twMerge(textTitle2Style, 'font-bold mb-2')}>
+            Guild actions
+          </h2>
 
           {currentUserRole === 'LEADER' ? (
-            <>
-              <Form method="post" className="mt-5 flex flex-col gap-3">
+            <div className="flex flex-col gap-3">
+              <Form method="post" className="flex flex-col gap-3 sm:flex-row">
                 <input type="hidden" name="_intent" value="rename-guild" />
-
-                <label
-                  htmlFor="guild-name"
-                  className="font-bold text-light-pink"
-                >
-                  Guild name
-                </label>
 
                 {/*
                   These rules mirror GuildNameDto in
                   backend/src/guilds/dto/guild-name.dto.ts. Keep them in sync:
                   the backend is what actually enforces them.
                 */}
-                <input
+                <Input
+                  variant="textarea"
+                  className="flex-1 text-base"
                   id="guild-name"
                   name="name"
                   type="text"
@@ -407,15 +407,16 @@ export function GuildDetails({
                   maxLength={20}
                   pattern="[A-Za-z0-9 _\-]+"
                   title="Letters, numbers, spaces, underscores and hyphens only."
-                  className={textInputClass}
-                />
+                >
+                  Guild name
+                </Input>
 
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-fit px-6 py-3"
+                  className="px-6 py-2"
                 >
-                  {isRenamingGuild ? 'Renaming...' : 'Rename guild'}
+                  {isRenamingGuild ? 'Renaming...' : 'Rename'}
                 </Button>
               </Form>
 
@@ -437,12 +438,12 @@ export function GuildDetails({
                   variant="danger"
                   type="submit"
                   disabled={isSubmitting}
-                  className="mt-5 px-6 py-3"
+                  className="px-6 py-2"
                 >
                   {isDeletingGuild ? 'Deleting...' : 'Delete guild'}
                 </Button>
               </Form>
-            </>
+            </div>
           ) : (
             (currentUserRole === 'OFFICER' || currentUserRole === 'MEMBER') && (
               <Form
@@ -463,7 +464,7 @@ export function GuildDetails({
                   variant="danger"
                   type="submit"
                   disabled={isSubmitting}
-                  className="mt-5 px-6 py-3"
+                  className="px-6 py-2"
                 >
                   {isLeavingGuild ? 'Leaving...' : 'Leave guild'}
                 </Button>
@@ -472,14 +473,13 @@ export function GuildDetails({
           )}
 
           {guildActionError && (
-            <p className="mt-4 font-bold text-danger">{guildActionError}</p>
+            <p className={twMerge(errorCardStyle, 'mt-4')}>
+              {guildActionError}
+            </p>
           )}
         </section>
-        <nav>
-          <Link to="/guilds" className={accentLinkClass}>
-            View guild rankings
-          </Link>
-        </nav>
+
+        <StylisedLink to="/guilds">View guild rankings</StylisedLink>
       </div>
     </main>
   );

@@ -1,6 +1,8 @@
 import { Form, useNavigation } from 'react-router';
 import { Button } from '~/components/Button';
-import { primaryCardClass, textInputClass } from '~/styles/theme';
+import { Input } from '~/components/Input';
+import { cardStyle, errorCardStyle, textTitle2Style } from '~/styles/style';
+import { twMerge } from 'tailwind-merge';
 
 interface AddFriendProps {
   error?: string;
@@ -20,45 +22,44 @@ export function AddFriend({ error, success }: AddFriendProps) {
   const isSubmitting = navigation.state === 'submitting';
 
   return (
-    <section className={primaryCardClass}>
-      <h2 className="text-3xl font-black sm:text-4xl">Add a friend</h2>
+    <section className={cardStyle}>
+      <h2 className={twMerge(textTitle2Style, 'font-bold mb-2')}>
+        Add a friend
+      </h2>
 
-      <Form
-        method="post"
-        className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-end"
-      >
+      <Form method="post" className="flex flex-col gap-3 sm:flex-row">
         <input type="hidden" name="_intent" value="invite-friend" />
 
-        <div className="flex flex-1 flex-col gap-2">
-          <label
-            htmlFor="friend-invite-username"
-            className="font-bold text-light-pink"
-          >
-            Username
-          </label>
-          {/*
-            Deliberately no length or character rules: this looks up an
-            existing username, and those aren't consistently bounded. A rule
-            here would block sending invitations to accounts whose names
-            predate it, or that OAuth created.
-          */}
-          <input
-            id="friend-invite-username"
-            name="username"
-            type="text"
-            autoComplete="off"
-            required
-            className={textInputClass}
-          />
-        </div>
+        {/*
+          Deliberately no length or character rules: this looks up an
+          existing username, and those aren't consistently bounded. A rule
+          here would block sending invitations to accounts whose names
+          predate it, or that OAuth created.
+        */}
+        <Input
+          variant="textarea"
+          className="flex-1 text-base"
+          id="friend-invite-username"
+          name="username"
+          type="text"
+          placeholder="Username"
+          autoComplete="off"
+          required
+        >
+          Username
+        </Input>
 
-        <Button type="submit" disabled={isSubmitting} className="px-6 py-3">
-          Send invitation
+        <Button type="submit" disabled={isSubmitting} className="px-6 py-2">
+          Invite
         </Button>
       </Form>
 
-      {error && <p className="mt-4 font-bold text-danger">{error}</p>}
-      {success && <p className="mt-4 font-bold text-accept">{success}</p>}
+      {error && <p className={twMerge(errorCardStyle, 'mt-4')}>{error}</p>}
+      {success && (
+        <p className="mt-4 rounded-xl border border-accept bg-accept/20 p-2 text-accept">
+          {success}
+        </p>
+      )}
     </section>
   );
 }

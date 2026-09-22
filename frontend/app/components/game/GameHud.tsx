@@ -5,6 +5,7 @@ import { Button } from '~/components/Button';
 import LobbyChat from '~/components/LobbyChat';
 import TurnTimer from '~/components/game/TurnTimer';
 import { UseWebSocket } from '~/context/UseWebSocket';
+import { cardStyle, textDiscretStyle, Separator } from '~/styles/style';
 
 /**
  * All the DOM chrome laid over the scene: the state of the game, the running
@@ -15,12 +16,9 @@ import { UseWebSocket } from '~/context/UseWebSocket';
  * mask the cards on the canvas.
  */
 
-const PANEL =
-  'pointer-events-auto bg-dark-blue/20 shadow-dark-blue/30 flex flex-col gap-2 rounded-4xl p-5 shadow-xl backdrop-blur-sm';
+const PANEL = 'pointer-events-auto flex flex-col gap-2';
 
-const LABEL = 'text-mid-gray text-xs tracking-wider uppercase';
-
-const SEPARATOR = 'my-1 h-1 w-full rounded-full border-0 bg-mid-dark-blue/60';
+const LABEL = 'text-xs tracking-wider uppercase not-italic';
 
 function Panel({
   children,
@@ -29,13 +27,17 @@ function Panel({
   children: ReactNode;
   className?: string;
 }) {
-  return <section className={twMerge(PANEL, className)}>{children}</section>;
+  return (
+    <section className={twMerge(cardStyle, PANEL, className)}>
+      {children}
+    </section>
+  );
 }
 
 function Stat({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="flex items-baseline justify-between gap-6">
-      <span className={LABEL}>{label}</span>
+      <span className={twMerge(textDiscretStyle, LABEL)}>{label}</span>
       <span className="font-medium">{value}</span>
     </div>
   );
@@ -102,7 +104,7 @@ export function GameHud({
               <TurnTimer key={gameState.turnNumber} />
             )}
 
-            <hr className={SEPARATOR} />
+            <Separator />
 
             <Stat label="Deck" value={gameState?.deckCount ?? '—'} />
             <Stat
@@ -113,7 +115,7 @@ export function GameHud({
 
             {gameState?.winnerId && (
               <>
-                <hr className={SEPARATOR} />
+                <Separator />
                 <Stat
                   label="Winner"
                   value={
@@ -125,7 +127,7 @@ export function GameHud({
               </>
             )}
 
-            <hr className={SEPARATOR} />
+            <Separator />
 
             {/* Debugging readouts, to remove once the game has settled. */}
             <Stat label="Turn number" value={gameState?.turnNumber ?? '—'} />
@@ -135,7 +137,7 @@ export function GameHud({
             />
           </Panel>
           <Panel className="w-64">
-            <span className={LABEL}>Actions</span>
+            <span className={twMerge(textDiscretStyle, LABEL)}>Actions</span>
 
             {hasHand ? (
               <>
@@ -155,7 +157,7 @@ export function GameHud({
                 </Button>
               </>
             ) : (
-              <p className="text-mid-gray text-sm">Waiting for cards…</p>
+              <p className={textDiscretStyle}>Waiting for cards…</p>
             )}
           </Panel>
         </div>

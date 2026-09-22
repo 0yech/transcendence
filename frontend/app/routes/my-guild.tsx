@@ -425,7 +425,7 @@ export default function MyGuild({
     return (
       <>
         <title>My Guild</title>
-        <NavBar></NavBar>
+        <NavBar className="fixed"></NavBar>
         <GuildCreation
           invitations={invitations}
           creationError={creationError}
@@ -463,7 +463,7 @@ export default function MyGuild({
   return (
     <>
       <title>{guild.name}</title>
-      <NavBar></NavBar>
+      <NavBar className="fixed"></NavBar>
       <GuildDetails
         guild={guild}
         currentUserId={currentUser.id}

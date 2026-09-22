@@ -46,10 +46,13 @@ TODO
 ## Features List
 
 ### 0yech
+
 **Frontend**
+
 - A couple Guilds related elements.
 
 **Backend**
+
 - Lobby logic.
 - Game logic with websockets.
 - Chat logic with websockets.
@@ -57,12 +60,15 @@ TODO
 - Prisma setup.
 
 ### Miniflint
+
 **Frontend**
+
 - Allowing users to modify their informations.
 - Handled the Websocket connection for the game.
 - Added ranks based on points.
 
 **Backend**
+
 - Point system for game statistic and stats
 
 ## Modules
@@ -172,7 +178,9 @@ TODO everyone should write their own sections, with notable challenges and how t
 - Miniflint handled much of the frontend components, added backend routes and features as the project grew.
 
 ### 0yech
+
 Implemented most game related backend elements, including :
+
 1. `Lobby system`
 2. `Game logic`
 3. `Guild system`
@@ -190,7 +198,9 @@ As the frontend team would join us later on for the project, one of the biggest 
 As we were building a card game, that heavily relies on luck, testing many different cases was hard. What if no one has a playable hand ? What if someone sees their hand is really bad and decides to rage-quit in a game with many players ? A strict deadline also made the project harder.
 
 ### Miniflint
+
 Implemented connection between backend and frontend such as every fetch in the following routes:
+
 1. `/lobbies`
 2. `/game/:code`
 3. `/game/:code/play`
@@ -230,7 +240,6 @@ Everything related to the contextApi for the game. Had to come up with something
 - [graphicart](https://www.graphicart.ch/fr/)
 - And ai here and there for annoying bug fixes
 
-
 ### AI Usage
 
 **0yech**
@@ -254,4 +263,3 @@ Used AI to explain why this would happen and tried to figure out themself how to
 ### Data Validation
 
 - [class-validator](https://github.com/typestack/class-validator)
-

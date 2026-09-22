@@ -5,7 +5,12 @@ import { redirect } from 'react-router';
 import { StylisedLink } from '~/components/StylisedLink';
 import { OauthLoginOptions } from '~/pages/auth/oauth';
 import { NavBar } from '~/components/Navbar';
-import { cardStyle, Separator } from '~/styles/style';
+import {
+  cardStyle,
+  Separator,
+  textTitle2Style,
+  textParaStyle,
+} from '~/styles/style';
 import { twMerge } from 'tailwind-merge';
 
 export async function clientAction({ request }: Route.ActionArgs) {
@@ -48,13 +53,12 @@ export default function Register({ actionData }: Route.ComponentProps) {
             cardStyle,
           )}
         >
-          <h1 className="text-2xl text-center">Register to Transcendence</h1>
+          <h1 className={twMerge(textTitle2Style, 'font-bold')}>Register</h1>
           <RegisterForm />
           <ErrorMessage message={errorMessage} />
-          <h1 className="text-1xl text-center">
-            Already have an account?{' '}
-            <StylisedLink to="/login">Sign in</StylisedLink>
-          </h1>
+          <p className={twMerge(textParaStyle, 'text-center')}>
+            Already registered? <StylisedLink to="/login">Sign in</StylisedLink>
+          </p>
           <Separator />
           <OauthLoginOptions />
         </div>

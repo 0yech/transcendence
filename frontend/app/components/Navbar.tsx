@@ -125,7 +125,7 @@ export function NavBar({ className, variant = 'primary', ...rest }: NavProps) {
         <ul
           id="account-menu"
           className={twMerge(
-            'absolute right-0 top-full lg:mt-2 lg:w-48 w-full overflow-hidden lg:rounded-2xl lg:p-1.5 pb-5 bg-black/60 lg:bg-black/10 text-white transition-all duration-300 ease-out',
+            'absolute right-0 top-full flex flex-col items-center lg:py-8 lg:w-48 w-full overflow-hidden lg:rounded-2xl lg:p-1.5 pb-5 bg-black/60 lg:bg-black/10 text-white transition-all duration-300 ease-out',
             menuVisibility
               ? 'scale-100 opacity-100 translate-y-0'
               : 'pointer-events-none scale-95 opacity-0 -translate-y-2',
@@ -140,7 +140,7 @@ export function NavBar({ className, variant = 'primary', ...rest }: NavProps) {
                 <ButtonNavLink to="/settings">Settings</ButtonNavLink>
               </li>
               <li>
-                <LogoutButton className="text-light-pink w-full font-bold text-xl text-center transition-all duration-300 ease-out hover:text-danger hover:text-shadow-md hover:text-shadow-light-pink" />
+                <LogoutButton className="h-fit" />
               </li>
             </>
           ) : (

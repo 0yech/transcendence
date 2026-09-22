@@ -3,9 +3,13 @@ import type { SelfUserInterface } from '~/context/WebSocketContext';
 import type { Route } from './+types/settings';
 import apiFetch from '~/utils/api-fetch';
 import { Form, redirect } from 'react-router';
-import { Input } from '~/components/Input';
+import { AvatarChange, Input } from '~/components/Input';
 import { Button } from '~/components/Button';
 import { ErrorMessage } from '~/pages/auth/errorMessage';
+import { cardStyle, textParaStyle, textTitleStyle } from '~/styles/style';
+import { twMerge } from 'tailwind-merge';
+import { Avatar } from '~/components/Avatar';
+import { useState } from 'react';
 
 interface SettingsLoaderData {
   user: SelfUserInterface;
@@ -89,22 +93,53 @@ export default function Settings({
   actionData,
 }: Route.ComponentProps) {
   const { user } = loaderData;
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (imageSrc) URL.revokeObjectURL(imageSrc);
+
+    setImageSrc(URL.createObjectURL(file));
+  }
 
   return (
     <>
       <title>Account settings</title>
       <NavBar className="fixed" />
-      <main className="min-h-dvh px-4 pb-10 pt-28 sm:px-8">
-        <section className="mx-auto w-full max-w-xl rounded-4xl bg-dark-blue/30 p-6 shadow-2xl shadow-dark-blue sm:p-8">
-          <p className="text-sm font-bold uppercase tracking-[0.25em] text-pink">
-            Account
-          </p>
-          <h1 className="mt-1 text-4xl font-black">Settings</h1>
+
+      <main className="pt-30 pb-10 px-4 min-h-dvh w-full flex flex-col items-center">
+        <h1 className={twMerge(textTitleStyle, 'uppercase mb-5')}>Settings</h1>
+
+        <section className={twMerge(cardStyle, 'w-full max-w-xl')}>
           <Form
-            className="flex flex-col items-center pt-8 gap-3"
+            className="flex flex-col items-center gap-3"
             method="POST"
             encType="multipart/form-data"
           >
+            <AvatarChange
+              type="file"
+              name="file"
+              accept="image/png,image/jpeg,image/jpg"
+              id="file"
+              onChange={handleChange}
+              className="cursor-pointer"
+            >
+              <Avatar
+                className="w-60 h-60"
+                src={imageSrc ?? user.avatarUrl}
+              ></Avatar>
+              <div
+                className={twMerge(
+                  textParaStyle,
+                  'text-white/0 hover:text-white hover:bg-dark-blue/60 focus-within:text-white focus-within:bg-dark-blue/60 transition-all duration-300 ease-in-out flex justify-center items-center absolute inset-0',
+                )}
+              >
+                <span>Click to select new image</span>
+              </div>
+            </AvatarChange>
+
             <Input
               type="text"
               name="username"
@@ -138,17 +173,6 @@ export default function Settings({
               New password
             </Input>
 
-            <Input
-              type="file"
-              name="file"
-              accept="image/png,image/jpeg,image/jpg"
-              id="file"
-              placeholder="Select an image"
-              labelClassName=""
-            >
-              Avatar
-            </Input>
-
             <Button
               className="text-3xl w-80"
               variant="accept"
@@ -179,7 +203,7 @@ export default function Settings({
           </Form>
           <ErrorMessage message={actionData?.error ? actionData.error : ''} />
           {actionData?.success ? (
-            <p className="mt-5 rounded-2xl bg-accept/15 px-4 py-3 text-accept">
+            <p className="mt-5 rounded-xl border border-accept bg-accept/20 p-2 text-accept">
               {actionData.success}
             </p>
           ) : null}

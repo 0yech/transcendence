@@ -11,17 +11,14 @@ import { UserPopUp } from '~/components/userProfiles/userProfile';
 import { Input } from '~/components/Input';
 import { Form } from 'react-router';
 import { Button } from '~/components/Button';
-import {
-  accentPillClass,
-  eyebrowClass,
-  pageShellClass,
-  primaryCardClass,
-  widePageGridClass,
-  buttonCreate,
-  buttonCreatePrivate,
-} from '~/styles/theme';
 import { ensureChatConnection } from './chatSocket';
-import { cardStyle, textDiscretStyle } from '~/styles/style';
+import {
+  cardStyle,
+  cardDarkStyle,
+  textTitleStyle,
+  textTitle2Style,
+  textDiscretStyle,
+} from '~/styles/style';
 
 export interface UserInterfaceLobby {
   id: string;
@@ -103,7 +100,7 @@ export function DisplayUsers({
           {/* hover card: shown while the mouse is over the avatar or the card itself.
               top-full + pt-2 keeps the gap visual only, so the mouse never leaves the group. */}
           <div className="absolute left-0 top-full z-20 hidden w-56 group-hover:block">
-            <div className={twMerge(cardStyle, 'bg-dark-blue/80')}>
+            <div className={twMerge(cardDarkStyle, 'bg-dark-blue/90')}>
               <Link to={`/profile/byUser/${user.username}`}>
                 <UserPopUp user={user} />
               </Link>
@@ -157,21 +154,14 @@ export function CreateNewLobbies() {
   }
   return (
     <div className="flex flex-col gap-3">
-      <Button
-        className={`h-13 ${buttonCreate}`}
-        onClick={() => {
-          handleClick(false);
-        }}
-      >
-        Create Lobby
+      <Button className="h-13 w-full" onClick={() => handleClick(false)}>
+        Public
       </Button>
       <Button
-        className={`h-13 ${buttonCreatePrivate}`}
-        onClick={() => {
-          handleClick(true);
-        }}
+        className="h-13 w-full from-mid-dark-blue to-dark-pink hover:from-dark-pink hover:to-pink"
+        onClick={() => handleClick(true)}
       >
-        Create Private Lobby
+        Private
       </Button>
     </div>
   );
@@ -268,11 +258,8 @@ export function JoinLobbyWithCodeForm() {
         onChange={(e) => setCode(e.target.value)}
         required
       />
-      <Button
-        className="h-13 w-full bg-linear-to-r from-blue to-pink text-lg hover:from-pink hover:to-mid-dark-pink hover:shadow-lg hover:shadow-pink"
-        disabled={!code}
-      >
-        Join lobby by code
+      <Button className="h-13 w-full text-lg" disabled={!code}>
+        Join
       </Button>
     </Form>
   );
@@ -327,42 +314,35 @@ export default function DisplayLobbies() {
 
   return (
     <>
-      <NavBar></NavBar>
-      <main className={pageShellClass}>
-        <div className={widePageGridClass}>
-          <aside className="self-start lg:sticky lg:top-22">
-            <div className={primaryCardClass}>
-              <p className={eyebrowClass}>Game room</p>
-              <h1 className="mt-1 text-4xl font-black">Lobbies</h1>
-              <p className="mt-3 opacity-70">
-                Enter a code or start a room for your next match.
-              </p>
+      <NavBar className="fixed"></NavBar>
+      <main className="pt-30 pb-10 px-4 min-h-dvh w-full flex flex-col items-center">
+        <h1 className={twMerge(textTitleStyle, 'uppercase mb-5')}>Lobbies</h1>
 
-              <div className="mt-7 border-t border-light-pink/15 pt-6">
-                <h2 className="text-xl font-black">Join with a code</h2>
-                <div className="mt-3">
-                  <JoinLobbyWithCodeForm />
-                </div>
-              </div>
+        <div className="w-full max-w-7xl grid gap-4 lg:grid-cols-3">
+          <aside className="self-start lg:sticky lg:top-30 flex flex-col gap-4">
+            <div className={cardStyle}>
+              <h2 className={twMerge(textTitle2Style, 'font-bold mb-2')}>
+                Join with a code
+              </h2>
+              <JoinLobbyWithCodeForm />
+            </div>
 
-              <div className="mt-7 border-t border-light-pink/15 pt-6">
-                <h2 className="text-xl font-black">Start a lobby</h2>
-                <div className="mt-3">
-                  <CreateNewLobbies />
-                </div>
-              </div>
+            <div className={cardStyle}>
+              <h2 className={twMerge(textTitle2Style, 'font-bold mb-2')}>
+                New lobby
+              </h2>
+              <CreateNewLobbies />
             </div>
           </aside>
 
-          <section className={`${primaryCardClass} lg:col-span-2`}>
-            <div className="flex items-baseline justify-between gap-4">
-              <div>
-                <p className={eyebrowClass}>Available now</p>
-                <h2 className="mt-1 text-3xl font-black sm:text-4xl">
-                  Open lobbies
-                </h2>
-              </div>
-              <span className={accentPillClass}>{lobbies.length}</span>
+          <section className={twMerge(cardStyle, 'lg:col-span-2')}>
+            <div className="flex items-baseline justify-between gap-4 mb-2">
+              <h2 className={twMerge(textTitle2Style, 'font-bold')}>
+                Open lobbies
+              </h2>
+              <span className="rounded-full bg-pink/20 px-3 py-1 text-sm font-bold text-light-pink">
+                {lobbies.length}
+              </span>
             </div>
 
             {loading ? (
@@ -370,7 +350,7 @@ export default function DisplayLobbies() {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ type: 'spring', stiffness: 240, damping: 24 }}
-                className="mt-5 flex flex-col gap-4"
+                className="flex flex-col gap-4"
               >
                 {[0, 1, 2].map((index) => (
                   <motion.div
@@ -381,16 +361,16 @@ export default function DisplayLobbies() {
                       delay: index * 0.12,
                       repeat: Infinity,
                     }}
-                    className="h-32 rounded-3xl bg-dark-blue/40 shadow-lg shadow-dark-blue/30"
+                    className={twMerge(cardDarkStyle, 'h-32')}
                   />
                 ))}
               </motion.div>
             ) : lobbies.length === 0 ? (
-              <p className="py-12 text-center text-xl opacity-60">
+              <p className={twMerge(textDiscretStyle, 'py-12 text-center')}>
                 No active lobbies.
               </p>
             ) : (
-              <motion.ul layout className="mt-5 flex flex-col gap-4">
+              <motion.ul layout className="flex flex-col gap-4">
                 <AnimatePresence>
                   {lobbies.map((item, index) => (
                     <motion.li
@@ -408,7 +388,10 @@ export default function DisplayLobbies() {
                     >
                       <Link
                         to={`/game/${item.code}`}
-                        className="group flex min-h-28 items-center justify-between gap-5 rounded-3xl bg-dark-blue/40 p-5 shadow-lg shadow-dark-blue/30 transition-colors duration-300 hover:bg-pink/15"
+                        className={twMerge(
+                          cardDarkStyle,
+                          'group flex min-h-28 items-center justify-between gap-5 transition-colors duration-300 hover:bg-pink/15',
+                        )}
                       >
                         <div className="min-w-0">
                           <ul className="flex -space-x-4 overflow-visible p-1">
@@ -431,7 +414,8 @@ export default function DisplayLobbies() {
                                     hoveredUserId === user.id
                                       ? 'pointer-events-auto opacity-100'
                                       : 'pointer-events-none opacity-0',
-                                    'absolute left-0 top-11 z-20 w-56 p-2 rounded-2xl bg-dark-blue/90 text-shadow-lg shadow-xl shadow-dark-blue/50 backdrop-blur-xs transition-all duration-300',
+                                    cardDarkStyle,
+                                    'absolute left-0 top-11 z-20 w-56 p-2 bg-dark-blue/90 transition-all duration-300',
                                   )}
                                 >
                                   <UserPopUp user={user} />

@@ -37,3 +37,14 @@ export function Input({
     </>
   );
 }
+
+export function AvatarChange({ children, className, id, ...rest }: InputProps) {
+  return (
+    <>
+      <label htmlFor={id} className={twMerge('relative', className)}>
+        {children}
+      </label>
+      <input className={twMerge(BaseStyle, 'sr-only ')} {...rest} id={id} />
+    </>
+  );
+}

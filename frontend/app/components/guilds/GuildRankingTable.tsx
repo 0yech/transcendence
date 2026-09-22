@@ -1,6 +1,12 @@
-import { tableContainerClass } from '~/styles/theme';
+import { cardDarkStyle } from '~/styles/style';
+import { twMerge } from 'tailwind-merge';
 import type { Guild } from './GuildDetails';
 import { useMemo, useState } from 'react';
+
+/* Table styles, shared by every table of the site. */
+const thStyle =
+  'px-5 py-4 text-sm font-bold uppercase tracking-wider text-light-pink';
+const tdStyle = 'border-t border-gray px-5 py-4';
 
 interface Props {
   guilds: Guild[];
@@ -81,59 +87,74 @@ export function GuildRankingTable({ guilds }: Props) {
   };
 
   return (
-    <div className={tableContainerClass}>
-      <table className="w-full min-w-150 border-separate border-spacing-0 text-left">
-        <thead className="text-sm uppercase tracking-wider text-light-pink">
+    <div className={twMerge(cardDarkStyle, 'p-0 overflow-x-auto')}>
+      <table className="w-full min-w-150 text-left">
+        <thead>
           <tr>
-            <th className="px-5 py-4 cursor-pointer select-none hover:text-pink">
-              Rank
-            </th>
+            <th className={thStyle}>Rank</th>
             <th
-              className="px-5 py-4 cursor-pointer select-none hover:text-pink"
+              className={twMerge(
+                thStyle,
+                'cursor-pointer select-none hover:text-pink',
+              )}
               onClick={() => handleSort('name')}
             >
               Guild{renderSortIcon('name')}
             </th>
             <th
-              className="px-5 py-4 cursor-pointer select-none hover:text-pink"
+              className={twMerge(
+                thStyle,
+                'cursor-pointer select-none hover:text-pink',
+              )}
               onClick={() => handleSort('members')}
             >
               Members{renderSortIcon('members')}
             </th>
             <th
-              className="px-5 py-4 text-right cursor-pointer select-none hover:text-pink"
+              className={twMerge(
+                thStyle,
+                'text-right cursor-pointer select-none hover:text-pink',
+              )}
               onClick={() => handleSort('points')}
             >
               Points{renderSortIcon('points')}
             </th>
             <th
-              className="px-5 py-4 text-right cursor-pointer select-none hover:text-pink"
+              className={twMerge(
+                thStyle,
+                'text-right cursor-pointer select-none hover:text-pink',
+              )}
               onClick={() => handleSort('avgElo')}
             >
-              Average Elo{renderSortIcon('avgElo')}
+              Elo{renderSortIcon('avgElo')}
             </th>
           </tr>
         </thead>
 
         <tbody>
           {sortedGuilds.map((guild) => (
-            <tr
-              key={guild.id}
-              className="border-t border-light-pink/10 transition-colors hover:bg-pink/10"
-            >
-              <td className="border-t border-light-pink/10 px-5 py-4 font-black text-pink">
+            <tr key={guild.id} className="transition-colors hover:bg-pink/10">
+              <td className={twMerge(tdStyle, 'font-black text-pink')}>
                 #{guild.defaultRank}
               </td>
-              <td className="border-t border-light-pink/10 px-5 py-4 text-xl font-bold">
+              <td className={twMerge(tdStyle, 'text-xl font-bold')}>
                 {guild.name}
               </td>
-              <td className="border-t border-light-pink/10 px-5 py-4">
-                {guild._count.members}
-              </td>
-              <td className="border-t border-light-pink/10 px-5 py-4 text-right text-xl font-black text-pink">
+              <td className={tdStyle}>{guild._count.members}</td>
+              <td
+                className={twMerge(
+                  tdStyle,
+                  'text-right text-xl font-black text-blue',
+                )}
+              >
                 {guild.points}
               </td>
-              <td className="border-t border-light-pink/10 px-5 py-4 text-right text-xl font-black text-pink">
+              <td
+                className={twMerge(
+                  tdStyle,
+                  'text-right text-xl font-black text-pink',
+                )}
+              >
                 {guild.avgElo.toFixed(0)}
               </td>
             </tr>
