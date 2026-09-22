@@ -18,7 +18,6 @@ services:
       # Anonymous volume that "masks" the mount above for this one path, keeping
       # the container's Linux-built node_modules instead of the host's
       - /app/node_modules
-    # networks:
   backend:
     container_name: backend
     build:
