@@ -5,6 +5,8 @@ export const publicGuildMemberSelect = {
   guildRole: true,
   createdAt: true,
   updatedAt: true,
+  elo: true,
+  totalPts: true,
 } as const;
 
 export const publicGuildSelect = {
