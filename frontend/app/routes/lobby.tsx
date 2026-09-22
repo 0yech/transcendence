@@ -141,11 +141,6 @@ export default function PreGame({ loaderData }: Route.ComponentProps) {
             </div>
             <div>
               <h2>Users</h2>
-              {/*<ul>
-    {users.map((user) => (
-      <li><UserPopUp user={user} /></li>
-    ))}
-		</ul>*/}
               <DisplayUsers
                 users={users}
                 leaderId={currentLeaderId}
@@ -153,8 +148,6 @@ export default function PreGame({ loaderData }: Route.ComponentProps) {
                 kickingUserId={kickingUserId}
                 onKick={handleKick}
               />
-              {/* <h2>createdAt: {createdAt}</h2> */}
-              {/* <h2>updatedAt: {updatedAt}</h2> */}
             </div>
             <div className="flex gap-4">
               {currentLeaderId === currentUserId && users.length > 1 && (

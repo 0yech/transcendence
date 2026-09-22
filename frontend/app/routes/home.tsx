@@ -1,5 +1,3 @@
-// import { Welcome } from '../pages/welcome';
-// import { useNavigate } from 'react-router';
 import { useState, useEffect, useRef } from 'react';
 import type { Group } from 'three';
 import { NavBar } from '~/components/Navbar';
@@ -10,19 +8,6 @@ import apiFetch from '~/utils/api-fetch';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Card } from '~/components/game/Card';
 import { OrbitControls } from '@react-three/drei';
-
-// export function HomeButton() {
-//   const navigate = useNavigate();
-//   return (
-//     <button
-//       onClick={() => {
-//         navigate('/');
-//       }}
-//     >
-//       Home
-//     </button>
-//   );
-// }
 
 /**
  *

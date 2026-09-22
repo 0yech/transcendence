@@ -22,7 +22,7 @@ export function Game() {
 
   const lobbyCode = getCode();
 
-  // player and
+  // player hand
   const me = gameState?.players.find((p) => p.userId === userId());
   const rawHand = me?.hand;
   const hand = Array.isArray(rawHand) ? rawHand : [];
