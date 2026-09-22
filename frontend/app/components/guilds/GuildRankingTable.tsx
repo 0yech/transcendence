@@ -42,7 +42,10 @@ export function GuildRankingTable({ guilds }: Props) {
                 {guild.points}
               </td>
               <td className="border-t border-light-pink/10 px-5 py-4 text-right text-xl font-black text-pink">
-                {(guild.members.reduce((tmp, member) => tmp + member.elo, 0) / guild.members.length).toFixed(0)}
+                {(
+                  guild.members.reduce((tmp, member) => tmp + member.elo, 0) /
+                  guild.members.length
+                ).toFixed(0)}
               </td>
             </tr>
           ))}
