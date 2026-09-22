@@ -522,11 +522,13 @@ Return the stats of the id and username of the user
       "period": "2026-09-21T23:00:00.000Z",
       "elo": 1000,
       "games": 1,
+      "pointWon": 0
     },
     {
       "period": "2026-09-21T00:00:00.000Z",
       "elo": 980.82222,
       "games": 5,
+      "pointWon": 10
     },
   ],
 }

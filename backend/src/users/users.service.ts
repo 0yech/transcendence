@@ -570,13 +570,15 @@ export class UsersService {
           SELECT
             date_trunc('hour', "GamePlayer"."createdAt") AS period,
             (array_agg("GamePlayer"."elo" ORDER BY "GamePlayer"."createdAt" DESC))[1] AS elo,
+            SUM("GamePlayer"."pointWon")::int AS "pointWon",
             COUNT(*)::int AS games
           FROM "GamePlayer"
           WHERE "GamePlayer"."userId" = ${userId}
             AND "GamePlayer"."createdAt" >= NOW() - INTERVAL '24 hours'
+            AND "GamePlayer"."status" != 'ACTIVE'
           GROUP BY period
           ORDER BY period ASC
-        `
+        `,
       ]);
 
     const winRate =
