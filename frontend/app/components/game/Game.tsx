@@ -67,7 +67,7 @@ export function Game() {
   // end of game navigation
   useEffect(() => {
     if (gameState?.status !== 'FINISHED') return;
-    const id = setTimeout(() => navigate(`/game/${lobbyCode}`), 2000);
+    const id = setTimeout(() => navigate(`/game/${lobbyCode}`), 5000);
     return () => clearTimeout(id);
   }, [gameState?.status, navigate, lobbyCode]);
 
