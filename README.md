@@ -63,15 +63,16 @@ Individual contributors talked with the entire group for every decision, ensurin
 
 ## Technical Stack
 
-- Frontend: React, ThreeJS for 3D
+- Frontend: React, ThreeJS/React Three Fiber/Drei for 3D, GLSL for shaders, Motion for animations
 - Backend: NestJS
 - Database: PostgreSQL with Prisma ORM
 - Tailwind CSS for styling
 - TypeScript throughout the codebase
 
-For the frontend, React was chosen for its sheer amount of documentation, other projects,
-and forum posts. ThreeJS is one of the major 3D-capable libraries, and was thus chosen
-for the 3D environment and shaders.
+For the front end, React was chosen because of its extensive documentation, the many existing projects,
+and the contributions on forums. Three.js is one of the leading libraries supporting 3D, and R3F enables direct integration of Three.js into React.
+GLSL is the shader language used by OpenGL ES, the graphics framework on which Three.js is based.
+Therefore, these technologies were chosen for the 3D environment.
 
 For the backend, NestJS was the perfect choice for us. As it was our first web project,
 having a backend framework providing structure would be a great help, and indeed, it was.
@@ -122,11 +123,11 @@ stellaaash, Miniflint.
 
 > Bonus modules are between parentheses
 
-Total points: 15 mandatory (+ 6 bonus): 21 points
+Total points: 15 mandatory (+ 7 bonus): 22 points
 
 ### 1. Web
 
-Total points: 5 (7)
+Total points: 6 (7)
 
 #### Use a framework for the backend and the frontend (React for frontend, NestJS for backend) - Major +2
 
@@ -208,6 +209,14 @@ Guilds earn points whenever their players score points. A guild ranking is avail
 
 0yech
 
+#### Custom-made design system with reusable components - Minor +1
+
+To maintain a consistent style across pages and avoid rewriting Tailwind code more times than necessary,
+having reusable components such as the navbar, different types of buttons, avatars, the footer, etc.,
+as well as a color palette and design variables, is a real advantage.
+
+tricaducee
+
 ### 6. Gaming
 
 Total points: 6 (8)
@@ -235,11 +244,15 @@ The game logic takes into account multiple players, with a hard limit of 6 playe
 
 0yech, Miniflint
 
-#### (Advanced 3D graphics with Three.js - Major +2)
+#### (Advanced 3D graphics with Three.js/R3F - Major +2)
 
 This shows the game's state in a 3D environment, similar to if you were playing around a table with your friends.
+The game also features animations for discarding and drawing cards, just like in a real card game.
+To play a card, simply click on it and it will be highlighted when you hover over it with the mouse,
+an animation will appear if a card cannot be played.
 
-TODO implementation details
+The background also features advanced 3D effects thanks to a custom GLSL vertex and fragment shader that reacts to the cursor (color),
+which greatly enhances the design and user experience.
 
 tricaducee
 
@@ -296,7 +309,27 @@ unique internal id number, instead.
 
 ### tricaducee
 
-TODO
+Implemented most of the 3D and design system, including:
+- `cards and mascot design`
+- `background vertex and fragment shaders`
+- `design components and variables`
+- `pages frontend`
+- `game 3D`
+
+Ensure that the site is visually appealing and that the user experience is the best it can be.
+
+#### Challenges
+
+Since I joined the project late and had never worked with the front-end technologies used before (my background was exclusively in C/C++), I faced many challenges.
+
+I had to learn a lot on the job (React, Tailwind, R3F, GLSL, Motion, etc.) and didn’t have time to delve deeper into them; I also had to rely on AI, which was very frustrating.
+Furthermore, since the backend was already very far along, I didn’t have time to create the entire design upfront, and the frontend always had to adapt to the existing backend.
+
+Regardless of the time constraints, the amount of new knowledge required for this project is massive in any case.
+
+#### Problems Encountered
+
+How to animate 3D elements with R3F, how to create a 3D card with rounded edges. Understanding how React works with these hooks.
 
 ### Miniflint
 
@@ -340,6 +373,16 @@ Did not encounter many problems in particular with their side of the work, excep
 - [OWASP - Session Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html)
 - [class-validator](https://github.com/typestack/class-validator)
 
+### tricaducee
+
+- [graphicart](https://grafikart.fr/)
+- [tailwind docs](https://tailwindcss.com/docs)
+- [olivier larose](https://www.youtube.com/@olivierlarose1)
+- [motion tuto](https://www.youtube.com/watch?v=9-fO_2xTpgY)
+- [r3f tuto](https://www.youtube.com/watch?v=vTfMjI4rVSI)
+- Lot of youtube tuto
+- Claude for learning hard concept
+
 ### Miniflint
 
 - [react-router](https://reactrouter.com/)
@@ -358,6 +401,12 @@ Used for researching and demytifying Typescript/Nest and other modern web framew
 AI was used to learn the base concepts of the technologies we were learning. It was also used to coach and guide in the implementation of some features, including OAuth and the friends system.
 AI was used to build the code for the avatar upload feature.
 AI was used to prune dead code at the end of the project.
+
+### tricaducee
+
+Learning new concepts, understanding a language’s syntax, debugging certain bugs (rarely), and providing examples of functions.
+The main reason for using AI was a lack of time to build and learn, particularly for the 3D game animations and the creation of 3D cards, which were primarily generated by AI (much to my regret).
+Although the style and reusable components were mostly created by hand, the implementation on a significant portion of the pages was handled by Claude due to time constraints.
 
 ### Miniflint
 
