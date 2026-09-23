@@ -123,11 +123,11 @@ stellaaash, Miniflint.
 
 > Bonus modules are between parentheses
 
-Total points: 15 mandatory (+ 7 bonus): 22 points
+Total points: 17 mandatory (+ 6 bonus): 23 points
 
 ### 1. Web
 
-Total points: 6 (7)
+Total points: 6 (8)
 
 #### Use a framework for the backend and the frontend (React for frontend, NestJS for backend) - Major +2
 
@@ -162,6 +162,14 @@ Using an ORM for interacting with the database simplified things immensely for s
 Prisma was chosen for its simple, declarative system. It allowed us to use types with TypeScript, drastically limiting the error rate during development.
 
 0yech, stellaaash, Miniflint
+
+#### Custom-made design system with reusable components - Minor +1
+
+To maintain a consistent style across pages and avoid rewriting Tailwind code more times than necessary,
+having reusable components such as the navbar, different types of buttons, avatars, the footer, etc.,
+as well as a color palette and design variables, is a real advantage.
+
+tricaducee
 
 ### 2. Accessibility and Internationalization
 
@@ -208,14 +216,6 @@ Allowing users to form teams reinforces the fun part of playing a game, and crea
 Guilds earn points whenever their players score points. A guild ranking is available so players can enjoy competing in pairs. (TODO : edit when elo is finished)
 
 0yech
-
-#### Custom-made design system with reusable components - Minor +1
-
-To maintain a consistent style across pages and avoid rewriting Tailwind code more times than necessary,
-having reusable components such as the navbar, different types of buttons, avatars, the footer, etc.,
-as well as a color palette and design variables, is a real advantage.
-
-tricaducee
 
 ### 6. Gaming
 
