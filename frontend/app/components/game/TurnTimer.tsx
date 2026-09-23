@@ -1,27 +1,25 @@
 import { useEffect, useState } from 'react';
+import { UseWebSocket } from '~/context/UseWebSocket';
 
 const TURN_DURATION_SEC = 45;
 
-// Turn countdown, wound back on every turnNumber change through its key.
 export default function TurnTimer() {
-  const [remainingSeconds, setRemainingSeconds] = useState(TURN_DURATION_SEC);
+  const { gameState } = UseWebSocket();
+  // now is used to trigger a re-render every second
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
-    const interval = window.setInterval(() => {
-      setRemainingSeconds((previous) => {
-        if (previous <= 1) {
-          window.clearInterval(interval);
-          return 0;
-        }
-
-        return previous - 1;
-      });
-    }, 1000);
+    const interval = window.setInterval(() => setNow(Date.now()), 1000);
 
     return () => {
       window.clearInterval(interval);
     };
   }, []);
+
+  const deadline = gameState?.turnDeadline
+    ? Date.parse(gameState.turnDeadline)
+    : now;
+  const remainingSeconds = Math.max(0, Math.ceil((deadline - now) / 1000));
 
   const ratio = remainingSeconds / TURN_DURATION_SEC;
   const urgent = ratio <= 0.25;
