@@ -6,7 +6,9 @@ This document describes the HTTP routes currently exposed by the NestJS backend.
 >
 > All backend routes use the global `/api` prefix.
 >
-> This guide reflects the repository state reviewed on 2026-09-10.
+> Real-time events (live game, lobby chat delivery, presence) go over Socket.IO and are documented in [`WEBSOCKET_ROUTES.md`](WEBSOCKET_ROUTES.md).
+>
+> This guide reflects the repository state reviewed on 2026-09-24.
 
 ## Environments
 
@@ -64,15 +66,36 @@ NestJS global validation is enabled.
 
 ### Common status codes
 
-| Status             | Meaning                                                                    |
-| ------------------ | -------------------------------------------------------------------------- |
-| `200 OK`           | Request succeeded                                                          |
-| `201 Created`      | NestJS default for a successful `POST` without an explicit status override |
-| `400 Bad Request`  | Invalid input, invalid state, or malformed authentication data             |
-| `401 Unauthorized` | Missing, expired, or invalid access token                                  |
-| `403 Forbidden`    | Authenticated user is not allowed to perform the action                    |
-| `404 Not Found`    | Requested lobby, game, guild, invitation, or user was not found            |
-| `409 Conflict`     | Resource already exists or conflicts with current state                    |
+| Status                      | Meaning                                                                    |
+| --------------------------- | -------------------------------------------------------------------------- |
+| `200 OK`                    | Request succeeded                                                          |
+| `201 Created`               | NestJS default for a successful `POST` without an explicit status override |
+| `400 Bad Request`           | Invalid input, invalid state, or malformed authentication data             |
+| `401 Unauthorized`          | Missing, expired, or invalid access token                                  |
+| `403 Forbidden`             | Authenticated user is not allowed to perform the action                    |
+| `404 Not Found`             | Requested lobby, game, guild, invitation, or user was not found            |
+| `409 Conflict`              | Resource already exists or conflicts with current state                    |
+| `500 Internal Server Error` | Unexpected server-side failure                                             |
+
+### Error body
+
+Errors thrown by the services use NestJS's standard shape:
+
+```json
+{
+  "statusCode": 404,
+  "message": "Lobby with code A1B2C3 not found",
+  "error": "Not Found"
+}
+```
+
+Validation errors carry an **array** of messages in `message`, one per broken rule.
+
+A global Prisma exception filter catches database errors that were not translated by a service. It answers `404` for a missing record and `409` for a unique-constraint violation, and `500` for anything else. Its body has no `error` field and never includes the database's own message:
+
+```json
+{ "statusCode": 409, "message": "Conflict" }
+```
 
 > Exact errors can also be raised by service-layer business rules. Keep this section updated when service behavior changes.
 
@@ -82,7 +105,6 @@ NestJS global validation is enabled.
 
 | Method   | Route                                           |           Auth | Purpose                                                         |
 | -------- | ----------------------------------------------- | -------------: | --------------------------------------------------------------- |
-| `GET`    | `/api`                                          |             No | Backend health/basic response                                   |
 | `POST`   | `/api/auth/register`                            |             No | Register a user                                                 |
 | `POST`   | `/api/auth/login`                               |             No | Log in and set auth cookies                                     |
 | `GET`    | `/api/auth/:provider`                           |             No | Start OAuth login (`google`, `github`, `fortytwo`)              |
@@ -91,11 +113,11 @@ NestJS global validation is enabled.
 | `POST`   | `/api/auth/update`                              |            Yes | Update the authenticated user's account, including their avatar |
 | `POST`   | `/api/auth/remove-account`                      |            Yes | Anonymize the authenticated user's account and end the session  |
 | `POST`   | `/api/auth/refresh`                             | Refresh cookie | Issue a new access-token cookie                                 |
-| `GET`    | `/api/auth/me`                                  |            Yes | Return the authenticated user's public profile                  |
+| `GET`    | `/api/auth/me`                                  |       Optional | Return the authenticated user's profile, or `null`              |
 | `GET`    | `/api/users/:id`                                |            Yes | Get a user's identity by id                                     |
-| `GET`    | `/api/users/public/id/:id/stats`                |            Yes | get a user's stats                                              |
 | `GET`    | `/api/users/username/:username`                 |            Yes | Get a user's identity by username                               |
 | `GET`    | `/api/users/public/id/:id`                      |            Yes | Get a user's public profile by id                               |
+| `GET`    | `/api/users/public/id/:id/stats`                |            Yes | Get a user's lifetime stats and last-24h progression            |
 | `GET`    | `/api/users/public/username/:username`          |            Yes | Get a user's public profile by username                         |
 | `GET`    | `/api/users/public/avatar/:id`                  |            Yes | Serve a user's uploaded profile picture                         |
 | `GET`    | `/api/users/friends/me`                         |            Yes | List the authenticated user's friends                           |
@@ -105,11 +127,12 @@ NestJS global validation is enabled.
 | `POST`   | `/api/users/friends/invitations/:id/accept`     |            Yes | Accept a received friend invitation                             |
 | `POST`   | `/api/users/friends/invitations/:id/decline`    |            Yes | Decline a received friend invitation                            |
 | `GET`    | `/api/lobbies`                                  |             No | List active lobbies                                             |
-| `GET`    | `/api/lobbies/:code`                            |             No | Get a lobby by code                                             |
 | `GET`    | `/api/lobbies/me`                               |            Yes | Get the authenticated user's current lobby                      |
+| `GET`    | `/api/lobbies/:code`                            |             No | Get a lobby by code                                             |
 | `POST`   | `/api/lobbies`                                  |            Yes | Create a lobby                                                  |
 | `POST`   | `/api/lobbies/:code/join`                       |            Yes | Join a lobby                                                    |
 | `POST`   | `/api/lobbies/leave`                            |            Yes | Leave the user's current lobby                                  |
+| `POST`   | `/api/lobbies/members/:memberId/kick`           |            Yes | Kick a member from the caller's lobby (leader only)             |
 | `GET`    | `/api/lobbies/:code/messages`                   |            Yes | List a lobby's chat history                                     |
 | `POST`   | `/api/lobbies/:code/messages`                   |            Yes | Post a message to a lobby chat                                  |
 | `GET`    | `/api/games/:gameId/replay`                     |             No | Get a game replay                                               |
@@ -127,24 +150,6 @@ NestJS global validation is enabled.
 | `POST`   | `/api/guilds/members/:memberId/promote`         |            Yes | Promote a member to officer                                     |
 | `POST`   | `/api/guilds/members/:memberId/demote`          |            Yes | Demote an officer to member                                     |
 | `POST`   | `/api/guilds/members/:memberId/transfer`        |            Yes | Transfer guild ownership                                        |
-
----
-
-# Root
-
-## `GET /api`
-
-Checks that the backend is reachable.
-
-**Authentication:** Not required
-
-**Body:** None
-
-**Success response**
-
-```text
-Hello World!
-```
 
 ---
 
@@ -171,7 +176,7 @@ Creates a user account.
 | Field      | Type   | Rules                                   |
 | ---------- | ------ | --------------------------------------- |
 | `email`    | string | Required, valid email, 4–128 characters |
-| `username` | string | Required, maximum 32 characters         |
+| `username` | string | Required, 3–32 characters               |
 | `password` | string | Required, 8–64 characters               |
 
 **Success status:** `200 OK`
@@ -278,27 +283,37 @@ Consumes the provider's response, creates or reuses the matching account, and re
 
 **Success effect:** Sets the `access_token` and `refresh_token` cookies, then redirects to `${FRONTEND_ORIGIN}profile`.
 
-> Failures are not caught, so they render as a JSON error page in the browser window rather than reaching the SPA. Every current failure mode is a `500`: a strategy's `validate()` rejecting a profile without an email or picture, `UsersService.createUsername()` exhausting its suffixes, or a Prisma error.
+**Failure effect:** No cookies are set and the browser is redirected to `${FRONTEND_ORIGIN}login?error=<type>`. The callback never answers with a JSON error, because the browser is off the SPA at that point and nothing would display it.
+
+| `error`              | Cause                                                                                  |
+| -------------------- | -------------------------------------------------------------------------------------- |
+| `BASIC_AUTH`         | The provider's email already belongs to an account registered with a username/password |
+| `DIFFERENT_PROVIDER` | The provider's email already belongs to an account created through another provider    |
+| `MISSING_DATA`       | The provider's response did not carry the data needed to sign in                       |
+| `unknown`            | Anything else, such as the user cancelling on the provider's screen or a server error  |
+
+> An existing account is matched on the provider and the provider's own user id, never on the email alone, so an email match is refused rather than merged into the other account.
 
 ## `GET /api/auth/me`
 
-Returns the public profile of the authenticated user.
+Returns the authenticated user's own profile, or `null` for a visitor who is not logged in. The frontend uses it to find out whether anyone is logged in, so a logged-out visitor is not an error here.
 
-**Authentication:** Required (`access_token` cookie)
+**Authentication:** Optional (`OptionalJwtAuthGuard`)
 
 **Body:** None
 
-**Success response:** Public user object selected by `UsersService.findOnePublic()`.
+**Success status:** `200 OK`
 
-The exact fields are controlled by `backend/src/users/users.select.ts`.
+**Success body:** `null` when neither cookie is present. Otherwise the user's profile, selected by `publicUserSelect` in `backend/src/users/users.select.ts`: the same fields as a public profile (see [`GET /api/users/public/id/:id`](#get-apiuserspublicidid)) plus `email` and `updatedAt`, minus `sentGuildInvitations`.
 
 **Possible errors**
 
 - `400 Bad Request` — the access token verified but its payload carries no `username` claim.
-- `401 Unauthorized` — missing, expired, or invalid access token.
+- `401 Unauthorized` — the access token is expired or invalid.
+- `401 Unauthorized` — there is no access token but there is a `refresh_token` cookie. The session is still alive, so the client is told to refresh rather than being treated as logged out.
 - `401 Unauthorized` — no account answers to the token's username, because the account was deleted (`"User account was deleted."`).
 
-> `JwtAuthGuard` only verifies the token signature, so a deleted account's access token stays valid until it expires (15 minutes, per `signOptions` in `auth.module.ts`). This route rejects it anyway, and `apiFetch` turns that `401` into a refresh attempt that fails too, redirecting the browser to `/login`.
+> The auth guards only verify the token signature, so a deleted account's access token stays valid until it expires (15 minutes, per `signOptions` in `auth.module.ts`). This route rejects it anyway, and `apiFetch` turns that `401` into a refresh attempt that fails too, redirecting the browser to `/login`.
 
 ### Example
 
@@ -391,6 +406,7 @@ Updates the authenticated user's account. Every field is optional; anything omit
 - `400 Bad Request` — DTO validation failed, or the upload is not one of the four allowed image formats.
 - `401 Unauthorized` — missing, expired, or invalid access token.
 - `404 Not Found` — the token is valid but the account has been deleted.
+- `409 Conflict` — the new username or email already belongs to another account. Raised by the global Prisma filter, so the body is `{"statusCode":409,"message":"Conflict"}` and does not say which field clashed.
 - `413 Payload Too Large` — the upload is over 2 MB. Behind nginx this arrives as an HTML error page rather than JSON.
 
 > Omit fields you do not want to change; do **not** send them as empty strings. `multipart/form-data` cannot express `undefined`, and an empty string is a value that fails validation.
@@ -450,11 +466,9 @@ curl -i \
 
 ## `GET /api/users/:id`
 
-Return the username of the id and username of the user
+Returns the minimal identity (`id` and `username`) of a user, looked up by id.
 
 **Authentication:** Required (`access_token` cookie)
-
-> Despite the `public/` in the path, this route is behind `JwtAuthGuard` like the rest of the controller, so a logged-out visitor gets a `401` and a broken image. This matches its `public/id/:id` and `public/username/:username` siblings.
 
 ### Path parameters
 
@@ -466,88 +480,235 @@ Return the username of the id and username of the user
 
 **Success status:** `200 OK`
 
-**Success body:**
-
-| Parameter  | Type   | Description          |
-| ---------- | ------ | -------------------- |
-| `id`       | string | The user's id.       |
-| `username` | string | The user's username. |
-
-**Possible errors**
-
-- `401 Unauthorized` — missing, expired, or invalid access token.
-- `404 Not Found` — the user does not exist or has been deleted. both are identical to not reveal if the user has existed or not
-
-### Example
-
-```bash
-curl -i \
-  -b cookies.txt \
-  "http://localhost:3000/api/users/:id"
-```
-
-## `GET /api/users/public/id/:id/stats`
-
-Return the stats of the id and username of the user
-
-**Authentication:** Required (`access_token` cookie)
-
-> Despite the `public/` in the path, this route is behind `JwtAuthGuard` like the rest of the controller, so a logged-out visitor gets a `401` and a broken image. This matches its `public/id/:id` and `public/username/:username` siblings.
-
-### Path parameters
-
-| Parameter | Type   | Description                     |
-| --------- | ------ | ------------------------------- |
-| `id`      | string | The user's id (not a username). |
-
-**Body:** None
-
-**Success status:** `200 OK`
-
-**Success body:** An json object containing the stats of the player such as winrate, lossrate and hourly elo during the last 24 hours etc
+**Success body**
 
 ```json
 {
-  "gamesPlayed": 28,
-  "wins": 28,
-  "losses": 0,
-  "winRate": 100,
-  "gamesWithPoints": 28,
-  "scoredGameRate": 100,
-  "lastPlayedAt": "2026-09-22T00:01:28.919Z",
-  "hourlyProgression": [
-    {
-      "period": "2026-09-21T23:00:00.000Z",
-      "elo": 1000,
-      "games": 1,
-      "pointWon": 0
-    },
-    {
-      "period": "2026-09-21T00:00:00.000Z",
-      "elo": 980.82222,
-      "games": 5,
-      "pointWon": 10
-    }
-  ]
+  "id": "cmf0x1a2b0000abcd1234efgh",
+  "username": "player1"
 }
 ```
 
 **Possible errors**
 
 - `401 Unauthorized` — missing, expired, or invalid access token.
-- `404 Not Found` — the user does not exist or has been deleted. both are identical to not reveal if the user has existed or not
+- `404 Not Found` — the user does not exist or has been deleted (`"User not found."`). Both cases answer identically, so the route does not reveal whether an id once existed.
+
+### Example
+
+```bash
+curl -i \
+  -b cookies.txt \
+  http://localhost:3000/api/users/<id>
+```
 
 ## `GET /api/users/username/:username`
 
-TODO
+Returns the minimal identity (`id` and `username`) of a user, looked up by username. Use it to turn a name typed by a person into the id that the other routes expect.
+
+**Authentication:** Required (`access_token` cookie)
+
+### Path parameters
+
+| Parameter  | Type   | Description                    |
+| ---------- | ------ | ------------------------------ |
+| `username` | string | Exact username, case-sensitive |
+
+**Body:** None
+
+**Success status:** `200 OK`
+
+**Success body:** Same shape as [`GET /api/users/:id`](#get-apiusersid).
+
+**Possible errors**
+
+- `401 Unauthorized` — missing, expired, or invalid access token.
+- `404 Not Found` — no live user has that username (`"User not found."`). Deleted accounts are treated as absent.
+
+### Example
+
+```bash
+curl -i \
+  -b cookies.txt \
+  http://localhost:3000/api/users/username/player1
+```
 
 ## `GET /api/users/public/id/:id`
 
-TODO
+Returns a user's public profile, looked up by id.
+
+**Authentication:** Required (`access_token` cookie)
+
+> Despite the `public/` in the path, every `/api/users` route is behind `JwtAuthGuard`, so a logged-out visitor gets a `401`. "Public" means the profile holds no private data such as the email address.
+
+### Path parameters
+
+| Parameter | Type   | Description                     |
+| --------- | ------ | ------------------------------- |
+| `id`      | string | The user's id (not a username). |
+
+**Body:** None
+
+**Success status:** `200 OK`
+
+**Success body:** The fields selected by `publicViewUserSelect` in `backend/src/users/users.select.ts`.
+
+```json
+{
+  "id": "cmf0x1a2b0000abcd1234efgh",
+  "username": "player1",
+  "avatarUrl": "/api/users/public/avatar/cmf0x1a2b0000abcd1234efgh?v=1756900000000",
+  "lobbyId": null,
+  "totalPts": 42,
+  "elo": 1012.5,
+  "gamePlayers": [
+    {
+      "id": "cmf0x1a2b0009abcd9999wxyz",
+      "eliminatedAt": null,
+      "eliminatedPosition": null,
+      "pointWon": 6,
+      "game": {
+        "id": "cmf0x1a2b0008abcd8888uvwx",
+        "status": "FINISHED",
+        "winnerId": "cmf0x1a2b0000abcd1234efgh",
+        "createdAt": "2026-09-21T23:10:02.114Z",
+        "startedAt": "2026-09-21T23:10:02.114Z",
+        "finishedAt": "2026-09-21T23:14:40.902Z"
+      }
+    }
+  ],
+  "guildId": "cmf0x1a2b0005abcd5555klmn",
+  "guildRole": "MEMBER",
+  "guild": { "id": "cmf0x1a2b0005abcd5555klmn", "name": "My Guild" },
+  "sentGuildInvitations": [],
+  "createdAt": "2026-09-08T09:11:51.037Z",
+  "deleted": false
+}
+```
+
+> `gamePlayers` is the match history: the user's 20 most recent game entries, newest first.
+
+> `lobbyId` is exposed but the lobby's `code` is not, so a public profile cannot be used to walk into someone's private lobby. Friends get the code through [`GET /api/users/friends/me`](#get-apiusersfriendsme).
+
+**Possible errors**
+
+- `401 Unauthorized` — missing, expired, or invalid access token.
+- `404 Not Found` — no user has that id (`"User not found."`).
+- `404 Not Found` — the account has been deleted (`"User has been deleted."`).
+
+> Unlike the identity routes, the two `404` messages differ, so this route does reveal that a deleted id once existed.
+
+### Example
+
+```bash
+curl -i \
+  -b cookies.txt \
+  http://localhost:3000/api/users/public/id/<id>
+```
+
+## `GET /api/users/public/id/:id/stats`
+
+Returns a user's lifetime game statistics and their Elo progression over the last 24 hours.
+
+**Authentication:** Required (`access_token` cookie)
+
+### Path parameters
+
+| Parameter | Type   | Description                     |
+| --------- | ------ | ------------------------------- |
+| `id`      | string | The user's id (not a username). |
+
+**Body:** None
+
+**Success status:** `200 OK`
+
+**Success body**
+
+```json
+{
+  "gamesPlayed": 28,
+  "wins": 20,
+  "losses": 8,
+  "winRate": 71.4,
+  "gamesWithPoints": 20,
+  "scoredGameRate": 71.4,
+  "lastPlayedAt": "2026-09-22T00:01:28.919Z",
+  "hourlyProgression": [
+    {
+      "period": "2026-09-21T22:00:00.000Z",
+      "elo": 980.82222,
+      "games": 5,
+      "pointWon": 10
+    },
+    {
+      "period": "2026-09-21T23:00:00.000Z",
+      "elo": 1000,
+      "games": 1,
+      "pointWon": 0
+    }
+  ]
+}
+```
+
+| Field               | Description                                                                               |
+| ------------------- | ----------------------------------------------------------------------------------------- |
+| `gamesPlayed`       | Finished games the user took part in                                                      |
+| `wins`              | Finished games in which the user scored at least one point                                |
+| `losses`            | `gamesPlayed - wins`                                                                      |
+| `winRate`           | `wins / gamesPlayed` as a percentage, rounded to one decimal; `0` when no game was played |
+| `gamesWithPoints`   | Same value as `wins`                                                                      |
+| `scoredGameRate`    | Same value as `winRate`                                                                   |
+| `lastPlayedAt`      | When the user's most recent finished game ended, or `null`                                |
+| `hourlyProgression` | One entry per hour of the last 24 hours in which the user finished a game, oldest first   |
+
+Each `hourlyProgression` entry holds the start of the hour (`period`), the user's Elo recorded on their last game in that hour (`elo`), the number of games (`games`), and the points won (`pointWon`). Hours without a game are left out rather than returned as zeros.
+
+> A "win" is any game that earned points, not only a first place, which is why `wins` and `gamesWithPoints` are the same number under two names.
+
+**Possible errors**
+
+- `401 Unauthorized` — missing, expired, or invalid access token.
+- `404 Not Found` — the user does not exist or has been deleted (`"User not found."`). Both cases answer identically.
+
+### Example
+
+```bash
+curl -i \
+  -b cookies.txt \
+  http://localhost:3000/api/users/public/id/<id>/stats
+```
 
 ## `GET /api/users/public/username/:username`
 
-TODO
+Returns a user's public profile, looked up by username.
+
+**Authentication:** Required (`access_token` cookie)
+
+### Path parameters
+
+| Parameter  | Type   | Description                    |
+| ---------- | ------ | ------------------------------ |
+| `username` | string | Exact username, case-sensitive |
+
+**Body:** None
+
+**Success status:** `200 OK`
+
+**Success body:** Same shape as [`GET /api/users/public/id/:id`](#get-apiuserspublicidid).
+
+**Possible errors**
+
+- `401 Unauthorized` — missing, expired, or invalid access token.
+- `404 Not Found` — no user has that username (`"User not found."`).
+- `404 Not Found` — the account has been deleted (`"User has been deleted."`). In practice a deleted account's username has been rewritten to `deleted_user_<id>`, so this only answers a request for that rewritten name.
+
+### Example
+
+```bash
+curl -i \
+  -b cookies.txt \
+  http://localhost:3000/api/users/public/username/player1
+```
 
 ## `GET /api/users/public/avatar/:id`
 
@@ -555,7 +716,7 @@ Returns the raw bytes of a user's uploaded profile picture.
 
 **Authentication:** Required (`access_token` cookie)
 
-> Despite the `public/` in the path, this route is behind `JwtAuthGuard` like the rest of the controller, so a logged-out visitor gets a `401` and a broken image. This matches its `public/id/:id` and `public/username/:username` siblings.
+> Like every `/api/users` route, this one is behind `JwtAuthGuard` despite the `public/` in its path, so a logged-out visitor gets a `401` and a broken image.
 
 ### Path parameters
 
@@ -626,8 +787,9 @@ Returns the authenticated user's friends.
         "private": false,
         "_count": { "users": 2 }
       },
-      "gamePlayers": [],
       "totalPts": 0,
+      "elo": 1000,
+      "gamePlayers": [],
       "guildId": null,
       "guildRole": null,
       "guild": null,
@@ -844,33 +1006,130 @@ curl -i \
 
 # Lobbies
 
+A user is in at most one lobby at a time. Creating or joining a lobby moves the user out of their previous one.
+
+### Lobby object
+
+Every lobby route that returns a lobby uses `publicLobbySelect` from `backend/src/lobbies/lobbies.select.ts`:
+
+```json
+{
+  "id": "cmf0x1a2b0002abcd3456qrst",
+  "code": "A1B2C3",
+  "active": true,
+  "private": false,
+  "leaderId": "cmf0x1a2b0000abcd1234efgh",
+  "createdAt": "2026-09-24T10:00:00.000Z",
+  "updatedAt": "2026-09-24T10:00:00.000Z",
+  "users": [
+    {
+      "id": "cmf0x1a2b0000abcd1234efgh",
+      "username": "player1",
+      "avatarUrl": null,
+      "elo": 1000,
+      "totalPts": 0,
+      "guildRole": "MEMBER",
+      "guild": { "name": "My Guild" }
+    }
+  ],
+  "chat": {
+    "id": "cmf0x1a2b0004abcd4444ghij",
+    "lobbyId": "cmf0x1a2b0002abcd3456qrst",
+    "createdAt": "2026-09-24T10:00:00.000Z",
+    "updatedAt": "2026-09-24T10:00:00.000Z"
+  }
+}
+```
+
+> `code` is six uppercase letters and digits. It is unique among **active** lobbies only, so an old inactive lobby may share a code with a live one. Every lookup by code only considers active lobbies.
+
+### Lifecycle
+
+- The creator becomes the lobby's leader (`leaderId`).
+- When the leader leaves, leadership passes to another member who is still in the lobby.
+- When the last member leaves, the lobby becomes inactive (`active: false`).
+- A background job runs every minute and closes lobbies that are at least 15 minutes old and have had no game start or finish in the last 15 minutes and none in progress. Everyone in them is removed.
+
 ## `GET /api/lobbies`
 
-Returns active lobbies.
+Lists the active **public** lobbies, newest first.
 
 **Authentication:** Not required
 
 **Body:** None
 
-**Success response:** Array of lobby objects returned by `findActiveLobbies()`.
+**Success status:** `200 OK`
+
+**Success body:** An array of [lobby objects](#lobby-object).
+
+> Private lobbies are never listed. They can only be reached by someone who knows their code.
+
+### Example
+
+```bash
+curl -i http://localhost:3000/api/lobbies
+```
+
+## `GET /api/lobbies/me`
+
+Returns the lobby the authenticated user is currently in.
+
+**Authentication:** Required
+
+**Body:** None
+
+**Success status:** `200 OK`
+
+**Success body:** A [lobby object](#lobby-object), or an empty object `{}` when the user is not in a lobby.
+
+> Check for the presence of `id` rather than for `null`: the "no lobby" answer is `{}`, not `null`.
+
+**Possible errors**
+
+- `401 Unauthorized` — missing, expired, or invalid access token.
+- `404 Not Found` — the token is valid but the user no longer exists.
+
+### Example
+
+```bash
+curl -i \
+  -b cookies.txt \
+  http://localhost:3000/api/lobbies/me
+```
 
 ## `GET /api/lobbies/:code`
 
-Returns a lobby by its public code.
+Returns an active lobby by its code.
 
 **Authentication:** Not required
 
 ### Path parameters
 
-| Parameter | Type   | Description            |
-| --------- | ------ | ---------------------- |
-| `code`    | string | Lobby join/public code |
+| Parameter | Type   | Description |
+| --------- | ------ | ----------- |
+| `code`    | string | Lobby code  |
 
-**Success response:** Lobby object returned by `findLobbyByCode()`.
+**Body:** None
+
+**Success status:** `200 OK`
+
+**Success body:** A [lobby object](#lobby-object).
+
+> This route returns private lobbies too. Knowing the code is what grants access to a private lobby, so a caller who has it may see it.
+
+**Possible errors**
+
+- `404 Not Found` — no active lobby has that code (`"Lobby with code <code> not found"`).
+
+### Example
+
+```bash
+curl -i http://localhost:3000/api/lobbies/A1B2C3
+```
 
 ## `POST /api/lobbies`
 
-Creates a lobby owned by the authenticated user.
+Creates a lobby, makes the authenticated user its leader, and moves them into it.
 
 **Authentication:** Required
 
@@ -888,15 +1147,34 @@ Creates a lobby owned by the authenticated user.
 | --------- | ------- | ------------------------------------------------ |
 | `private` | boolean | Optional, `true` or `false`. Defaults to `false` |
 
-**Success response:** Created lobby object.
+**Success status:** `201 Created`
 
-**Possible errors:**
+**Success body:** The new [lobby object](#lobby-object).
+
+**Side effects**
+
+- Creates the lobby's chat.
+- If the user was in another lobby, they leave it, with the usual [lifecycle](#lifecycle) consequences for that lobby.
+
+**Possible errors**
 
 - `400 Bad Request` — DTO validation failed.
+- `401 Unauthorized` — missing, expired, or invalid access token.
+- `404 Not Found` — the token is valid but the user no longer exists.
+
+### Example
+
+```bash
+curl -i \
+  -b cookies.txt \
+  -X POST http://localhost:3000/api/lobbies \
+  -H "Content-Type: application/json" \
+  -d '{ "private": true }'
+```
 
 ## `POST /api/lobbies/:code/join`
 
-Adds the authenticated user to a lobby.
+Moves the authenticated user into a lobby.
 
 **Authentication:** Required
 
@@ -906,7 +1184,28 @@ Adds the authenticated user to a lobby.
 | --------- | ------ | ----------- |
 | `code`    | string | Lobby code  |
 
-**Success response:** Updated/joined lobby state.
+**Body:** None
+
+**Success status:** `201 Created`
+
+**Success body:** The joined [lobby object](#lobby-object), including the caller in `users`.
+
+> Joining the lobby the user is already in succeeds without changing anything.
+
+> There is no player limit and no `private` check here: the code is the only key. A private lobby's code should only be shared with people who are meant to join.
+
+**Possible errors**
+
+- `401 Unauthorized` — missing, expired, or invalid access token.
+- `404 Not Found` — no active lobby has that code, or the user no longer exists.
+
+### Example
+
+```bash
+curl -i \
+  -b cookies.txt \
+  -X POST http://localhost:3000/api/lobbies/A1B2C3/join
+```
 
 ## `POST /api/lobbies/leave`
 
@@ -916,55 +1215,370 @@ Removes the authenticated user from their current lobby.
 
 **Body:** None
 
-**Success response:** Service-defined result from `leaveLobby()`.
+**Success status:** `201 Created`
+
+**Success body**
+
+```json
+{ "success": true }
+```
+
+> Calling it while not in a lobby also succeeds.
+
+**Possible errors**
+
+- `401 Unauthorized` — missing, expired, or invalid access token.
+- `404 Not Found` — the token is valid but the user no longer exists.
+
+### Example
+
+```bash
+curl -i \
+  -b cookies.txt \
+  -X POST http://localhost:3000/api/lobbies/leave
+```
+
+## `POST /api/lobbies/members/:memberId/kick`
+
+Removes a member from the authenticated user's lobby. Only the lobby leader may kick.
+
+**Authentication:** Required
+
+### Path parameters
+
+| Parameter  | Type   | Description            |
+| ---------- | ------ | ---------------------- |
+| `memberId` | string | Id of the user to kick |
+
+**Body:** None
+
+**Success status:** `201 Created`
+
+**Success body:** The updated [lobby object](#lobby-object).
+
+**Side effects**
+
+- The kicked user's lobby chat sockets are disconnected, so they stop receiving the lobby's messages at once.
+
+**Possible errors**
+
+- `400 Bad Request` — the caller targeted themselves (`"You cannot kick yourself"`).
+- `400 Bad Request` — the caller is not in a lobby (`"You are not in a lobby"`).
+- `400 Bad Request` — the target is not in the caller's lobby (`"User is not in your lobby"`).
+- `400 Bad Request` — a game is in progress in the lobby (`"Cannot kick a member while a game is in progress"`).
+- `401 Unauthorized` — missing, expired, or invalid access token.
+- `403 Forbidden` — the caller is not the lobby leader (`"Only the lobby leader can kick members"`).
+- `404 Not Found` — the caller's lobby is no longer active, or the caller or target does not exist.
+
+### Example
+
+```bash
+curl -i \
+  -b cookies.txt \
+  -X POST http://localhost:3000/api/lobbies/members/<memberId>/kick
+```
+
+---
+
+# Lobby chat
+
+Messages are created and read over HTTP. Delivery to the other people in the lobby happens over the chat WebSocket, see [`WEBSOCKET_ROUTES.md`](WEBSOCKET_ROUTES.md).
+
+### Message object
+
+```json
+{
+  "id": "cmf0x1a2b0006abcd6666opqr",
+  "content": "gg",
+  "createdAt": "2026-09-24T10:05:00.000Z",
+  "updatedAt": "2026-09-24T10:05:00.000Z",
+  "author": {
+    "id": "cmf0x1a2b0000abcd1234efgh",
+    "username": "player1",
+    "avatarUrl": null
+  }
+}
+```
+
+## `GET /api/lobbies/:code/messages`
+
+Returns a lobby's full message history, oldest first.
+
+**Authentication:** Required
+
+### Path parameters
+
+| Parameter | Type   | Description |
+| --------- | ------ | ----------- |
+| `code`    | string | Lobby code  |
+
+**Body:** None
+
+**Success status:** `200 OK`
+
+**Success body:** An array of [message objects](#message-object).
+
+> Any logged-in user may read a **public** lobby's chat. A **private** lobby's chat is readable by its members only.
+
+**Possible errors**
+
+- `401 Unauthorized` — missing, expired, or invalid access token.
+- `403 Forbidden` — the lobby is private and the caller is not in it (`"Private lobby chat"`).
+- `404 Not Found` — no active lobby has that code.
+
+### Example
+
+```bash
+curl -i \
+  -b cookies.txt \
+  http://localhost:3000/api/lobbies/A1B2C3/messages
+```
+
+## `POST /api/lobbies/:code/messages`
+
+Posts a message to a lobby's chat. The message is saved first and then broadcast to every socket in the lobby, so nobody receives a message that was not stored.
+
+**Authentication:** Required
+
+### Path parameters
+
+| Parameter | Type   | Description |
+| --------- | ------ | ----------- |
+| `code`    | string | Lobby code  |
+
+**Request body**
+
+```json
+{
+  "content": "gg"
+}
+```
+
+### Validation
+
+| Field     | Type   | Rules                                                               |
+| --------- | ------ | ------------------------------------------------------------------- |
+| `content` | string | Required, 1–500 characters. Trimmed before saving; blank is refused |
+
+**Success status:** `201 Created`
+
+**Success body:** The new [message object](#message-object).
+
+**Possible errors**
+
+- `400 Bad Request` — DTO validation failed, or the content is only whitespace (`"Message content cannot be empty"`).
+- `401 Unauthorized` — missing, expired, or invalid access token.
+- `403 Forbidden` — the caller is not in that lobby (`"You are not part of this lobby"`). Unlike reading, posting always requires membership, even in a public lobby.
+- `404 Not Found` — no active lobby has that code.
+
+### Example
+
+```bash
+curl -i \
+  -b cookies.txt \
+  -X POST http://localhost:3000/api/lobbies/A1B2C3/messages \
+  -H "Content-Type: application/json" \
+  -d '{ "content": "gg" }'
+```
 
 ---
 
 # Games
 
-All game routes were moved to websockets except for the replay GET.
+Games are started and played over the game WebSocket, see [`WEBSOCKET_ROUTES.md`](WEBSOCKET_ROUTES.md). The only HTTP route is the replay of a game that has ended.
 
 ## `GET /api/games/:gameId/replay`
 
-Returns replay information for a game.
+Returns everything needed to replay a finished or cancelled game, action by action.
+
+**Authentication:** Not required
 
 ### Path parameters
 
-| Parameter | Type   | Description                |
-| --------- | ------ | -------------------------- |
-| `gameId`  | string | Persistent game identifier |
+| Parameter | Type   | Description |
+| --------- | ------ | ----------- |
+| `gameId`  | string | Game id     |
 
-**Success response:** Replay data of a finished game.
+**Body:** None
+
+**Success status:** `200 OK`
+
+**Success body**
+
+```json
+{
+  "id": "cmf0x1a2b0008abcd8888uvwx",
+  "lobbyId": "cmf0x1a2b0002abcd3456qrst",
+  "status": "FINISHED",
+  "seedHash": "9f2c…",
+  "total": 99,
+  "winnerId": "cmf0x1a2b0000abcd1234efgh",
+  "players": [
+    {
+      "userId": "cmf0x1a2b0000abcd1234efgh",
+      "seat": 0,
+      "elo": 1012.5,
+      "username": "player1",
+      "avatarUrl": null
+    }
+  ],
+  "actions": [
+    {
+      "type": "CARD_PLAYED",
+      "actorUserId": "cmf0x1a2b0000abcd1234efgh",
+      "sequence": 1,
+      "turnNumber": 1,
+      "payload": {},
+      "createdAt": "2026-09-21T23:10:05.001Z"
+    }
+  ]
+}
+```
+
+| Field      | Description                                                                                                   |
+| ---------- | ------------------------------------------------------------------------------------------------------------- |
+| `status`   | `FINISHED` or `CANCELLED`                                                                                     |
+| `seedHash` | Hash of the deck's shuffle seed. The seed itself is never returned, and neither are the players' hidden hands |
+| `total`    | The running total when the game ended                                                                         |
+| `players`  | Seated players, with the Elo recorded for them in this game                                                   |
+| `actions`  | Every public action in `sequence` order                                                                       |
+
+`actions[].type` is one of `GAME_STARTED`, `CARD_PLAYED`, `FOUR_ONO99_DISCARDED`, `PLAYER_ELIMINATED`, `GAME_FINISHED`. The content of `payload` depends on the type.
+
+> Replays are public: anyone who knows a game's id can read it, logged in or not.
+
+**Possible errors**
+
+- `404 Not Found` — no game has that id (`"Game not found"`).
+- `404 Not Found` — the game is still in progress (`"Finished game <gameId> not found"`).
+
+### Example
+
+```bash
+curl -i http://localhost:3000/api/games/<gameId>/replay
+```
 
 ---
 
 # Guilds
 
+Every guild member has a `guildRole` of `LEADER`, `OFFICER` or `MEMBER`. A guild has exactly one leader.
+
+| Action                 | Leader |   Officer    | Member |
+| ---------------------- | :----: | :----------: | :----: |
+| Rename or delete guild |   ✓    |              |        |
+| Invite a user          |   ✓    |      ✓       |        |
+| Kick a member          |   ✓    | Members only |        |
+| Promote / demote       |   ✓    |              |        |
+| Transfer leadership    |   ✓    |              |        |
+| Leave                  |        |      ✓       |   ✓    |
+
+### Guild object
+
+Routes that return a guild use `publicGuildSelect` from `backend/src/guilds/guilds.select.ts`:
+
+```json
+{
+  "id": "cmf0x1a2b0005abcd5555klmn",
+  "name": "My Guild",
+  "points": 120,
+  "createdAt": "2026-09-10T08:00:00.000Z",
+  "updatedAt": "2026-09-20T08:00:00.000Z",
+  "_count": { "members": 1 },
+  "members": [
+    {
+      "id": "cmf0x1a2b0000abcd1234efgh",
+      "username": "player1",
+      "avatarUrl": null,
+      "guildRole": "LEADER",
+      "createdAt": "2026-09-08T09:11:51.037Z",
+      "updatedAt": "2026-09-20T08:00:00.000Z",
+      "elo": 1012.5,
+      "totalPts": 42
+    }
+  ]
+}
+```
+
+`members` is sorted by username.
+
+### Guild invitation object
+
+```json
+{
+  "id": "cmf0x1a2b0007abcd7777stuv",
+  "status": "PENDING",
+  "createdAt": "2026-09-24T10:00:00.000Z",
+  "updatedAt": "2026-09-24T10:00:00.000Z",
+  "guild": {
+    "id": "cmf0x1a2b0005abcd5555klmn",
+    "name": "My Guild",
+    "points": 120
+  },
+  "sender": {
+    "id": "…",
+    "username": "player1",
+    "avatarUrl": null,
+    "guildRole": "LEADER",
+    "createdAt": "…",
+    "updatedAt": "…",
+    "elo": 1012.5,
+    "totalPts": 42
+  },
+  "receiver": { "id": "…", "username": "player2", "avatarUrl": null }
+}
+```
+
+`status` is one of `PENDING`, `ACCEPTED`, `DECLINED`, `CANCELLED`.
+
 ## `GET /api/guilds`
 
-Lists guilds.
+Lists the 50 guilds with the most points, highest first.
 
 **Authentication:** Not required
 
 **Body:** None
 
-**Success response:** Array of public guild objects.
+**Success status:** `200 OK`
 
-The public fields are selected by `backend/src/guilds/guilds.select.ts`.
+**Success body:** An array of [guild objects](#guild-object).
+
+### Example
+
+```bash
+curl -i http://localhost:3000/api/guilds
+```
 
 ## `GET /api/guilds/me`
 
-Returns the authenticated user's current guild.
+Returns the authenticated user's guild.
 
 **Authentication:** Required
 
 **Body:** None
 
-**Success response:** Guild object or service-defined no-guild result.
+**Success status:** `200 OK`
+
+**Success body:** A [guild object](#guild-object), or an **empty body** when the user is not in a guild.
+
+> The service returns `null` for "no guild", and NestJS sends that as an empty response body, not as the JSON text `null`. Calling `response.json()` on it throws, so read the body as text first, or check `content-length`.
+
+**Possible errors**
+
+- `401 Unauthorized` — missing, expired, or invalid access token.
+- `404 Not Found` — the token is valid but the user no longer exists.
+
+### Example
+
+```bash
+curl -i \
+  -b cookies.txt \
+  http://localhost:3000/api/guilds/me
+```
 
 ## `POST /api/guilds`
 
-Creates a guild.
+Creates a guild with the authenticated user as its leader.
 
 **Authentication:** Required
 
@@ -982,13 +1596,33 @@ Creates a guild.
 | ------ | ------ | ------------------------------------------------------------------------------------ |
 | `name` | string | Required, 3–20 characters after trimming. Letters, numbers, spaces, `_` and `-` only |
 
-**Success response:** Created guild object.
+**Success status:** `201 Created`
+
+**Success body:** The new [guild object](#guild-object).
+
+**Possible errors**
+
+- `400 Bad Request` — DTO validation failed.
+- `400 Bad Request` — the user is already in a guild (`"User is already in a guild"`).
+- `400 Bad Request` — the name is taken (`"Guild name is already taken"`).
+- `401 Unauthorized` — missing, expired, or invalid access token.
+- `404 Not Found` — the token is valid but the user no longer exists.
+
+### Example
+
+```bash
+curl -i \
+  -b cookies.txt \
+  -X POST http://localhost:3000/api/guilds \
+  -H "Content-Type: application/json" \
+  -d '{ "name": "My Guild" }'
+```
 
 ## `POST /api/guilds/rename`
 
 Renames the authenticated user's guild.
 
-**Authentication:** Required
+**Authentication:** Required (guild `LEADER`)
 
 **Request body**
 
@@ -1000,47 +1634,75 @@ Renames the authenticated user's guild.
 
 ### Validation
 
-Same rules as `POST /api/guilds`.
+Same rules as [`POST /api/guilds`](#post-apiguilds).
 
-**Requirements:**
+**Success status:** `201 Created`
 
-- The authenticated user must be the guild `LEADER`.
+**Success body:** The updated [guild object](#guild-object).
 
-**Success response:** Updated guild object.
-
-**Possible errors:**
+**Possible errors**
 
 - `400 Bad Request` — DTO validation failed, the user is not in a guild, or the name is already taken.
-- `403 Forbidden` — authenticated user is not the guild leader.
-- `404 Not Found` — authenticated user was not found.
+- `401 Unauthorized` — missing, expired, or invalid access token.
+- `403 Forbidden` — the user is not the guild leader.
+- `404 Not Found` — the token is valid but the user no longer exists.
 
 ## `POST /api/guilds/leave`
 
-Makes the authenticated user leave their current guild.
+Makes the authenticated user leave their guild.
 
 **Authentication:** Required
 
 **Body:** None
 
-**Success response:** Service-defined leave result.
+**Success status:** `201 Created`
+
+**Success body**
+
+```json
+{ "success": true }
+```
+
+**Possible errors**
+
+- `400 Bad Request` — the user is not in a guild (`"User is not in a guild"`).
+- `400 Bad Request` — the user is the leader (`"Guild leader cannot leave the guild. Delete it instead."`). A leader must delete the guild or transfer leadership first.
+- `401 Unauthorized` — missing, expired, or invalid access token.
+- `404 Not Found` — the token is valid but the user no longer exists.
 
 ## `DELETE /api/guilds`
 
 Deletes the authenticated user's guild.
 
-**Authentication:** Required
+**Authentication:** Required (guild `LEADER`)
 
 **Body:** None
 
-**Typical requirement:** The user must have permission to delete the guild, normally as its owner/leader.
+**Success status:** `200 OK`
 
-**Success response:** Service-defined deletion result.
+**Success body**
+
+```json
+{ "success": true }
+```
+
+**Side effects**
+
+- Every member is removed from the guild.
+- Every invitation to the guild, whatever its status, is deleted.
+
+**Possible errors**
+
+- `400 Bad Request` — the user is not in a guild.
+- `401 Unauthorized` — missing, expired, or invalid access token.
+- `403 Forbidden` — the user is not the guild leader (`"Only the guild leader can delete the guild"`).
+- `404 Not Found` — the token is valid but the user no longer exists.
 
 ## `POST /api/guilds/invitations`
 
 Invites a user to the authenticated user's guild.
 
-**Authentication:** Required
+**Authentication:** Required (guild `LEADER` or `OFFICER`)
 
 **Request body**
 
@@ -1056,21 +1718,40 @@ Invites a user to the authenticated user's guild.
 | ---------- | ------ | --------------------------------------------------- |
 | `username` | string | Required, not blank. Surrounding spaces are trimmed |
 
-**Success response:** Created invitation or service-defined result.
+**Success status:** `201 Created`
+
+**Success body:** The new [guild invitation object](#guild-invitation-object).
+
+**Possible errors**
+
+- `400 Bad Request` — DTO validation failed.
+- `400 Bad Request` — the caller is not in a guild (`"Sender is not in a guild"`).
+- `400 Bad Request` — the caller invited themselves (`"You cannot invite yourself"`).
+- `400 Bad Request` — the target is already in a guild (`"User is already in a guild"`).
+- `400 Bad Request` — the target already has a pending invitation to this guild (`"User already has a pending invitation"`).
+- `401 Unauthorized` — missing, expired, or invalid access token.
+- `403 Forbidden` — the caller is a plain `MEMBER` (`"Only guild leader and officers can invite users"`).
+- `404 Not Found` — no user has that username (`"User <username> not found"`), or the caller no longer exists.
 
 ## `GET /api/guilds/invitations`
 
-Returns guild invitations received by the authenticated user.
+Returns the pending guild invitations **received** by the authenticated user, newest first.
 
 **Authentication:** Required
 
 **Body:** None
 
-**Success response:** Array of invitation objects.
+**Success status:** `200 OK`
+
+**Success body:** An array of [guild invitation objects](#guild-invitation-object), all `PENDING`.
+
+**Possible errors**
+
+- `401 Unauthorized` — missing, expired, or invalid access token.
 
 ## `POST /api/guilds/invitations/:invitationId/accept`
 
-Accepts a guild invitation.
+Accepts a guild invitation. The user joins the guild as a `MEMBER`.
 
 **Authentication:** Required
 
@@ -1078,11 +1759,26 @@ Accepts a guild invitation.
 
 | Parameter      | Type   | Description         |
 | -------------- | ------ | ------------------- |
-| `invitationId` | string | Guild invitation ID |
+| `invitationId` | string | Guild invitation id |
 
 **Body:** None
 
-**Success response:** Updated guild membership or invitation result.
+**Success status:** `201 Created`
+
+**Success body:** The joined [guild object](#guild-object).
+
+**Side effects**
+
+- The invitation becomes `ACCEPTED`.
+- Every other pending guild invitation the user had becomes `CANCELLED`.
+
+**Possible errors**
+
+- `400 Bad Request` — the invitation is no longer pending (`"Invitation is not pending"`).
+- `400 Bad Request` — the user is already in a guild (`"User is already in a guild"`).
+- `401 Unauthorized` — missing, expired, or invalid access token.
+- `403 Forbidden` — the invitation was addressed to someone else (`"This invitation does not belong to this user"`).
+- `404 Not Found` — no invitation has that id (`"Invitation not found"`).
 
 ## `POST /api/guilds/invitations/:invitationId/decline`
 
@@ -1094,113 +1790,126 @@ Declines a guild invitation.
 
 | Parameter      | Type   | Description         |
 | -------------- | ------ | ------------------- |
-| `invitationId` | string | Guild invitation ID |
+| `invitationId` | string | Guild invitation id |
 
 **Body:** None
 
-**Success response:** Updated invitation result.
+**Success status:** `201 Created`
+
+**Success body:** The [guild invitation object](#guild-invitation-object), now `DECLINED`.
+
+**Possible errors**
+
+- `400 Bad Request` — the invitation is no longer pending.
+- `401 Unauthorized` — missing, expired, or invalid access token.
+- `403 Forbidden` — the invitation was addressed to someone else.
+- `404 Not Found` — no invitation has that id.
 
 ## `POST /api/guilds/members/:memberId/kick`
 
 Removes a member from the authenticated user's guild.
 
-**Authentication:** Required
+**Authentication:** Required (guild `LEADER` or `OFFICER`)
 
 ### Path parameters
 
-| Parameter  | Type   | Description              |
-| ---------- | ------ | ------------------------ |
-| `memberId` | string | User/member ID to remove |
+| Parameter  | Type   | Description            |
+| ---------- | ------ | ---------------------- |
+| `memberId` | string | Id of the user to kick |
 
 **Body:** None
 
-**Typical requirement:** The requesting user must have guild-management permission.
+**Success status:** `201 Created`
 
-**Success response:** Updated guild or removal result.
+**Success body:** The updated [guild object](#guild-object).
+
+> The leader can kick officers and members. An officer can kick members only. Nobody can kick the leader.
+
+**Side effects**
+
+- Any guild invitation still pending for the kicked user becomes `CANCELLED`.
+
+**Possible errors**
+
+- `400 Bad Request` — the caller targeted themselves (`"You cannot kick yourself"`).
+- `400 Bad Request` — the caller is not in a guild, or the target is not in the caller's guild.
+- `401 Unauthorized` — missing, expired, or invalid access token.
+- `403 Forbidden` — the caller is a plain `MEMBER`, the target is the leader, or an officer targeted another officer.
+- `404 Not Found` — the target does not exist (`"Member not found"`), or the caller no longer exists.
 
 ## `POST /api/guilds/members/:memberId/promote`
 
-Promotes a guild member to officer.
+Promotes a guild `MEMBER` to `OFFICER`.
 
-**Authentication:** Required
+**Authentication:** Required (guild `LEADER`)
 
 ### Path parameters
 
 | Parameter  | Type   | Description               |
 | ---------- | ------ | ------------------------- |
-| `memberId` | string | User/member ID to promote |
+| `memberId` | string | Id of the user to promote |
 
 **Body:** None
 
-**Requirements:**
+**Success status:** `201 Created`
 
-- The authenticated user must be the guild `LEADER`.
-- The target user must belong to the same guild.
-- The target user must currently be a `MEMBER`.
+**Success body:** The updated [guild object](#guild-object).
 
-**Success response:** Updated guild object.
+**Possible errors**
 
-**Possible errors:**
-
-- `400 Bad Request` — target is not a member or does not belong to the guild.
-- `403 Forbidden` — authenticated user is not the guild leader.
-- `404 Not Found` — target user was not found.
+- `400 Bad Request` — the caller targeted themselves, the target is not in the caller's guild, or the target is not a `MEMBER`.
+- `401 Unauthorized` — missing, expired, or invalid access token.
+- `403 Forbidden` — the caller is not the guild leader.
+- `404 Not Found` — the target does not exist (`"Member not found"`).
 
 ## `POST /api/guilds/members/:memberId/demote`
 
-Demotes a guild officer to member.
+Demotes a guild `OFFICER` to `MEMBER`.
 
-**Authentication:** Required
+**Authentication:** Required (guild `LEADER`)
 
 ### Path parameters
 
 | Parameter  | Type   | Description              |
 | ---------- | ------ | ------------------------ |
-| `memberId` | string | User/member ID to demote |
+| `memberId` | string | Id of the user to demote |
 
 **Body:** None
 
-**Requirements:**
+**Success status:** `201 Created`
 
-- The authenticated user must be the guild `LEADER`.
-- The target user must belong to the same guild.
-- The target user must currently be an `OFFICER`.
+**Success body:** The updated [guild object](#guild-object).
 
-**Success response:** Updated guild object.
+**Possible errors**
 
-**Possible errors:**
-
-- `400 Bad Request` — target is not an officer or does not belong to the guild.
-- `403 Forbidden` — authenticated user is not the guild leader.
-- `404 Not Found` — target user was not found.
+- `400 Bad Request` — the caller targeted themselves, the target is not in the caller's guild, or the target is not an `OFFICER`.
+- `401 Unauthorized` — missing, expired, or invalid access token.
+- `403 Forbidden` — the caller is not the guild leader.
+- `404 Not Found` — the target does not exist (`"Member not found"`).
 
 ## `POST /api/guilds/members/:memberId/transfer`
 
-Transfers guild ownership to another guild member.
+Hands guild leadership to another member. The target becomes `LEADER` and the previous leader becomes `OFFICER`, in one transaction.
 
-The target becomes `LEADER` and the previous leader becomes `OFFICER`.
-
-**Authentication:** Required
+**Authentication:** Required (guild `LEADER`)
 
 ### Path parameters
 
-| Parameter  | Type   | Description                            |
-| ---------- | ------ | -------------------------------------- |
-| `memberId` | string | User/member ID that will become leader |
+| Parameter  | Type   | Description                     |
+| ---------- | ------ | ------------------------------- |
+| `memberId` | string | Id of the user to become leader |
 
 **Body:** None
 
-**Requirements:**
+**Success status:** `201 Created`
 
-- The authenticated user must be the current guild `LEADER`.
-- The target must belong to the same guild.
-- The target must currently be a `MEMBER` or `OFFICER`.
-- A leader cannot transfer ownership to themselves.
+**Success body:** The updated [guild object](#guild-object).
 
-**Success response:** Updated guild object.
+> This is the route a leader has to use before deleting their account, since [`POST /api/auth/remove-account`](#post-apiauthremove-account) refuses a guild leader.
 
-**Possible errors:**
+**Possible errors**
 
-- `400 Bad Request` — invalid target or target does not belong to the guild.
-- `403 Forbidden` — authenticated user is not the guild leader.
-- `404 Not Found` — target user was not found.
+- `400 Bad Request` — the caller targeted themselves, the target is not in the caller's guild, or the target's role changed while the request ran (`"Member can no longer receive guild ownership"`).
+- `401 Unauthorized` — missing, expired, or invalid access token.
+- `403 Forbidden` — the caller is not the guild leader, or stopped being the leader while the request ran (`"You are no longer the guild leader"`).
+- `404 Not Found` — the target does not exist (`"Member not found"`).
