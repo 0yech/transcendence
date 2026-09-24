@@ -53,14 +53,28 @@ export function EloProgressionChart({ progression }: EloProgressionChartProps) {
   });
 
   // 4. Associer vos données aux 24 heures fixes générées
-  const labels = rollingHours.map((h) => h.label);
-  const finalEloData = rollingHours.map(
-    (h) => progressionMap.get(h.timestamp)?.elo ?? null,
-  );
-  const finalPointsData = rollingHours.map(
-    (h) => progressionMap.get(h.timestamp)?.pointWon ?? null,
-  );
+  let lastElo: number | null = null;
+  let lastPts: number | null = null;
 
+  const finalEloData = rollingHours.map((h) => {
+    const point = progressionMap.get(h.timestamp);
+
+    if (point) {
+      lastElo = point.elo;
+    }
+
+    return lastElo;
+  });
+
+  const finalPointsData = rollingHours.map((h) => {
+    const point = progressionMap.get(h.timestamp);
+    if (point) {
+      lastPts = point.elo;
+    }
+    return lastPts;
+  });
+
+const labels = rollingHours.map((h) => h.label);
   const data = {
     labels,
     datasets: [
