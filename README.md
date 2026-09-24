@@ -197,8 +197,10 @@ stellaaash
 
 Since this is a game, allowing users to look back on their performance and see areas of improvement, or people they struggle against, is useful.
 Achievements and progression were implemented using ranks system when you gain points, allowing users to climb the ranks as they score more wins.
-
-TODO implementation details and contributors (TODO : Edit when Elo is finished)
+Match history is simple: all past matches are stored as entries in the database,
+even remembering the individual actions taken by players throughout the course of the match.
+An elo system was added at the end of the project for added progression, granting higher
+points if you beat people with high elo.
 
 0yech, Miniflint
 
@@ -213,7 +215,8 @@ stellaaash
 
 Allowing users to form teams reinforces the fun part of playing a game, and creates healthy competition.
 
-Guilds earn points whenever their players score points. A guild ranking is available so players can enjoy competing in pairs. (TODO : edit when elo is finished)
+Guilds earn points whenever their players score points. A guild ranking is available so players can enjoy competing in groups. Guilds are ranked based on both individual points (same amount earned whenever you win)
+and elo (earned based on your adversaries's elo).
 
 0yech
 
