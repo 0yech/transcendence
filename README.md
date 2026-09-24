@@ -397,7 +397,7 @@ Did not encounter many problems in particular with their side of the work, excep
 
 ### 0yech
 
-Used for researching and demytifying Typescript/Nest and other modern web frameworks concepts, as being not very familiar with webapps besides stock PHP and older PHP MVC frameworks. AI was also used for finding causes behind bugs and adding more robust checks around many cases within backend elements.
+Used for researching and demystifying Typescript/Nest and other modern web frameworks concepts, as being not very familiar with webapps besides stock PHP and older PHP MVC frameworks. AI was also used for finding causes behind bugs and adding more robust checks around many cases within backend elements.
 
 ### stellaaash
 
