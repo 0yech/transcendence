@@ -54,7 +54,7 @@ export function EloProgressionChart({ progression }: EloProgressionChartProps) {
 
   // 4. Associer vos données aux 24 heures fixes générées
   let lastElo: number | null = null;
-  let lastPts: number | null = null;
+  let playedOnce: boolean = false;
 
   const finalEloData = rollingHours.map((h) => {
     const point = progressionMap.get(h.timestamp);
@@ -69,12 +69,22 @@ export function EloProgressionChart({ progression }: EloProgressionChartProps) {
   const finalPointsData = rollingHours.map((h) => {
     const point = progressionMap.get(h.timestamp);
     if (point) {
-      lastPts = point.elo;
+      playedOnce = true;
+      return point.pointWon;
     }
-    return lastPts;
+    return playedOnce ? 0 : null;
   });
 
-const labels = rollingHours.map((h) => h.label);
+  const finalGamesData = rollingHours.map((h) => {
+    const point = progressionMap.get(h.timestamp);
+    if (point) {
+      playedOnce = true;
+      return point.games;
+    }
+    return playedOnce ? 0 : null;
+  });
+
+  const labels = rollingHours.map((h) => h.label);
   const data = {
     labels,
     datasets: [
@@ -135,25 +145,22 @@ const labels = rollingHours.map((h) => h.label);
       tooltip: {
         callbacks: {
           label: (context: TooltipItem<'line'>) => {
-            const hourObj = rollingHours[context.dataIndex];
-            const point = progressionMap.get(hourObj.timestamp);
-
-            if (!point) return '';
-
+            const dataIndex = context.dataIndex;
             if (context.dataset.yAxisID === 'yElo') {
-              return `Elo: ${point.elo}`;
+              const elo = finalEloData[dataIndex];
+              return elo === null ? '' : `Elo: ${elo}`;
             }
-            return `Points won: ${point.pointWon}`;
+            const pointsWon = finalPointsData[dataIndex];
+            return pointsWon === null ? '' : `Points won: ${pointsWon}`;
           },
           afterBody: (items: TooltipItem<'line'>[]) => {
             if (!items.length) return [];
-
-            const hourObj = rollingHours[items[0].dataIndex];
-            const point = progressionMap.get(hourObj.timestamp);
-
-            if (!point) return [];
-
-            return ['', `Games: ${point.games}`];
+            const dataIndex = items[0].dataIndex;
+            const games = finalGamesData[dataIndex];
+            if (games === null) {
+              return [];
+            }
+            return ['', `Games: ${games}`];
           },
         },
       },
