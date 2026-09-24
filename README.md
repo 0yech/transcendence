@@ -404,6 +404,7 @@ Used for researching and demytifying Typescript/Nest and other modern web framew
 AI was used to learn the base concepts of the technologies we were learning. It was also used to coach and guide in the implementation of some features, including OAuth and the friends system.
 AI was used to build the code for the avatar upload feature.
 AI was used to prune dead code at the end of the project.
+AI was used to build documentation for the backend routes. It was not used to build the README.
 
 ### tricaducee
 
